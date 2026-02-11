@@ -3,11 +3,28 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/java/swp-wh/src/java/model/PermissionGroup.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/java/swp-wh/src/java/model/Permission.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/java/swp-wh/src/java/model/Role.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/java/swp-wh/web/index.html</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/java/swp-wh/src/java/context/DBContext.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Permission.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/LocationProduct.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Unit.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/GoodsIssueDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Product.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/InventoryTransaction.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Category.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Warehouse.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/ProductDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/RolePermission.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/SalesOrderDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/PurchaseOrder.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/PermissionGroup.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/GoodsReceiptDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Location.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/GoodsReceipt.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/User.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Supplier.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Customer.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Tax.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/SalesOrder.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/GoodsIssue.java</file>
         </group>
     </open-files>
 </project-private>
