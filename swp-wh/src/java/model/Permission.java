@@ -13,22 +13,67 @@ public class Permission {
     private String name;
     private String url;
     private String description;
-    private PermissionGroup group;
+    private PermissionGroup permissionGroup;
+    private boolean checked;
 
-    public Permission() {}
+    public Permission() {
+    }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public Permission(int id, String name, String url, String description, PermissionGroup permissionGroup) {
+        this.id = id;
+        this.name = name;
+        this.url = url;
+        this.description = description;
+        this.permissionGroup = permissionGroup;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public int getId() {
+        return id;
+    }
 
-    public String getUrl() { return url; }
-    public void setUrl(String url) { this.url = url; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getName() {
+        return name;
+    }
 
-    public PermissionGroup getGroup() { return group; }
-    public void setGroup(PermissionGroup group) { this.group = group; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public PermissionGroup getPermissionGroup() {
+        return permissionGroup;
+    }
+
+    public void setPermissionGroup(PermissionGroup permissionGroup) {
+        this.permissionGroup = permissionGroup;
+    }
+
+    public boolean isChecked() {
+        return checked;
+    }
+
+    public void setChecked(boolean checked) {
+        this.checked = checked;
+    }
+    
+    
 }

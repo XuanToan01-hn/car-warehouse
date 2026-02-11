@@ -14,6 +14,11 @@ public class RolePermission {
     private Permission permission;
 
     public RolePermission() {}
+    
+        public RolePermission(Permission permission, Role role) {
+        this.permission = permission;
+        this.role = role;
+    }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
