@@ -20,7 +20,7 @@ public class User {
     private String phone;
     private String image;
     private boolean male;
-    private Date dateOfBirth;
+    private String dateOfBirth;
     private Role role;
     private Warehouse warehouse;
 
@@ -53,8 +53,16 @@ public class User {
     public boolean isMale() { return male; }
     public void setMale(boolean male) { this.male = male; }
 
-    public Date getDateOfBirth() { return dateOfBirth; }
-    public void setDateOfBirth(Date dateOfBirth) { this.dateOfBirth = dateOfBirth; }
+    public String getDateOfBirth() {
+        return dateOfBirth;
+    }
+
+    public void setDateOfBirth(String dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
+
+
+    
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }

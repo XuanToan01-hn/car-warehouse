@@ -10,12 +10,47 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import model.Location;
+import model.Role;
 import model.User;
 /**
  *
  * @author Asus
  */
 public class UserDAO extends DBContext{
+    
+    public User loginAuth(String email, String password) {
+        String sql = "select * from Users WHERE Email = ? AND Password = ?";
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, email);
+            preparedStatement.setString(2, password);
+            ResultSet resultSet = preparedStatement.executeQuery();
+//            LocationDAO locationDAO = new LocationDAO();
+            while (resultSet.next()) {
+                User user = new User();
+                user.setId(resultSet.getInt("UserId"));
+                user.setFullName(resultSet.getString("FullName"));
+                user.setFullName(resultSet.getString("UserName"));
+                user.setUserCode(resultSet.getString("UserCode")); // Thêm dòng này
+                user.setPhone(resultSet.getString("Phone"));
+                user.setImage(resultSet.getString("Image"));
+                user.setEmail(resultSet.getString("Email"));
+                user.setPassword(resultSet.getString("Password"));
+                user.setMale(resultSet.getBoolean("Male"));
+                user.setDateOfBirth(resultSet.getString("DateOfBirth"));
+//                Location location = locationDAO.getById(resultSet.getInt("LocationID"));
+//                user.setLocation(location);
+                RoleDAO roleService = new RoleDAO();
+                Role role = roleService.getById(resultSet.getInt("RoleId"));
+                user.setRole(role);
+                return user;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
     public List<User> getAll() {
         List<User> list = new ArrayList<>();
         String sql = "SELECT * FROM Users";
@@ -33,7 +68,7 @@ public class UserDAO extends DBContext{
                 u.setPhone(rs.getString("Phone"));
                 u.setImage(rs.getString("Image"));
                 u.setMale(rs.getBoolean("Male"));
-                u.setDateOfBirth(rs.getDate("DateOfBirth"));
+                u.setDateOfBirth(rs.getString("DateOfBirth"));
                 list.add(u);
             }
         } catch (Exception e) {
