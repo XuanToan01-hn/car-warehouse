@@ -1,0 +1,301 @@
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.top-bar>* {
+    flex: 1;
+    text-align: center;
+}
+
+.top-left {
+    text-align: left;
+    box-shadow: none;
+}
+
+.top-right {
+    text-align: right;
+    box-shadow: none;
+}
+
+.status-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+
+.status-group {
+    display: inline-flex;
+    border: 1px solid #33c4f0;
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+.status-item {
+    padding: 6px 20px;
+    cursor: pointer;
+    color: #33c4f0;
+    background-color: #ffffff;
+    border-right: 1px solid #33c4f0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.status-item:last-child {
+    border-right: none;
+}
+
+.status-item.active {
+    background-color: #33c4f0;
+    color: white;
+}
+
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.top-bar>* {
+    flex: 1;
+    text-align: center;
+}
+
+.top-left {
+    text-align: left;
+    box-shadow: none;
+}
+
+.top-right {
+    text-align: right;
+    box-shadow: none;
+}
+
+.status-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+}
+
+.status-group {
+    display: inline-flex;
+    border: 1px solid #33c4f0;
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+.status-item {
+    padding: 6px 20px;
+    cursor: pointer;
+    color: #33c4f0;
+    background-color: #ffffff;
+    border-right: 1px solid #33c4f0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.status-item:last-child {
+    border-right: none;
+}
+
+.status-item.active {
+    background-color: #33c4f0;
+    color: white;
+}
+
+
+/*Delete*/
+.delete-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.delete-content {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 450px;
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    margin-left: 875px;
+    margin-top: 395px;
+}
+
+.confirmation-message {
+    margin-bottom: 20px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.button-d {
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background-color: #ccc;
+    color: #535353;
+}
+
+.delete-button {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.searchbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-input {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-button {
+    background-color: #0e5699;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-button i {
+    margin-right: 4px;
+}
+
+/*Alert*/
+.toast-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    min-width: 280px;
+    max-width: 400px;
+    border-radius: 8px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    animation: slideFadeIn 0.4s ease-out;
+    opacity: 0.95;
+    line-height: 1.4;
+}
+
+#errorToast {
+    background-color: #e74c3c;
+    /* đỏ tươi */
+}
+
+#successToast {
+    background-color: #2ecc71;
+    /* xanh tươi */
+}
+
+@keyframes slideFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 0.95;
+        transform: translateY(0);
+    }
+}
+
+.modal-product {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-product-detail {
+    background: white;
+    width: 900px;
+    margin: 3% auto;
+    padding: 20px;
+    border-radius: 10px;
+    position: relative;
+}
+
+.confim-modal {
+    display: flex;
+}
+
+.confim-modal>a {
+    margin: 0px 10px !important;
+}
+
+.form-filter {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.form-filter>div {
+    display: flex;
+    align-items: end;
+}
+
+.form-filter select {
+    margin-left: 20px;
+}
+
+
+.data-name {
+    white-space: nowrap;
+    /* Không xuống dòng */
+    overflow: hidden;
+    /* Ẩn phần tràn */
+    text-overflow: ellipsis;
+    /* Hiển thị ... khi tràn */
+    max-width: 200px;
+}
+
+.data-des {
+    white-space: nowrap;
+    /* Không xuống dòng */
+    overflow: hidden;
+    /* Ẩn phần tràn */
+    text-overflow: ellipsis;
+    /* Hiển thị ... khi tràn */
+    max-width: 200px;
+}
