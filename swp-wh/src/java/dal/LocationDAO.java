@@ -116,5 +116,18 @@ public class LocationDAO extends DBContext {
         }
         return list;
     }
+
+    /**
+     * Xóa location theo ID.
+     */
+    public void delete(int id) {
+        String sql = "DELETE FROM Location WHERE LocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
 

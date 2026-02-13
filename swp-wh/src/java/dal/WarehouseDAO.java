@@ -35,5 +35,35 @@ public class WarehouseDAO extends DBContext {
         }
         return list;
     }
+
+    /**
+     * Thêm kho mới, dùng cho screen quản lý Warehouse.
+     */
+    public void insert(Warehouse w) {
+        String sql = "INSERT INTO Warehouse (WarehouseCode, WarehouseName, Address, Description) "
+                   + "VALUES (?, ?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, w.getWarehouseCode());
+            ps.setString(2, w.getWarehouseName());
+            ps.setString(3, w.getAddress());
+            ps.setString(4, w.getDescription());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Xóa warehouse theo ID.
+     */
+    public void delete(int id) {
+        String sql = "DELETE FROM Warehouse WHERE WarehouseID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
