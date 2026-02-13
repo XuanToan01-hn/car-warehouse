@@ -24,6 +24,23 @@ public class LocationServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        // Kiểm tra nếu có action=delete
+        String action = request.getParameter("action");
+        if ("delete".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    LocationDAO locationDAO = new LocationDAO();
+                    locationDAO.delete(id);
+                } catch (NumberFormatException e) {
+                    // ignore
+                }
+            }
+            response.sendRedirect(request.getContextPath() + "/locations");
+            return;
+        }
+
         LocationDAO locationDAO = new LocationDAO();
         WarehouseDAO warehouseDAO = new WarehouseDAO();
 
