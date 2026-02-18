@@ -11,6 +11,36 @@
         <!-- CSS giống style đang dùng ở trang login -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
+        <style>
+            /* Bootstrap 4 không có modal-xl, nên custom to hơn */
+            #locationModal .modal-dialog {
+                max-width: 1100px;
+            }
+
+            #locationModal .modal-title {
+                font-size: 1.35rem;
+                font-weight: 700;
+            }
+
+            #locationModal .text-muted.small {
+                font-size: 0.95rem;
+            }
+
+            #locationModal label {
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            #locationModal .form-control {
+                padding: 12px 14px;
+                font-size: 1.05rem;
+            }
+
+            #locationModal .btn {
+                padding: 10px 16px;
+                font-size: 1rem;
+            }
+        </style>
     </head>
     <body>
         <div class="container mt-4">
@@ -25,7 +55,7 @@
 
             <!-- Modal Location -->
             <div class="modal fade" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="locationModalLabel">Add New Location</h5>
