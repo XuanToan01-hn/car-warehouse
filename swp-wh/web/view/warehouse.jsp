@@ -10,6 +10,40 @@
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
+        <style>
+            /* Bootstrap 4 không có modal-xl, nên custom to hơn */
+            #warehouseModal .modal-dialog {
+                max-width: 1100px;
+            }
+
+            #warehouseModal .modal-title {
+                font-size: 1.35rem;
+                font-weight: 700;
+            }
+
+            #warehouseModal .text-muted.small {
+                font-size: 0.95rem;
+            }
+
+            #warehouseModal label {
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            #warehouseModal .form-control {
+                padding: 12px 14px;
+                font-size: 1.05rem;
+            }
+
+            #warehouseModal textarea.form-control {
+                min-height: 120px;
+            }
+
+            #warehouseModal .btn {
+                padding: 10px 16px;
+                font-size: 1rem;
+            }
+        </style>
     </head>
     <body>
         <div class="container mt-4">
@@ -24,7 +58,7 @@
 
             <!-- Modal Warehouse -->
             <div class="modal fade" id="warehouseModal" tabindex="-1" role="dialog" aria-labelledby="warehouseModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="warehouseModalLabel">Add New Warehouse</h5>
