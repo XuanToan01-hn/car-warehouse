@@ -4,7 +4,6 @@
  */
 package controller.user;
 
-import dal.LocationDAO;
 import dal.RoleDAO;
 import dal.UserDAO;
 import java.io.IOException;
