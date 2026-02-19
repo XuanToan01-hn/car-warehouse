@@ -7,11 +7,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Warehouse;
-
-/**
- * DAO đơn giản cho bảng Warehouse,
- * chỉ dùng để phục vụ module Location (lấy danh sách kho).
- */
 public class WarehouseDAO extends DBContext {
 
     public List<Warehouse> getAll() {
@@ -36,9 +31,6 @@ public class WarehouseDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Thêm kho mới, dùng cho screen quản lý Warehouse.
-     */
     public void insert(Warehouse w) {
         String sql = "INSERT INTO Warehouse (WarehouseCode, WarehouseName, Address, Description) "
                    + "VALUES (?, ?, ?, ?)";
@@ -53,9 +45,6 @@ public class WarehouseDAO extends DBContext {
         }
     }
 
-    /**
-     * Xóa warehouse theo ID.
-     */
     public void delete(int id) {
         String sql = "DELETE FROM Warehouse WHERE WarehouseID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

@@ -7,16 +7,8 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Location;
-
-/**
- * DAO đơn giản cho bảng Location.
- * Chỉ dùng JDBC thuần, dễ hiểu.
- */
 public class LocationDAO extends DBContext {
 
-    /**
-     * Lấy tất cả location trong hệ thống.
-     */
     public List<Location> getAll() {
         List<Location> list = new ArrayList<>();
         String sql = "SELECT * FROM Location";
@@ -50,9 +42,6 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Thêm mới một location.
-     */
     public void insert(Location l) {
         String sql = "INSERT INTO Location (WarehouseID, LocationCode, LocationName, ParentLocationID, LocationType, MaxCapacity) "
                    + "VALUES (?, ?, ?, ?, ?, ?)";
@@ -81,9 +70,6 @@ public class LocationDAO extends DBContext {
         }
     }
 
-    /**
-     * Lấy danh sách location theo warehouse.
-     */
     public List<Location> getByWarehouseId(int warehouseId) {
         List<Location> list = new ArrayList<>();
         String sql = "SELECT * FROM Location WHERE WarehouseID = ?";
@@ -117,9 +103,6 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Xóa location theo ID.
-     */
     public void delete(int id) {
         String sql = "DELETE FROM Location WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

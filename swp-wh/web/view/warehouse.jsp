@@ -11,7 +11,6 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
         <style>
-            /* Bootstrap 4 không có modal-xl, nên custom to hơn */
             #warehouseModal .modal-dialog {
                 max-width: 1100px;
             }
@@ -49,14 +48,12 @@
         <div class="container mt-4">
             <h2 class="mb-3">Quản lý Warehouse (kho)</h2>
 
-            <!-- Nút thêm mới -->
             <div class="mb-3">
                 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#warehouseModal">
                     <i class="fas fa-plus"></i> Thêm Warehouse mới
                 </button>
             </div>
 
-            <!-- Modal Warehouse -->
             <div class="modal fade" id="warehouseModal" tabindex="-1" role="dialog" aria-labelledby="warehouseModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
@@ -99,7 +96,6 @@
                 </div>
             </div>
 
-            <!-- Danh sách warehouse -->
             <div class="card">
                 <div class="card-header">
                     Danh sách warehouse
@@ -144,7 +140,6 @@
         <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
         <script>
-            // Focus vào input đầu tiên khi modal mở
             $('#warehouseModal').on('shown.bs.modal', function () {
                 $('#warehouseCode').focus();
             });
