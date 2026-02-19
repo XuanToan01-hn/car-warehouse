@@ -11,12 +11,6 @@ import java.io.IOException;
 import java.util.List;
 import model.Location;
 import model.Warehouse;
-
-/**
- * Servlet đơn giản quản lý Location:
- * - GET: hiển thị form + danh sách location
- * - POST: nhận dữ liệu form và insert vào DB.
- */
 @WebServlet(name = "LocationServlet", urlPatterns = {"/locations"})
 public class LocationServlet extends HttpServlet {
 
@@ -24,7 +18,6 @@ public class LocationServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Kiểm tra nếu có action=delete
         String action = request.getParameter("action");
         if ("delete".equals(action)) {
             String idStr = request.getParameter("id");
@@ -34,7 +27,6 @@ public class LocationServlet extends HttpServlet {
                     LocationDAO locationDAO = new LocationDAO();
                     locationDAO.delete(id);
                 } catch (NumberFormatException e) {
-                    // ignore
                 }
             }
             response.sendRedirect(request.getContextPath() + "/locations");
@@ -57,7 +49,6 @@ public class LocationServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Lấy dữ liệu từ form
         String warehouseIdRaw = request.getParameter("warehouseId");
         String locationCode = request.getParameter("locationCode");
         String locationName = request.getParameter("locationName");
@@ -70,14 +61,12 @@ public class LocationServlet extends HttpServlet {
             int warehouseId = Integer.parseInt(warehouseIdRaw);
             location.setWarehouseId(warehouseId);
         } catch (NumberFormatException e) {
-            // nếu sai thì để 0, DB sẽ báo lỗi -> dễ nhìn ra lỗi nhập
             location.setWarehouseId(0);
         }
 
         location.setLocationCode(locationCode);
         location.setLocationName(locationName);
 
-        // parentLocationId có thể bỏ trống
         if (parentLocationIdRaw != null && !parentLocationIdRaw.trim().isEmpty()) {
             try {
                 location.setParentLocationId(Integer.parseInt(parentLocationIdRaw));
@@ -88,7 +77,6 @@ public class LocationServlet extends HttpServlet {
 
         location.setLocationType(locationType);
 
-        // maxCapacity có thể bỏ trống
         if (maxCapacityRaw != null && !maxCapacityRaw.trim().isEmpty()) {
             try {
                 location.setMaxCapacity(Integer.parseInt(maxCapacityRaw));
@@ -97,11 +85,9 @@ public class LocationServlet extends HttpServlet {
             }
         }
 
-        // Gọi DAO để insert
         LocationDAO locationDAO = new LocationDAO();
         locationDAO.insert(location);
 
-        // Sau khi insert xong thì quay lại trang danh sách
         response.sendRedirect(request.getContextPath() + "/locations");
     }
 }

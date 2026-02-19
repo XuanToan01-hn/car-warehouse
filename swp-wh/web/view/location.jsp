@@ -8,11 +8,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
         <title>Location Management</title>
 
-        <!-- CSS giống style đang dùng ở trang login -->
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
         <style>
-            /* Bootstrap 4 không có modal-xl, nên custom to hơn */
             #locationModal .modal-dialog {
                 max-width: 1100px;
             }
@@ -46,14 +44,12 @@
         <div class="container mt-4">
             <h2 class="mb-3">Quản lý Location (vị trí kho)</h2>
 
-            <!-- Nút thêm mới -->
             <div class="mb-3">
                 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#locationModal">
                     <i class="fas fa-plus"></i> Thêm Location mới
                 </button>
             </div>
 
-            <!-- Modal Location -->
             <div class="modal fade" id="locationModal" tabindex="-1" role="dialog" aria-labelledby="locationModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
@@ -116,7 +112,6 @@
                 </div>
             </div>
 
-            <!-- Bảng danh sách location -->
             <div class="card">
                 <div class="card-header">
                     Danh sách location
@@ -177,7 +172,6 @@
         <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
         <script>
-            // Focus vào input đầu tiên khi modal mở
             $('#locationModal').on('shown.bs.modal', function () {
                 $('#warehouseId').focus();
             });
