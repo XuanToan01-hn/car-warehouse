@@ -22,7 +22,7 @@ import dal.WarehouseDAO;
 import model.Warehouse;
 /**
  *
- * @author LEGION
+
  */
 @WebServlet(name = "UserListServlet", urlPatterns = {"/userlist"})
 public class UserListServlet extends HttpServlet {
@@ -130,21 +130,21 @@ public class UserListServlet extends HttpServlet {
                 listU = userService.getUserByRole(roleId, (page - 1) * pageSize, pageSize);
                 totalUsers = userService.countUsersByRole(roleId);
             } else {
-//                listU = userService.getUserByPage(page, pageSize);
-//                totalUsers = userService.getTotalUserCount();
+                listU = userService.getUserByPage(page, pageSize);
+                totalUsers = userService.getTotalUserCount();
             }
         }
 
-//        int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+        int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
 
         request.setAttribute("keyword", keyword);
         request.setAttribute("roleId", roleId); // giữ lại role đã chọn trên form
         request.setAttribute("currentPage", page);
-//        request.setAttribute("totalPages", totalPages);
-//        request.setAttribute("listUser", listU);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("listUser", listU);
         request.setAttribute("roles", roles);
         request.setAttribute("listWarehouse", wh);
-        request.getRequestDispatcher("view/page-list-users.jsp").forward(request, response);
+        request.getRequestDispatcher("view/user/page-list-users.jsp").forward(request, response);
     }
 
     /**

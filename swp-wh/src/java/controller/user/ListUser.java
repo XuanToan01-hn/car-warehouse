@@ -15,7 +15,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 /**
  *
- * @author Asus
  */
 @WebServlet(name="ListUser", urlPatterns={"/list-user"})
 public class ListUser extends HttpServlet {

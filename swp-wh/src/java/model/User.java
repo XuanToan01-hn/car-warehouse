@@ -19,7 +19,7 @@ public class User {
     private String email;
     private String phone;
     private String image;
-    private boolean male;
+    private int male;
     private String dateOfBirth;
     private Role role;
     private Warehouse warehouse;
@@ -50,8 +50,16 @@ public class User {
     public String getImage() { return image; }
     public void setImage(String image) { this.image = image; }
 
-    public boolean isMale() { return male; }
-    public void setMale(boolean male) { this.male = male; }
+    public int getMale() {
+        return male;
+    }
+
+    public void setMale(int male) {
+        this.male = male;
+    }
+
+
+    
 
     public String getDateOfBirth() {
         return dateOfBirth;
