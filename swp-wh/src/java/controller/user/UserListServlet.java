@@ -18,7 +18,8 @@ import java.util.List;
 import model.Location;
 import model.Role;
 import model.User;
-
+import dal.WarehouseDAO;
+import model.Warehouse;
 /**
  *
  * @author LEGION
@@ -101,8 +102,8 @@ public class UserListServlet extends HttpServlet {
 
         UserDAO userService = new UserDAO();
         RoleDAO roleService = new RoleDAO();
-        LocationDAO locationDAO = new LocationDAO();
-        List<Location> locations = locationDAO.getAll();
+        WarehouseDAO wd = new WarehouseDAO();
+        List<Warehouse> wh = wd.getAll();
         List<Role> roles = roleService.getAll();
         List<User> listU;
         int totalUsers;
@@ -142,7 +143,7 @@ public class UserListServlet extends HttpServlet {
 //        request.setAttribute("totalPages", totalPages);
 //        request.setAttribute("listUser", listU);
         request.setAttribute("roles", roles);
-        request.setAttribute("listWarehouse", locations);
+        request.setAttribute("listWarehouse", wh);
         request.getRequestDispatcher("view/page-list-users.jsp").forward(request, response);
     }
 

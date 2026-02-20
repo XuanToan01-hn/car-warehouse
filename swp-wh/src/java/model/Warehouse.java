@@ -12,6 +12,20 @@ public class Warehouse {
 
     public Warehouse() {}
 
+    public Warehouse(int id) {
+        this.id = id;
+    }
+
+    public Warehouse(String warehouseCode, String warehouseName, String address, String description, Date createdAt) {
+        this.warehouseCode = warehouseCode;
+        this.warehouseName = warehouseName;
+        this.address = address;
+        this.description = description;
+        this.createdAt = createdAt;
+    }
+    
+    
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

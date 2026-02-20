@@ -8,6 +8,29 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Warehouse;
 public class WarehouseDAO extends DBContext {
+    
+    public Warehouse getById(int id) {
+        String sql = "SELECT * FROM Warehouse WHERE WarehouseID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Warehouse w = new Warehouse();
+                w.setId(rs.getInt("WarehouseID"));
+                w.setWarehouseCode(rs.getString("WarehouseCode"));
+                w.setWarehouseName(rs.getString("WarehouseName"));
+                w.setAddress(rs.getString("Address"));
+                w.setDescription(rs.getString("Description"));
+                w.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                return w;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public List<Warehouse> getAll() {
         List<Warehouse> list = new ArrayList<>();

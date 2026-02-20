@@ -13,12 +13,14 @@ import java.util.List;
 import model.Location;
 import model.Role;
 import model.User;
+import model.Warehouse;
+
 /**
  *
  * @author Asus
  */
-public class UserDAO extends DBContext{
-    
+public class UserDAO extends DBContext {
+
     public User loginAuth(String email, String password) {
         String sql = "select * from Users WHERE Email = ? AND Password = ?";
         try {
@@ -51,11 +53,156 @@ public class UserDAO extends DBContext{
         }
         return null;
     }
+
+    public List<User> searchUsers(String keyword, int offset, int limit) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM Users "
+                + "WHERE FullName LIKE ? OR Email LIKE ? OR Phone LIKE ? "
+                + "ORDER BY UserId OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            String likeKeyword = "%" + keyword + "%";
+            ps.setString(1, likeKeyword);
+            ps.setString(2, likeKeyword);
+            ps.setString(3, likeKeyword);
+            ps.setInt(4, offset);
+            ps.setInt(5, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("UserId"));
+                user.setFullName(rs.getString("FullName"));
+                user.setUsername(rs.getString("UserName"));
+                user.setUserCode(rs.getString("UserCode"));
+                user.setPhone(rs.getString("Phone"));
+                user.setImage(rs.getString("Image"));
+                user.setEmail(rs.getString("Email"));
+                user.setPassword(rs.getString("Password"));
+                user.setMale(rs.getBoolean("Male"));
+                user.setDateOfBirth(rs.getString("DateOfBirth"));
+                WarehouseDAO warehouseDAO = new WarehouseDAO();
+                Warehouse warehouse = warehouseDAO.getById(rs.getInt("WarehouseID"));
+                user.setWarehouse(warehouse);
+                RoleDAO roleService = new RoleDAO();
+                Role role = roleService.getById(rs.getInt("RoleId"));
+                user.setRole(role);
+                list.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public List<User> searchUsersWithRole(String keyword, int roleId, int offset, int limit) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM Users WHERE RoleId = ? AND "
+                + "(FullName LIKE ? OR Email LIKE ? OR Phone LIKE ?) "
+                + "ORDER BY UserId OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            String likeKeyword = "%" + keyword + "%";
+            ps.setInt(1, roleId);
+            ps.setString(2, likeKeyword);
+            ps.setString(3, likeKeyword);
+            ps.setString(4, likeKeyword);
+            ps.setInt(5, offset);
+            ps.setInt(6, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("UserId"));
+                user.setFullName(rs.getString("FullName"));
+                user.setUsername(rs.getString("UserName"));
+                user.setUserCode(rs.getString("UserCode"));
+                user.setPhone(rs.getString("Phone"));
+                user.setImage(rs.getString("Image"));
+                user.setEmail(rs.getString("Email"));
+                user.setPassword(rs.getString("Password"));
+                user.setMale(rs.getBoolean("Male"));
+                user.setDateOfBirth(rs.getString("DateOfBirth"));
+                user.setWarehouse(new Warehouse(rs.getInt("WarehouseID")));
+                RoleDAO roleService = new RoleDAO();
+                Role role = roleService.getById(rs.getInt("RoleId"));
+                user.setRole(role);
+                list.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    public List<User> getUserByRole(int roleId, int offset, int limit) {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM Users WHERE RoleId = ? "
+                + "ORDER BY UserId OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            ps.setInt(2, offset);
+            ps.setInt(3, limit);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("UserId"));
+                user.setFullName(rs.getString("FullName"));
+                user.setUsername(rs.getString("UserName"));
+                user.setUserCode(rs.getString("UserCode"));
+                user.setPhone(rs.getString("Phone"));
+                user.setImage(rs.getString("Image"));
+                user.setEmail(rs.getString("Email"));
+                user.setPassword(rs.getString("Password"));
+                user.setMale(rs.getBoolean("Male"));
+                user.setDateOfBirth(rs.getString("DateOfBirth"));
+                user.setWarehouse(new Warehouse(rs.getInt("WarehouseID")));
+                RoleDAO roleService = new RoleDAO();
+                Role role = roleService.getById(rs.getInt("RoleId"));
+                user.setRole(role);
+                list.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    public int countUsersByRole(int roleId) {
+        String sql = "SELECT COUNT(*) FROM Users WHERE RoleId = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, roleId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+    
+    public int countSearchUsers(String keyword) {
+        String sql = "SELECT COUNT(*) FROM Users "
+                + "WHERE FullName LIKE ? OR Email LIKE ? OR Phone LIKE ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            String likeKeyword = "%" + keyword + "%";
+            ps.setString(1, likeKeyword);
+            ps.setString(2, likeKeyword);
+            ps.setString(3, likeKeyword);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public List<User> getAll() {
         List<User> list = new ArrayList<>();
         String sql = "SELECT * FROM Users";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 User u = new User();
@@ -93,6 +240,25 @@ public class UserDAO extends DBContext{
             e.printStackTrace();
         }
         return null;
+    }
+
+    public int countSearchUsersWithRole(String keyword, int roleId) {
+        String sql = "SELECT COUNT(*) FROM Users "
+                + "WHERE RoleId = ? AND (FullName LIKE ? OR Email LIKE ? OR Phone LIKE ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            String likeKeyword = "%" + keyword + "%";
+            ps.setInt(1, roleId);
+            ps.setString(2, likeKeyword);
+            ps.setString(3, likeKeyword);
+            ps.setString(4, likeKeyword);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public void insert(User u) {
