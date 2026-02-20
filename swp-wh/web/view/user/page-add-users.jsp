@@ -33,7 +33,7 @@
         <!-- Wrapper Start -->
         <div class="wrapper">
 
-            <%@ include file="../sidebar.jsp" %>
+
 
             <div class="content-page">
                 <div class="container-fluid add-form-list">
@@ -154,7 +154,7 @@
                                                     <label>Warehouse</label>
                                                     <select name="warehouseId" class="form-control">
                                                         <c:forEach var="w" items="${listWarehouse}">
-                                                            <option value="${w.locationId}" <c:if test="${w.locationId == warehouseId}">selected</c:if>>${w.name}- ${w.address}</option>
+                                                            <option value="${w.id}" <c:if test="${w.id == warehouseId}">selected</c:if>>${w.warehouseName}- ${w.address}</option>
                                                         </c:forEach>
                                                     </select>
                                                     <c:if test="${not empty error_warehouse}">

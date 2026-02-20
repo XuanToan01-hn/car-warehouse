@@ -7,6 +7,7 @@ package controller.user;
 import dal.LocationDAO;
 import dal.RoleDAO;
 import dal.UserDAO;
+import dal.WarehouseDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -26,7 +27,7 @@ import utils.InputValidator;
 
 /**
  *
-
+ *
  */
 @WebServlet(name = "RegisterUserServlet", urlPatterns = {"/registeruser"})
 public class RegisterUserServlet extends HttpServlet {
@@ -80,11 +81,12 @@ public class RegisterUserServlet extends HttpServlet {
             request.setAttribute("success", session.getAttribute("success"));
             session.removeAttribute("success");
         }
-        
+
         RoleDAO roleService = new RoleDAO();
         List<Role> listR = roleService.getAll();
-        LocationDAO locationDAO = new LocationDAO();
-        List<Location> listL = locationDAO.getAll();
+
+        WarehouseDAO w = new WarehouseDAO();
+        List<Warehouse> listL = w.getAll();
         request.setAttribute("listWarehouse", listL);
         request.setAttribute("listR", listR);
         request.getRequestDispatcher("view/user/page-add-users.jsp").forward(request, response);
@@ -101,8 +103,15 @@ public class RegisterUserServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        // 1. Khởi tạo các DAO cần thiết
+        UserDAO userService = new UserDAO();
+        RoleDAO roleService = new RoleDAO();
+        WarehouseDAO warehouseDAO = new WarehouseDAO(); // Dùng thống nhất WarehouseDAO
+
         HttpSession session = request.getSession();
-        
+        boolean hasError = false;
+
+        // 2. Lấy dữ liệu từ Form
         String name = request.getParameter("name");
         String phone = request.getParameter("phone");
         String userCode = request.getParameter("userCode");
@@ -113,85 +122,33 @@ public class RegisterUserServlet extends HttpServlet {
         String roleStr = request.getParameter("role");
         String maleStr = request.getParameter("male");
         String dateOfBirthStr = request.getParameter("dateOfBirth");
-        String locationIdStr = request.getParameter("warehouseId");
-        // Reload role list for JSP
-        LocationDAO locationDAO = new LocationDAO();
-        RoleDAO roleService = new RoleDAO();
-        List<Role> listR = roleService.getAll();
-        List<Location> listL = locationDAO.getAll();
-        request.setAttribute("listWarehouse", listL);
-        request.setAttribute("listR", listR);
-        request.setAttribute("warehouseId", locationIdStr);
-        boolean hasError = false;
+        String warehouseIdStr = request.getParameter("warehouseId");
 
-        // --- Validation ---
-        if (InputValidator.isEmpty(name) || !InputValidator.isValid(name, InputValidator.NAME_USER)) {
-            request.setAttribute("error_name", "Invalid full name!");
+        // 3. Validation logic
+        if (utils.InputValidator.isEmpty(name)) {
+            request.setAttribute("error_name", "Full name is required!");
             hasError = true;
         }
-        
-        if (InputValidator.isEmpty(phone) || !InputValidator.isValid(phone, InputValidator.PHONE_NUMBER)) {
-            request.setAttribute("error_phone", "Invalid phone number!");
+        if (utils.InputValidator.isEmpty(phone) || userService.isPhoneExist(phone)) {
+            request.setAttribute("error_phone", "Phone invalid or already exists!");
             hasError = true;
         }
-        
-        if (InputValidator.isEmpty(userCode) || !InputValidator.isValid(userCode, InputValidator.USER_CODE)) {
-            request.setAttribute("error_userCode", "Invalid employee code!");
-            hasError = true;
-        }
-        
-        if (InputValidator.isEmpty(email) || !InputValidator.isValid(email, InputValidator.EMAIL_REGEX)) {
-            request.setAttribute("error_email", "Invalid email address!");
-            hasError = true;
-        }
-        
-        if (InputValidator.isEmpty(username) || !InputValidator.isValid(username, InputValidator.USERNAME)) {
-            request.setAttribute("error_username", "Invalid username!");
-            hasError = true;
-        }
-        
-        if (!password.equals(confirmPassword)) {
-            request.setAttribute("error_confirmPassword", "Password confirmation does not match!");
-            hasError = true;
-        }
-        
-        if (!InputValidator.isValid(password, InputValidator.PASSWORD)) {
-            request.setAttribute("error_password", "Password must be at least 8 characters and include uppercase, lowercase, digits, and special characters.");
-            hasError = true;
-        }
-        
-        LocalDate dateOfBirth = null;
-        try {
-            dateOfBirth = LocalDate.parse(dateOfBirthStr);
-            if (!InputValidator.isOver18(dateOfBirth)) {
-                request.setAttribute("error_dateOfBirth", "User must be at least 18 years old!");
-                hasError = true;
-            }
-        } catch (Exception e) {
-            request.setAttribute("error_dateOfBirth", "Invalid date of birth!");
-            hasError = true;
-        }
-        
-        UserDAO userService = new UserDAO();
-        
         if (userService.isUserCodeExist(userCode)) {
-            
             request.setAttribute("error_userCode", "Employee code already exists!");
             hasError = true;
         }
-        
-        if (userService.isPhoneExist(phone)) {
-            request.setAttribute("error_phone", "Phone number already exists!");
+        if (!password.equals(confirmPassword)) {
+            request.setAttribute("error_confirmPassword", "Passwords do not match!");
             hasError = true;
         }
-        
-        if (userService.isEmailExist(email)) {
-            request.setAttribute("error_email", "Email address already exists!");
-            hasError = true;
-        }
-        
+
+        // 4. Xử lý khi có lỗi nhập liệu (Validation Fail)
         if (hasError) {
-            // Preserve user input on error
+            // Load lại dữ liệu cho các dropdown
+            request.setAttribute("listR", roleService.getAll());
+            request.setAttribute("listWarehouse", warehouseDAO.getAll());
+
+            // Giữ lại các giá trị user đã nhập (trừ password)
             request.setAttribute("name", name);
             request.setAttribute("phone", phone);
             request.setAttribute("userCode", userCode);
@@ -200,45 +157,49 @@ public class RegisterUserServlet extends HttpServlet {
             request.setAttribute("dateOfBirth", dateOfBirthStr);
             request.setAttribute("role", roleStr);
             request.setAttribute("male", maleStr);
+            request.setAttribute("warehouseId", warehouseIdStr);
+
             request.getRequestDispatcher("view/user/page-add-users.jsp").forward(request, response);
-            return;
+            return; // Dừng tại đây, không chạy xuống dưới
         }
-        
+
+        // 5. Thực hiện Insert vào Database
         try {
             int roleId = Integer.parseInt(roleStr);
             int male = Integer.parseInt(maleStr);
-            int locationId = 0;
-            if (locationIdStr != null && !locationIdStr.isEmpty()) {
-                locationId = Integer.parseInt(locationIdStr);
-            }
-            
-            String encodedPassword = EndCode.toSHA1(password);
-            User user = new User();
+            int warehouseId = (warehouseIdStr != null && !warehouseIdStr.isEmpty()) ? Integer.parseInt(warehouseIdStr) : 0;
+
+            String encodedPassword = utils.EndCode.toSHA1(password);
+
+            model.User user = new model.User();
             user.setFullName(name);
             user.setPhone(phone);
             user.setUserCode(userCode);
             user.setEmail(email);
             user.setUsername(username);
             user.setPassword(encodedPassword);
-            user.setRole(new Role(roleId));
+            user.setRole(new model.Role(roleId));
             user.setMale(male);
-            user.setDateOfBirth(dateOfBirth.toString());
-            user.setWarehouse(new Warehouse(locationId));
+            user.setDateOfBirth(dateOfBirthStr);
+            user.setWarehouse(new model.Warehouse(warehouseId));
+
             boolean success = userService.insert(user);
-            
+
             if (success) {
                 session.setAttribute("success", "User added successfully!");
-                System.out.println("add thành công");
+                response.sendRedirect("registeruser"); // Thành công thì Redirect để tránh trùng lặp dữ liệu khi F5
             } else {
-                session.setAttribute("error", "An error occurred while adding the user.");
+                throw new Exception("Database insert returned false.");
             }
-            
+
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Error processing data!");
+            // Khi crash (Exception), vẫn phải forward về trang cũ và báo lỗi
+            request.setAttribute("error", "System error: " + e.getMessage());
+            request.setAttribute("listR", roleService.getAll());
+            request.setAttribute("listWarehouse", warehouseDAO.getAll());
+            request.getRequestDispatcher("view/user/page-add-users.jsp").forward(request, response);
         }
-        
-        response.sendRedirect("registeruser");
     }
 
     /**

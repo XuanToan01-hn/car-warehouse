@@ -77,6 +77,20 @@ public class UserDAO extends DBContext {
             return false;
         }
     }
+    
+    public boolean updatePasswordByAmdin(int userId, String password) {
+        String sql = "UPDATE Users SET Password = ? WHERE UserId = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, password);
+            st.setInt(2, userId);
+            int rowsAffected = st.executeUpdate(); // trả về số dòng bị ảnh hưởng
+            return rowsAffected > 0; // true nếu update thành công
+        } catch (SQLException e) {
+            System.out.println(e);
+            return false; // có lỗi xảy ra
+        }
+    }
 
     public boolean isEmailExist(String email) {
         String sql = "SELECT 1 FROM Users WHERE Email = ?";
