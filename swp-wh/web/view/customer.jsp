@@ -10,63 +10,231 @@
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/customerManagement.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
         <style>
-            #customerAddModal .modal-dialog,
-            #customerEditModal .modal-dialog {
-                max-width: 640px;
+            body { background-color: var(--light-gray, #f4f5fa); }
+            .customer-page { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
+            .page-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                flex-wrap: wrap;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
             }
-            #customerAddModal .modal-title,
-            #customerEditModal .modal-title {
-                font-size: 1.35rem;
+            .page-title {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.5rem;
                 font-weight: 700;
+                color: var(--gray-dark, #01041b);
+                margin: 0;
             }
-            #customerAddModal label,
-            #customerEditModal label {
+            .page-title .icon-wrap {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                background: linear-gradient(135deg, var(--primary, #32BDEA) 0%, var(--skyblue, #158df7) 100%);
+                color: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+            }
+            .toolbar {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+            }
+            .btn-add-customer {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.6rem 1.25rem;
                 font-weight: 600;
-                margin-bottom: 8px;
+                border-radius: 10px;
+                border: none;
+                background: linear-gradient(135deg, var(--success, #78C091) 0%, #5fb87a 100%);
+                color: #fff;
+                box-shadow: 0 2px 8px rgba(120, 192, 145, 0.4);
             }
-            #customerAddModal .form-control,
-            #customerEditModal .form-control {
-                padding: 10px 12px;
+            .btn-add-customer:hover { color: #fff; opacity: 0.95; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(120, 192, 145, 0.45); }
+            .search-box {
+                position: relative;
+                width: 100%;
+                max-width: 280px;
             }
-            #customerAddModal textarea.form-control,
-            #customerEditModal textarea.form-control {
-                min-height: 80px;
+            .search-box .form-control {
+                padding-left: 2.5rem;
+                border-radius: 10px;
+                border: 1px solid #e2e6ec;
+                height: 42px;
             }
-            .table-actions .btn { margin-right: 4px; }
-            .search-wrap { max-width: 400px; }
+            .search-box .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(50, 189, 234, 0.15); }
+            .search-box .search-icon {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #9ca3af;
+                pointer-events: none;
+            }
+            .search-box .btn-clear {
+                position: absolute;
+                right: 8px;
+                top: 50%;
+                transform: translateY(-50%);
+                padding: 4px 8px;
+                color: #9ca3af;
+                border: none;
+                background: none;
+            }
+            .search-box .btn-clear:hover { color: var(--danger); }
+            .card-customer {
+                border: none;
+                border-radius: 14px;
+                box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+                overflow: hidden;
+            }
+            .card-customer .card-header {
+                background: #fff;
+                border-bottom: 1px solid #eef1f5;
+                padding: 1rem 1.25rem;
+                font-weight: 700;
+                font-size: 1rem;
+                color: var(--gray-dark);
+            }
+            .table-customer {
+                margin: 0;
+            }
+            .table-customer thead th {
+                background: #f8f9fc;
+                color: #4b5563;
+                font-weight: 600;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.02em;
+                padding: 1rem 1rem;
+                border-bottom: 1px solid #eef1f5;
+            }
+            .table-customer tbody td {
+                padding: 1rem;
+                vertical-align: middle;
+                border-bottom: 1px solid #f0f2f5;
+            }
+            .table-customer tbody tr:hover { background-color: #fafbfc; }
+            .table-customer .col-stt { width: 56px; text-align: center; color: #9ca3af; font-weight: 600; }
+            .table-customer .col-code { font-weight: 600; color: var(--gray-dark); }
+            .table-customer .col-name { font-weight: 500; }
+            .table-customer .col-actions { width: 110px; text-align: center; }
+            .btn-action {
+                width: 34px;
+                height: 34px;
+                padding: 0;
+                border-radius: 8px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin: 0 2px;
+                border: 1px solid #e5e7eb;
+                background: #fff;
+                color: #6b7280;
+            }
+            .btn-action:hover { background: #f3f4f6; color: var(--primary); border-color: #d1d5db; }
+            .btn-action.btn-edit:hover { color: var(--skyblue); }
+            .btn-action.btn-delete:hover { color: var(--danger); border-color: #fecaca; background: #fef2f2; }
+            .empty-state {
+                padding: 3rem 1.5rem;
+                text-align: center;
+                color: #9ca3af;
+            }
+            .empty-state .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.5; }
+            .empty-state .empty-text { font-size: 1rem; }
+            /* Modals */
+            .modal-customer .modal-content { border: none; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+            .modal-customer .modal-header {
+                border-bottom: 1px solid #eef1f5;
+                padding: 1.25rem 1.5rem;
+            }
+            .modal-customer .modal-title {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: var(--gray-dark);
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+            .modal-customer .modal-title .title-icon {
+                width: 36px;
+                height: 36px;
+                border-radius: 10px;
+                background: rgba(50, 189, 234, 0.15);
+                color: var(--primary);
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .modal-customer .modal-body { padding: 1.5rem; }
+            .modal-customer .form-group label {
+                font-weight: 600;
+                color: #374151;
+                margin-bottom: 6px;
+            }
+            .modal-customer .form-control {
+                border-radius: 10px;
+                border: 1px solid #e2e6ec;
+                padding: 0.6rem 0.9rem;
+            }
+            .modal-customer .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(50, 189, 234, 0.15); }
+            .modal-customer textarea.form-control { min-height: 82px; resize: vertical; }
+            .modal-customer .modal-footer {
+                border-top: 1px solid #eef1f5;
+                padding: 1rem 1.5rem;
+                gap: 0.5rem;
+            }
+            .modal-customer .btn-primary {
+                border-radius: 10px;
+                padding: 0.5rem 1.25rem;
+                font-weight: 600;
+                border: none;
+                background: linear-gradient(135deg, var(--primary) 0%, var(--skyblue) 100%);
+            }
+            .modal-customer .btn-secondary { border-radius: 10px; }
+            #customerDeleteModal .modal-title .title-icon { background: rgba(224, 141, 180, 0.2); color: var(--danger); }
+            #customerDeleteModal .modal-body .lead { color: #374151; font-size: 1rem; }
         </style>
     </head>
     <body>
-        <div class="container mt-4">
-            <h2 class="mb-3">Quản lý Khách hàng</h2>
-
-            <div class="d-flex flex-wrap align-items-center justify-content-between mb-3 gap-2">
-                <div class="d-flex align-items-center gap-2">
-                    <button type="button" class="btn btn-success" data-toggle="modal" data-target="#customerAddModal">
+        <div class="customer-page">
+            <header class="page-header">
+                <h1 class="page-title">
+                    <span class="icon-wrap"><i class="fas fa-users"></i></span>
+                    Quản lý Khách hàng
+                </h1>
+                <div class="toolbar">
+                    <button type="button" class="btn btn-add-customer" data-toggle="modal" data-target="#customerAddModal">
                         <i class="fas fa-plus"></i> Thêm khách hàng
                     </button>
-                    <div class="input-group search-wrap">
-                        <input type="text" id="searchCustomer" class="form-control" placeholder="Tìm theo mã, tên, SĐT, email...">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button" id="btnClearSearch" title="Xóa bộ lọc">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="searchCustomer" class="form-control" placeholder="Tìm mã, tên, SĐT, email...">
+                        <button type="button" class="btn-clear" id="btnClearSearch" title="Xóa bộ lọc" style="display: none;"><i class="fas fa-times"></i></button>
                     </div>
                 </div>
-            </div>
+            </header>
 
             <!-- Modal Thêm khách hàng -->
-            <div class="modal fade" id="customerAddModal" tabindex="-1" role="dialog" aria-labelledby="customerAddModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
+            <div class="modal fade modal-customer" id="customerAddModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="customerAddModalLabel">Thêm khách hàng</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <h5 class="modal-title">
+                                <span class="title-icon"><i class="fas fa-user-plus"></i></span>
+                                Thêm khách hàng
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
                         </div>
                         <div class="modal-body">
                             <p class="text-muted small mb-3">Nhập thông tin khách hàng mới</p>
@@ -78,12 +246,12 @@
                                 </div>
                                 <div class="form-group">
                                     <label for="addName">Họ tên <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" id="addName" class="form-control" required>
+                                    <input type="text" name="name" id="addName" class="form-control" required placeholder="Nguyễn Văn A">
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6 form-group">
                                         <label for="addPhone">Số điện thoại</label>
-                                        <input type="text" name="phone" id="addPhone" class="form-control" placeholder="VD: 0901234567">
+                                        <input type="text" name="phone" id="addPhone" class="form-control" placeholder="0901234567">
                                     </div>
                                     <div class="col-md-6 form-group">
                                         <label for="addEmail">Email</label>
@@ -94,7 +262,7 @@
                                     <label for="addAddress">Địa chỉ</label>
                                     <textarea name="address" id="addAddress" class="form-control" rows="2" placeholder="Địa chỉ liên hệ"></textarea>
                                 </div>
-                                <div class="modal-footer border-top pt-3 mt-3 px-0 pb-0">
+                                <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
                                     <button type="submit" class="btn btn-primary">Lưu</button>
                                 </div>
@@ -105,14 +273,15 @@
             </div>
 
             <!-- Modal Sửa khách hàng -->
-            <div class="modal fade" id="customerEditModal" tabindex="-1" role="dialog" aria-labelledby="customerEditModalLabel" aria-hidden="true">
-                <div class="modal-dialog" role="document">
+            <div class="modal fade modal-customer" id="customerEditModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="customerEditModalLabel">Cập nhật khách hàng</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <h5 class="modal-title">
+                                <span class="title-icon"><i class="fas fa-user-edit"></i></span>
+                                Cập nhật khách hàng
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
                         </div>
                         <div class="modal-body">
                             <form id="customerEditForm" action="${pageContext.request.contextPath}/customers" method="post">
@@ -140,7 +309,7 @@
                                     <label for="editAddress">Địa chỉ</label>
                                     <textarea name="address" id="editAddress" class="form-control" rows="2"></textarea>
                                 </div>
-                                <div class="modal-footer border-top pt-3 mt-3 px-0 pb-0">
+                                <div class="modal-footer">
                                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
                                     <button type="submit" class="btn btn-primary">Cập nhật</button>
                                 </div>
@@ -151,20 +320,21 @@
             </div>
 
             <!-- Modal Xóa -->
-            <div class="modal fade" id="customerDeleteModal" tabindex="-1" role="dialog" aria-labelledby="customerDeleteModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal fade modal-customer" id="customerDeleteModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content">
                         <div class="modal-header border-0 pb-0">
-                            <h5 class="modal-title" id="customerDeleteModalLabel">Xác nhận xóa</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
+                            <h5 class="modal-title">
+                                <span class="title-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                Xác nhận xóa
+                            </h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
                         </div>
-                        <div class="modal-body pt-0">
-                            <p class="mb-2">Bạn có chắc chắn muốn xóa khách hàng <strong id="deleteCustomerCode"></strong>?</p>
-                            <p class="text-muted small mb-0">Thao tác này không thể hoàn tác.</p>
+                        <div class="modal-body pt-0 text-center">
+                            <p class="lead mb-1">Xóa khách hàng <strong id="deleteCustomerCode"></strong>?</p>
+                            <p class="text-muted small mb-0">Thao tác không thể hoàn tác.</p>
                         </div>
-                        <div class="modal-footer border-top">
+                        <div class="modal-footer border-top justify-content-center">
                             <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
                             <form id="customerDeleteForm" action="${pageContext.request.contextPath}/customers" method="post" class="d-inline">
                                 <input type="hidden" name="action" value="delete">
@@ -177,47 +347,46 @@
             </div>
 
             <!-- Bảng danh sách -->
-            <div class="card">
-                <div class="card-header">
-                    Danh sách khách hàng
-                </div>
+            <div class="card card-customer">
+                <div class="card-header">Danh sách khách hàng</div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-striped mb-0" id="customerTable">
-                            <thead class="thead-light">
+                        <table class="table table-customer" id="customerTable">
+                            <thead>
                                 <tr>
-                                    <th style="width: 50px;">STT</th>
+                                    <th class="col-stt">STT</th>
                                     <th>Mã KH</th>
                                     <th>Họ tên</th>
                                     <th>Số điện thoại</th>
                                     <th>Email</th>
                                     <th>Địa chỉ</th>
-                                    <th style="width: 140px;">Thao tác</th>
+                                    <th class="col-actions">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <c:choose>
                                     <c:when test="${empty customers}">
                                         <tr>
-                                            <td colspan="7" class="text-center text-muted py-4">Chưa có dữ liệu khách hàng.</td>
+                                            <td colspan="7">
+                                                <div class="empty-state">
+                                                    <div class="empty-icon"><i class="fas fa-users"></i></div>
+                                                    <div class="empty-text">Chưa có khách hàng nào. Nhấn <strong>Thêm khách hàng</strong> để tạo mới.</div>
+                                                </div>
+                                            </td>
                                         </tr>
                                     </c:when>
                                     <c:otherwise>
                                         <c:forEach var="c" items="${customers}" varStatus="st">
                                             <tr data-code="${c.customerCode}" data-name="${c.name}" data-phone="${c.phone}" data-email="${c.email}" data-address="${c.address}">
-                                                <td>${st.index + 1}</td>
-                                                <td>${c.customerCode}</td>
-                                                <td>${c.name}</td>
+                                                <td class="col-stt">${st.index + 1}</td>
+                                                <td class="col-code">${c.customerCode}</td>
+                                                <td class="col-name">${c.name}</td>
                                                 <td>${c.phone}</td>
                                                 <td>${c.email}</td>
                                                 <td>${c.address}</td>
-                                                <td class="table-actions">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="${c.id}" data-code="${c.customerCode}" data-name="${c.name}" data-phone="${c.phone}" data-email="${c.email}" data-address="${c.address}" title="Sửa">
-                                                        <i class="fas fa-edit"></i>
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${c.id}" data-code="${c.customerCode}" title="Xóa">
-                                                        <i class="fas fa-trash"></i>
-                                                    </button>
+                                                <td class="col-actions">
+                                                    <button type="button" class="btn btn-action btn-edit" data-id="${c.id}" data-code="${c.customerCode}" data-name="${c.name}" data-phone="${c.phone}" data-email="${c.email}" data-address="${c.address}" title="Sửa"><i class="fas fa-pen"></i></button>
+                                                    <button type="button" class="btn btn-action btn-delete" data-id="${c.id}" data-code="${c.customerCode}" title="Xóa"><i class="fas fa-trash-alt"></i></button>
                                                 </td>
                                             </tr>
                                         </c:forEach>
@@ -236,11 +405,12 @@
         <script>
             (function () {
                 var $search = $('#searchCustomer');
-                var $tbody = $('#customerTable tbody');
+                var $btnClear = $('#btnClearSearch');
                 var $rows = $('#customerTable tbody tr[data-code]');
 
                 function filterRows() {
                     var q = ($search.val() || '').toLowerCase().trim();
+                    $btnClear.toggle(!!q);
                     var stt = 0;
                     $rows.each(function () {
                         if (!q) {
@@ -259,27 +429,27 @@
                 }
 
                 $search.on('input', filterRows);
-                $('#btnClearSearch').on('click', function () {
+                $btnClear.on('click', function () {
                     $search.val('');
                     filterRows();
                     $search.focus();
                 });
 
                 $('#customerTable').on('click', '.btn-edit', function () {
-                    var id = $(this).data('id'), code = $(this).data('code'), name = $(this).data('name');
-                    var phone = $(this).data('phone') || '', email = $(this).data('email') || '', address = $(this).data('address') || '';
-                    $('#editCustomerId').val(id);
-                    $('#editCustomerCode').val(code);
-                    $('#editName').val(name);
-                    $('#editPhone').val(phone);
-                    $('#editEmail').val(email);
-                    $('#editAddress').val(address);
+                    var $t = $(this);
+                    $('#editCustomerId').val($t.data('id'));
+                    $('#editCustomerCode').val($t.data('code'));
+                    $('#editName').val($t.data('name'));
+                    $('#editPhone').val($t.data('phone') || '');
+                    $('#editEmail').val($t.data('email') || '');
+                    $('#editAddress').val($t.data('address') || '');
                     $('#customerEditModal').modal('show');
                 });
 
                 $('#customerTable').on('click', '.btn-delete', function () {
-                    $('#deleteCustomerId').val($(this).data('id'));
-                    $('#deleteCustomerCode').text($(this).data('code'));
+                    var $t = $(this);
+                    $('#deleteCustomerId').val($t.data('id'));
+                    $('#deleteCustomerCode').text($t.data('code'));
                     $('#customerDeleteModal').modal('show');
                 });
 
