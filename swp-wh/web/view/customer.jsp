@@ -152,58 +152,39 @@
             }
             .empty-state .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; opacity: 0.5; }
             .empty-state .empty-text { font-size: 1rem; }
-            /* Modals */
-            .modal-customer .modal-content { border: none; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
-            .modal-customer .modal-header {
-                border-bottom: 1px solid #eef1f5;
-                padding: 1.25rem 1.5rem;
+            /* Modal form - giống warehouse & location */
+            #customerAddModal .modal-dialog,
+            #customerEditModal .modal-dialog {
+                max-width: 1100px;
             }
-            .modal-customer .modal-title {
-                font-size: 1.2rem;
+            #customerAddModal .modal-title,
+            #customerEditModal .modal-title {
+                font-size: 1.35rem;
                 font-weight: 700;
-                color: var(--gray-dark);
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
             }
-            .modal-customer .modal-title .title-icon {
-                width: 36px;
-                height: 36px;
-                border-radius: 10px;
-                background: rgba(50, 189, 234, 0.15);
-                color: var(--primary);
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
+            #customerAddModal .text-muted.small,
+            #customerEditModal .text-muted.small {
+                font-size: 0.95rem;
             }
-            .modal-customer .modal-body { padding: 1.5rem; }
-            .modal-customer .form-group label {
+            #customerAddModal label,
+            #customerEditModal label {
                 font-weight: 600;
-                color: #374151;
-                margin-bottom: 6px;
+                margin-bottom: 8px;
             }
-            .modal-customer .form-control {
-                border-radius: 10px;
-                border: 1px solid #e2e6ec;
-                padding: 0.6rem 0.9rem;
+            #customerAddModal .form-control,
+            #customerEditModal .form-control {
+                padding: 12px 14px;
+                font-size: 1.05rem;
             }
-            .modal-customer .form-control:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(50, 189, 234, 0.15); }
-            .modal-customer textarea.form-control { min-height: 82px; resize: vertical; }
-            .modal-customer .modal-footer {
-                border-top: 1px solid #eef1f5;
-                padding: 1rem 1.5rem;
-                gap: 0.5rem;
+            #customerAddModal textarea.form-control,
+            #customerEditModal textarea.form-control {
+                min-height: 120px;
             }
-            .modal-customer .btn-primary {
-                border-radius: 10px;
-                padding: 0.5rem 1.25rem;
-                font-weight: 600;
-                border: none;
-                background: linear-gradient(135deg, var(--primary) 0%, var(--skyblue) 100%);
+            #customerAddModal .btn,
+            #customerEditModal .btn {
+                padding: 10px 16px;
+                font-size: 1rem;
             }
-            .modal-customer .btn-secondary { border-radius: 10px; }
-            #customerDeleteModal .modal-title .title-icon { background: rgba(224, 141, 180, 0.2); color: var(--danger); }
-            #customerDeleteModal .modal-body .lead { color: #374151; font-size: 1rem; }
         </style>
     </head>
     <body>
@@ -226,44 +207,47 @@
             </header>
 
             <!-- Modal Thêm khách hàng -->
-            <div class="modal fade modal-customer" id="customerAddModal" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
+            <div class="modal fade" id="customerAddModal" tabindex="-1" role="dialog" aria-labelledby="customerAddModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">
-                                <span class="title-icon"><i class="fas fa-user-plus"></i></span>
-                                Thêm khách hàng
-                            </h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                            <h5 class="modal-title" id="customerAddModalLabel">Thêm khách hàng</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
                         <div class="modal-body">
                             <p class="text-muted small mb-3">Nhập thông tin khách hàng mới</p>
                             <form id="customerAddForm" action="${pageContext.request.contextPath}/customers" method="post">
                                 <input type="hidden" name="action" value="add">
-                                <div class="form-group">
-                                    <label for="addCustomerCode">Mã khách hàng <span class="text-danger">*</span></label>
-                                    <input type="text" name="customerCode" id="addCustomerCode" class="form-control" required placeholder="VD: KH001">
-                                </div>
-                                <div class="form-group">
-                                    <label for="addName">Họ tên <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" id="addName" class="form-control" required placeholder="Nguyễn Văn A">
-                                </div>
                                 <div class="row">
-                                    <div class="col-md-6 form-group">
-                                        <label for="addPhone">Số điện thoại</label>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Mã khách hàng</label>
+                                        <input type="text" name="customerCode" id="addCustomerCode" class="form-control" required placeholder="VD: KH001">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Họ tên</label>
+                                        <input type="text" name="name" id="addName" class="form-control" required placeholder="Nguyễn Văn A">
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Số điện thoại</label>
                                         <input type="text" name="phone" id="addPhone" class="form-control" placeholder="0901234567">
                                     </div>
-                                    <div class="col-md-6 form-group">
-                                        <label for="addEmail">Email</label>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label>Email</label>
                                         <input type="email" name="email" id="addEmail" class="form-control" placeholder="email@example.com">
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="addAddress">Địa chỉ</label>
-                                    <textarea name="address" id="addAddress" class="form-control" rows="2" placeholder="Địa chỉ liên hệ"></textarea>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label>Địa chỉ</label>
+                                        <textarea name="address" id="addAddress" class="form-control" rows="3" placeholder="Địa chỉ liên hệ"></textarea>
+                                    </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                <div class="modal-footer" style="border-top: none; padding: 0; margin-top: 20px;">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                                     <button type="submit" class="btn btn-primary">Lưu</button>
                                 </div>
                             </form>
@@ -273,44 +257,48 @@
             </div>
 
             <!-- Modal Sửa khách hàng -->
-            <div class="modal fade modal-customer" id="customerEditModal" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered">
+            <div class="modal fade" id="customerEditModal" tabindex="-1" role="dialog" aria-labelledby="customerEditModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title">
-                                <span class="title-icon"><i class="fas fa-user-edit"></i></span>
-                                Cập nhật khách hàng
-                            </h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                            <h5 class="modal-title" id="customerEditModalLabel">Cập nhật khách hàng</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
                         <div class="modal-body">
+                            <p class="text-muted small mb-3">Chỉnh sửa thông tin khách hàng</p>
                             <form id="customerEditForm" action="${pageContext.request.contextPath}/customers" method="post">
                                 <input type="hidden" name="action" value="update">
                                 <input type="hidden" name="customerId" id="editCustomerId">
-                                <div class="form-group">
-                                    <label for="editCustomerCode">Mã khách hàng <span class="text-danger">*</span></label>
-                                    <input type="text" name="customerCode" id="editCustomerCode" class="form-control" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="editName">Họ tên <span class="text-danger">*</span></label>
-                                    <input type="text" name="name" id="editName" class="form-control" required>
-                                </div>
                                 <div class="row">
-                                    <div class="col-md-6 form-group">
-                                        <label for="editPhone">Số điện thoại</label>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Mã khách hàng</label>
+                                        <input type="text" name="customerCode" id="editCustomerCode" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Họ tên</label>
+                                        <input type="text" name="name" id="editName" class="form-control" required>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label>Số điện thoại</label>
                                         <input type="text" name="phone" id="editPhone" class="form-control">
                                     </div>
-                                    <div class="col-md-6 form-group">
-                                        <label for="editEmail">Email</label>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label>Email</label>
                                         <input type="email" name="email" id="editEmail" class="form-control">
                                     </div>
                                 </div>
-                                <div class="form-group">
-                                    <label for="editAddress">Địa chỉ</label>
-                                    <textarea name="address" id="editAddress" class="form-control" rows="2"></textarea>
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label>Địa chỉ</label>
+                                        <textarea name="address" id="editAddress" class="form-control" rows="3"></textarea>
+                                    </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                                <div class="modal-footer" style="border-top: none; padding: 0; margin-top: 20px;">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                                     <button type="submit" class="btn btn-primary">Cập nhật</button>
                                 </div>
                             </form>
@@ -320,22 +308,18 @@
             </div>
 
             <!-- Modal Xóa -->
-            <div class="modal fade modal-customer" id="customerDeleteModal" tabindex="-1">
-                <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal fade" id="customerDeleteModal" tabindex="-1" role="dialog">
+                <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
-                        <div class="modal-header border-0 pb-0">
-                            <h5 class="modal-title">
-                                <span class="title-icon"><i class="fas fa-exclamation-triangle"></i></span>
-                                Xác nhận xóa
-                            </h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Đóng"><span aria-hidden="true">&times;</span></button>
+                        <div class="modal-header">
+                            <h5 class="modal-title">Xác nhận xóa</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                         </div>
-                        <div class="modal-body pt-0 text-center">
-                            <p class="lead mb-1">Xóa khách hàng <strong id="deleteCustomerCode"></strong>?</p>
-                            <p class="text-muted small mb-0">Thao tác không thể hoàn tác.</p>
+                        <div class="modal-body">
+                            <p class="mb-0">Bạn có chắc chắn muốn xóa khách hàng <strong id="deleteCustomerCode"></strong>?</p>
                         </div>
-                        <div class="modal-footer border-top justify-content-center">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
                             <form id="customerDeleteForm" action="${pageContext.request.contextPath}/customers" method="post" class="d-inline">
                                 <input type="hidden" name="action" value="delete">
                                 <input type="hidden" name="customerId" id="deleteCustomerId">
