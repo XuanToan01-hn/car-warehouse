@@ -241,19 +241,20 @@
 
                 function filterRows() {
                     var q = ($search.val() || '').toLowerCase().trim();
-                    if (!q) {
-                        $rows.show();
-                        $rows.each(function (i) { $(this).find('td:first').text(i + 1); });
-                        return;
-                    }
-                    $rows.each(function (i) {
+                    var stt = 0;
+                    $rows.each(function () {
+                        if (!q) {
+                            $(this).show();
+                            $(this).find('td:first').text(++stt);
+                            return;
+                        }
                         var code = ($(this).data('code') || '').toLowerCase();
                         var name = ($(this).data('name') || '').toLowerCase();
                         var phone = ($(this).data('phone') || '').toLowerCase();
                         var email = ($(this).data('email') || '').toLowerCase();
                         var match = code.indexOf(q) >= 0 || name.indexOf(q) >= 0 || phone.indexOf(q) >= 0 || email.indexOf(q) >= 0;
                         $(this).toggle(match);
-                        if (match) $(this).find('td:first').text(i + 1);
+                        if (match) $(this).find('td:first').text(++stt);
                     });
                 }
 
