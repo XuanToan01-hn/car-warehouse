@@ -1,0 +1,251 @@
+/* custom-modal.css */
+
+.custom-modal {
+    display: none; /* Chỉ để dòng này */
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+.custom-modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 12px;
+    width: 500px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.custom-input-group {
+    margin-bottom: 20px;
+}
+
+.custom-input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 6px;
+}
+
+.custom-input-group input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-sizing: border-box;
+}
+
+.custom-modal-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.custom-modal-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.custom-modal-buttons button[type="submit"] {
+    background-color: #4F46E5;
+    color: white;
+}
+
+.custom-modal-buttons button[type="button"] {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+/* Màu sắc cho từng liên kết hành động */
+.action-link {
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Đổi mật khẩu - màu xanh dương */
+.reset-link {
+    color: #007bff; /* xanh dương */
+}
+.reset-link:hover {
+    color: #0056b3;
+}
+
+/* Chỉnh sửa - màu cam */
+.edit-link {
+    color: #fd7e14; /* cam */
+}
+.edit-link:hover {
+    color: #e65c00;
+}
+
+/* Xóa - màu đỏ */
+.delete-link {
+    color: #dc3545; /* đỏ */
+}
+.delete-link:hover {
+    color: #a71d2a;
+}
+/*Thông báo success và error*/
+.toast-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    min-width: 280px;
+    max-width: 400px;
+    border-radius: 8px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    animation: slideFadeIn 0.4s ease-out;
+    opacity: 0.95;
+    line-height: 1.4;
+}
+
+.toast-message .toast-icon {
+    font-size: 18px;
+}
+
+#errorToast {
+    background-color: #e74c3c; /* đỏ tươi */
+}
+
+#successToast {
+    background-color: #2ecc71; /* xanh tươi */
+}
+
+@keyframes slideFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 0.95;
+        transform: translateY(0);
+    }
+}
+
+/* CSS cho custom-input-group (áp dụng cho cả giới tính và vai trò) */
+.custom-input-group {
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.custom-input-group label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #333;
+}
+
+.custom-input-group select {
+    padding: 8px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #fff;
+    transition: border-color 0.3s ease;
+}
+
+.custom-input-group select:focus {
+    outline: none;
+    border-color: #5a67d8; /* Màu tím đậm */
+    box-shadow: 0 0 0 2px rgba(90, 103, 216, 0.2);
+}
+
+/*Css cho thanh search*/
+
+.searchbox-custom {
+    width: 100%;
+    max-width: 800px;
+    margin-top: 10px;
+}
+
+.search-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-input-custom {
+    flex: 1;
+    padding: 5px 35px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+}
+
+.search-select-custom {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+}
+
+.search-btn-custom {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+/* Container input + icon */
+.search-input-container {
+    position: relative;
+    flex: 1;
+}
+
+
+
+/* Nút tìm kiếm trong input */
+.search-btn-inside {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+    outline: none;
+}
+
+/* Dropdown role */
+.search-select-custom {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    outline: none;
+    min-width: 150px;
+}
