@@ -8,15 +8,114 @@ import java.util.List;
 import model.Product;
 import model.Category;
 import model.Unit;
+import dal.UnitDAO;
 
 public class ProductDAO extends DBContext {
 
     CategoryDAO categoryDAO = new CategoryDAO();
     UnitDAO unitDAO = new UnitDAO();
 
-    // ===============================
-    // GET ALL
-    // ===============================
+
+    
+    public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId, int page, int pageSize) {
+        List<Product> list = new ArrayList<>();
+        CategoryDAO categoryDAO = new CategoryDAO();
+        UnitDAO unitDAO = new UnitDAO();
+        
+        StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        
+        // Search filter
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
+            params.add("%" + search + "%");
+            params.add("%" + search + "%");
+        }
+        
+        // Category filter
+        if (categoryId != null && !categoryId.isEmpty()) {
+            sql.append(" AND CategoryID = ?");
+            params.add(Integer.parseInt(categoryId));
+        }
+        
+        // Unit filter
+        if (unitId != null && !unitId.isEmpty()) {
+            sql.append(" AND UnitID = ?");
+            params.add(Integer.parseInt(unitId));
+        }
+        
+        // Sort by price and required ORDER BY for pagination
+        sql.append(" ORDER BY ");
+        if (sortPrice != null && !sortPrice.isEmpty()) {
+            sql.append("Price ").append(sortPrice.equals("asc") ? "ASC" : "DESC");
+        } else {
+            sql.append("ProductID ASC"); // Default sorting if no price sort specified
+        }
+        
+        // Pagination for SQL Server
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add((page - 1) * pageSize);
+        params.add(pageSize);
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Product(
+                    rs.getInt("ProductID"),
+                    rs.getString("Code"),
+                    rs.getString("Name"),
+                    rs.getDouble("Price"),
+                    rs.getString("Description"),
+                    rs.getString("Image"),
+                    unitDAO.getUnitById(rs.getInt("UnitID")),
+                    categoryDAO.getByID(rs.getInt("CategoryID"))
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+    
+    
+        public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
+            params.add("%" + search + "%");
+            params.add("%" + search + "%");
+        }
+        
+        if (categoryId != null && !categoryId.isEmpty()) {
+            sql.append(" AND CategoryID = ?");
+            params.add(Integer.parseInt(categoryId));
+        }
+        
+        if (unitId != null && !unitId.isEmpty()) {
+            sql.append(" AND UnitID = ?");
+            params.add(Integer.parseInt(unitId));
+        }
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
     public List<Product> getAll() {
 
         List<Product> list = new ArrayList<>();
