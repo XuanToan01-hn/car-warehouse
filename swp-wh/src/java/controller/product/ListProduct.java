@@ -175,7 +175,9 @@ public class ListProduct extends HttpServlet {
                 pageSize = DEFAULT_PAGE_SIZE; // Fallback to default if parsing fails
             }
         }
-
+   
+        
+        //s
         // Get filtered and paginated products
         List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, page, pageSize);
         int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId);
