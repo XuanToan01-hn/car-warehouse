@@ -19,26 +19,45 @@ public class DBContext {
 
     protected Connection connection;
 
+    // public DBContext() {
+    // try {
+    // // Edit URL , username, password to authenticate with your MS SQL Server
+    // String url = "jdbc:sqlserver://localhost:1433;databaseName=swp391_wh";
+    // String username = "sa";
+    // String password = "123";
+    // Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+    // connection = DriverManager.getConnection(url, username, password);
+    // } catch (ClassNotFoundException | SQLException ex) {
+    // System.out.println(ex);
+    // }
+    // }
     public DBContext() {
         try {
-            // Edit URL , username, password to authenticate with your MS SQL Server
-            String url = "jdbc:sqlserver://localhost:1433;databaseName=swp391_wh";
-            String username = "sa";
-            String password = "123";
-            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+            // URL kết nối MySQL
+            String url = "jdbc:mysql://localhost:3306/swp391_wh?useSSL=false&serverTimezone=UTC";
+
+            // Username và password MySQL
+            String username = "root";
+            String password = "admin";
+
+            // Load MySQL Driver
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // Kết nối
             connection = DriverManager.getConnection(url, username, password);
+
         } catch (ClassNotFoundException | SQLException ex) {
-            System.out.println(ex);
+            ex.printStackTrace(); // In full stack trace ra Tomcat log để dễ debug
         }
     }
-    
+
     public static void main(String[] args) {
-    DBContext db = new DBContext();
-    if (db.connection != null) {
-        System.out.println("Kết nối SQL Server thành công!");
-    } else {
-        System.out.println("Kết nối thất bại!");
+        DBContext db = new DBContext();
+        if (db.connection != null) {
+            System.out.println("Kết nối SQL Server thành công!");
+        } else {
+            System.out.println("Kết nối thất bại!");
+        }
     }
-}
 
 }
