@@ -19,6 +19,8 @@ public class SalesOrder {
     private double totalAmount;
     private String note;
     private User createBy;
+    private int orderedQty;
+    private int deliveredQty;
 
     public SalesOrder() {}
 
@@ -45,4 +47,10 @@ public class SalesOrder {
 
     public User getCreateBy() { return createBy; }
     public void setCreateBy(User createBy) { this.createBy = createBy; }
+
+    public int getOrderedQty() { return orderedQty; }
+    public void setOrderedQty(int orderedQty) { this.orderedQty = orderedQty; }
+
+    public int getDeliveredQty() { return deliveredQty; }
+    public void setDeliveredQty(int deliveredQty) { this.deliveredQty = deliveredQty; }
 }
