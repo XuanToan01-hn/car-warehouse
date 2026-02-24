@@ -13,9 +13,10 @@
             <div class="content-page">
                 <div class="container-fluid">
                     <div class="card">
-                        <div class="card-header"><h4>Add New Product</h4></div>
+                        <div class="card-header"><h4>Add New Product (via Image Link)</h4></div>
                         <div class="card-body">
-                            <form action="add-product" method="post" enctype="multipart/form-data">
+                            <%-- BỎ enctype="multipart/form-data" --%>
+                            <form action="add-product" method="post">
                                 <div class="row">
                                     <div class="col-md-12 form-group">
                                         <label>Product Name * <span style="color:red">${eName}</span></label>
@@ -38,13 +39,17 @@
                                         </select>
                                     </div>
                                     <div class="col-md-6 form-group">
-                                        <label>Quantity * <span style="color:red">${eQuantity}</span></label>
-                                        <input type="number" name="quantity" value="${uQuantity}" class="form-control" min="0" required>
+                                        <label>Unit</label>
+                                        <select name="unit" class="form-control">
+                                            <c:forEach items="${listUnit}" var="unit">
+                                                <option ${unitS == unit.id ? 'selected' : ''} value="${unit.id}">${unit.name}</option>
+                                            </c:forEach>
+                                        </select>
                                     </div>
                                     <div class="col-md-12 form-group">
-                                        <label>Ảnh sản phẩm (tải từ thiết bị)</label>
-                                        <input type="file" name="image" class="form-control" accept="image/*">
-                                        <small class="text-muted">Định dạng: JPG, PNG, GIF, WebP. Để trống nếu không đổi ảnh.</small>
+                                        <label>Image URL *</label>
+                                        <%-- ĐỔI THÀNH INPUT TEXT --%>
+                                        <input type="text" name="image" value="${uImage}" class="form-control" placeholder="Paste image link here (e.g., https://example.com/image.jpg)">
                                     </div>
                                     <div class="col-md-12 form-group">
                                         <label>Description</label>

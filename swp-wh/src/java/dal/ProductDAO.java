@@ -1,21 +1,26 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dal;
 
-/**
- *
- * @author Asus
- */
-public class ProductDAO {
+import context.DBContext;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+import model.Product;
+import model.Category;
+import model.Unit;
+import dal.UnitDAO;
+
+public class ProductDAO extends DBContext {
+
+    CategoryDAO categoryDAO = new CategoryDAO();
+    UnitDAO unitDAO = new UnitDAO();
+
+
     
-<<<<<<< Updated upstream
-}
-=======
-    public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, int page, int pageSize) {
+    public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         CategoryDAO categoryDAO = new CategoryDAO();
+        UnitDAO unitDAO = new UnitDAO();
         
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
@@ -31,6 +36,12 @@ public class ProductDAO {
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
+        }
+        
+        // Unit filter
+        if (unitId != null && !unitId.isEmpty()) {
+            sql.append(" AND UnitID = ?");
+            params.add(Integer.parseInt(unitId));
         }
         
         // Sort by price and required ORDER BY for pagination
@@ -53,16 +64,16 @@ public class ProductDAO {
             }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Product p = new Product();
-                p.setId(rs.getInt("ProductID"));
-                p.setCode(rs.getString("Code"));
-                p.setName(rs.getString("Name"));
-                p.setPrice(rs.getDouble("Price"));
-                p.setDescription(rs.getString("Description"));
-                p.setImage(rs.getString("Image"));
-                p.setMinStock(rs.getInt("MinStock"));
-                p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-                list.add(p);
+                list.add(new Product(
+                    rs.getInt("ProductID"),
+                    rs.getString("Code"),
+                    rs.getString("Name"),
+                    rs.getDouble("Price"),
+                    rs.getString("Description"),
+                    rs.getString("Image"),
+                    unitDAO.getUnitById(rs.getInt("UnitID")),
+                    categoryDAO.getByID(rs.getInt("CategoryID"))
+                ));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -71,7 +82,7 @@ public class ProductDAO {
     }
     
     
-        public int getTotalFilteredProducts(String search, String categoryId) {
+        public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
         
@@ -84,6 +95,11 @@ public class ProductDAO {
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
+        }
+        
+        if (unitId != null && !unitId.isEmpty()) {
+            sql.append(" AND UnitID = ?");
+            params.add(Integer.parseInt(unitId));
         }
 
         try {
@@ -185,8 +201,8 @@ public class ProductDAO {
 
         String sql = """
                      INSERT INTO Product
-                     (Code, Name, Price, Description, Image, CategoryID, MinStock)
-                     VALUES (?, ?, ?, ?, ?, ?, ?)
+                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                      """;
 
         try {
@@ -199,7 +215,8 @@ public class ProductDAO {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getImage());
             ps.setInt(6, p.getCategory().getId());
-            ps.setInt(7, p.getMinStock());
+            ps.setInt(7, p.getUnit().getId());
+            ps.setInt(8, p.getMinStock());
 
             ps.executeUpdate();
 
@@ -221,6 +238,7 @@ public class ProductDAO {
                          Description = ?,
                          Image = ?,
                          CategoryID = ?,
+                         UnitID = ?,
                          MinStock = ?
                      WHERE ProductID = ?
                      """;
@@ -235,8 +253,9 @@ public class ProductDAO {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getImage());
             ps.setInt(6, p.getCategory().getId());
-            ps.setInt(7, p.getMinStock());
-            ps.setInt(8, p.getId());
+//            ps.setInt(7, p.getUnit().getC);
+            ps.setInt(8, p.getMinStock());
+            ps.setInt(9, p.getId());
 
             ps.executeUpdate();
 
@@ -332,4 +351,3 @@ public class ProductDAO {
     }
 
 }
->>>>>>> Stashed changes

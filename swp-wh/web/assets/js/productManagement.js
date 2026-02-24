@@ -18,7 +18,7 @@ window.addEventListener("DOMContentLoaded", function () {
 });
 
 //Update open
-function openUpdateForm(id, name, code, description, price, image, cateid, quantity) {
+function openUpdateForm(id, name, code, description, price, image, cateid, unit) {
     document.getElementById('product-id').value = id;
     document.getElementById('product-name').value = name;
     document.getElementById('product-code').value = code;
@@ -27,20 +27,16 @@ function openUpdateForm(id, name, code, description, price, image, cateid, quant
     document.getElementById('product-image-old').value = image;
     document.getElementById('product-des').value = description;
     document.getElementById('category-select').value = cateid;
-    var qtyEl = document.getElementById('product-quantity');
-    if (qtyEl) qtyEl.value = quantity;
+    document.getElementById('unit-select').value = unit;
     document.getElementById('product-id').style.border = '1px solid #DCDFE8';
     document.getElementById('product-name').style.border = '1px solid #DCDFE8';
     document.getElementById('product-code').style.border = '1px solid #DCDFE8';
     document.getElementById('product-price').style.border = '1px solid #DCDFE8';
-    if (qtyEl) qtyEl.style.border = '1px solid #DCDFE8';
     document.getElementById('product-des').style.border = '1px solid #DCDFE8';
     document.getElementById('error1').textContent = '';
     document.getElementById('error2').textContent = '';
     document.getElementById('error3').textContent = '';
     document.getElementById('error4').textContent = '';
-    var err5 = document.getElementById('error5');
-    if (err5) err5.textContent = '';
     document.getElementById('updateModal').style.display = 'block';
 }
 

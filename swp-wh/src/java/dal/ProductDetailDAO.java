@@ -15,11 +15,8 @@ public class ProductDetailDAO extends DBContext {
     // Lọc danh sách ProductDetail theo ProductID và Tìm kiếm (Lot/Serial)
     public List<ProductDetail> getFiltered(String search, String productId, int page, int pageSize) {
         List<ProductDetail> list = new ArrayList<>();
-        // Bảng Product_Detail theo schema: ProductDetailID, ProductID, LotNumber, SerialNumber, ManufactureDate
-        StringBuilder sql = new StringBuilder(
-                "SELECT ProductDetailID, ProductID, LotNumber, SerialNumber, ManufactureDate " +
-                "FROM Product_Detail WHERE 1=1"
-        );
+        // Sử dụng đúng tên cột từ ảnh: ProductDetailID, ProductID, LotNumber, SerialNumber, ManufactureDate
+        StringBuilder sql = new StringBuilder("select * from Product_Detail WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         if (search != null && !search.trim().isEmpty()) {
@@ -48,6 +45,8 @@ public class ProductDetailDAO extends DBContext {
                 pd.setId(rs.getInt("ProductDetailID"));
                 pd.setLotNumber(rs.getString("LotNumber"));
                 pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setColor(rs.getString("Color"));       // Lấy màu
+                pd.setQuantity(rs.getInt("Quantity"));    // Lấy số lượng
                 pd.setManufactureDate(rs.getDate("ManufactureDate"));
                 pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
                 list.add(pd);

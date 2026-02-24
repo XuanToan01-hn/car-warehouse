@@ -2,32 +2,26 @@ package controller.product;
 
 import dal.CategoryDAO;
 import dal.ProductDAO;
+import dal.UnitDAO;
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.Part;
 import model.Product;
+import utils.InputValidator;
 
 @WebServlet(name = "AddProduct", urlPatterns = {"/add-product"})
-@MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 5 * 1024 * 1024, maxRequestSize = 10 * 1024 * 1024)
+// ĐÃ XÓA @MultipartConfig
 public class AddProduct extends HttpServlet {
-
-    private static final String UPLOAD_DIR = "assets/images/table/product";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         CategoryDAO categoryDAO = new CategoryDAO();
+        UnitDAO unitDAO = new UnitDAO();
+        request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
         request.getRequestDispatcher("view/product/page-add-product.jsp").forward(request, response);
     }
@@ -35,94 +29,70 @@ public class AddProduct extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
+        
+        // Tránh lỗi tiếng Việt
         request.setCharacterEncoding("UTF-8");
 
         ProductDAO productDAO = new ProductDAO();
         CategoryDAO categoryDAO = new CategoryDAO();
+        UnitDAO unitDAO = new UnitDAO();
 
         boolean status = true;
         boolean flag = true;
 
-        String name = trim(request.getParameter("name"));
-        String code = trim(request.getParameter("code"));
+        // Lấy dữ liệu dạng String thông thường
+        String name = (request.getParameter("name") != null) ? request.getParameter("name").trim() : "";
+        String code = (request.getParameter("code") != null) ? request.getParameter("code").trim() : "";
         String priceStr = request.getParameter("price");
         String categoryStr = request.getParameter("category");
-        String quantityStr = request.getParameter("quantity");
-        String description = trim(request.getParameter("description"));
+        String unitStr = request.getParameter("unit");
+        String image = (request.getParameter("image") != null) ? request.getParameter("image").trim() : "";
+        String description = (request.getParameter("description") != null) ? request.getParameter("description").trim() : "";
 
         long price = 0;
         int categoryId = 0;
-        int quantity = 0;
+        int unitId = 0;
 
         try {
             if (priceStr != null) price = Long.parseLong(priceStr);
             if (categoryStr != null) categoryId = Integer.parseInt(categoryStr);
-            if (quantityStr != null) quantity = Integer.parseInt(quantityStr);
+            if (unitStr != null) unitId = Integer.parseInt(unitStr);
         } catch (NumberFormatException e) {
             flag = false;
         }
 
+        // Validation cơ bản
         if (name.isEmpty()) { request.setAttribute("eName", "Name is required"); flag = false; }
         if (price <= 0) { request.setAttribute("ePrice", "Price > 0"); flag = false; }
-        if (quantity < 0) { request.setAttribute("eQuantity", "Quantity >= 0"); flag = false; }
-
-        String savedImageName = "";
-
-        if (flag) {
-            Part imagePart = request.getPart("image");
-            if (imagePart != null && imagePart.getSize() > 0) {
-                String submittedFileName = imagePart.getSubmittedFileName();
-                if (submittedFileName != null && !submittedFileName.trim().isEmpty()) {
-                    String ext = "";
-                    int dot = submittedFileName.lastIndexOf('.');
-                    if (dot >= 0) ext = submittedFileName.substring(dot);
-                    String newFileName = UUID.randomUUID().toString() + ext;
-                    String baseDir = getServletContext().getRealPath("/");
-                    if (baseDir != null) {
-                        Path uploadPath = Paths.get(baseDir, UPLOAD_DIR);
-                        try {
-                            Files.createDirectories(uploadPath);
-                            Path filePath = uploadPath.resolve(newFileName);
-                            try (InputStream is = imagePart.getInputStream()) {
-                                Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
-                            }
-                            savedImageName = newFileName;
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        }
 
         if (!flag) {
             status = false;
+            // Sticky Form dữ liệu cũ
             request.setAttribute("uName", name);
             request.setAttribute("uCode", code);
             request.setAttribute("uPrice", price);
             request.setAttribute("uCategory", categoryId);
+            request.setAttribute("uImage", image);
             request.setAttribute("uDes", description);
-            request.setAttribute("uQuantity", quantityStr);
+            request.setAttribute("unitS", unitId);
         } else {
-            Product product = new Product();
-            product.setId(0);
-            product.setCode(code);
-            product.setName(name);
-            product.setPrice((double) price);
-            product.setDescription(description);
-            product.setImage(savedImageName);
-            product.setCategory(categoryDAO.getByID(categoryId));
-            product.setMinStock(quantity);
+            // Mapping vào Model và Insert
+            Product product = new Product(
+                0, // ID auto-increment
+                code,
+                name,
+                (double) price,
+                description,
+                image, // Link ảnh
+                unitDAO.getUnitById(unitId),
+                categoryDAO.getByID(categoryId)
+            );
             productDAO.insert(product);
         }
 
+        request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
         request.setAttribute("showStatus", status);
         request.getRequestDispatcher("view/product/page-add-product.jsp").forward(request, response);
-    }
-
-    private static String trim(String s) {
-        return s == null ? "" : s.trim();
     }
 }
