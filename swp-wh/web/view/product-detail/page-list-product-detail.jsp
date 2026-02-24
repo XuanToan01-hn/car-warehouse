@@ -44,9 +44,8 @@
                         <thead class="bg-white text-uppercase">
                             <tr>
                                 <th>Product</th>
-                                <th>Color</th>
-                                <th>Qty</th>
-                                <th>Lot / Serial</th>
+                                <th>Lot</th>
+                                <th>Serial</th>
                                 <th>Mfd Date</th>
                             </tr>
                         </thead>
@@ -54,15 +53,16 @@
                             <c:forEach items="${listDetail}" var="pd">
                                 <tr>
                                     <td><strong>${pd.product.name}</strong></td>
-                                    <td><span class="badge badge-light border">${pd.color}</span></td>
-                                    <td><b class="text-primary">${pd.quantity}</b></td>
-                                    <td>
-                                        <small>Lot: ${pd.lotNumber}</small><br>
-                                        <small>S/N: ${pd.serialNumber}</small>
-                                    </td>
+                                    <td>${pd.lotNumber}</td>
+                                    <td>${pd.serialNumber}</td>
                                     <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
                                 </tr>
                             </c:forEach>
+                            <c:if test="${empty listDetail}">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No product detail found.</td>
+                                </tr>
+                            </c:if>
                         </tbody>
                     </table>
 

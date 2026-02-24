@@ -92,6 +92,7 @@
                                                         <%-- CHỖ NÀY QUAN TRỌNG: Sửa productId thành id, categoryId thành id --%>
                                                         <a class="badge bg-success mr-2" href="javascript:void(0)" 
                                                            onclick="openUpdateForm(${p.id}, '${p.name}', '${p.code}', '${p.description}', ${p.price}, '${p.image}', ${p.category.id}, ${p.unit.id})">Edit</a>
+                                                        <a class="badge bg-info mr-2" href="list-product-detail?productId=${p.id}">Detail</a>
                                                         <a class="badge bg-warning mr-2" href="javascript:void(0)" 
                                                            onclick="openDeleteForm(${p.id}, '${p.name}')">Delete</a>
                                                     </div>
