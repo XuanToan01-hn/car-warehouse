@@ -9,6 +9,7 @@ public class Location {
     private Integer parentLocationId;
     private String locationType;
     private Integer maxCapacity;
+    private Integer aggregatedCapacity; // Calculated sum of children's capacities
 
     public Location() {
     }
@@ -67,5 +68,13 @@ public class Location {
 
     public void setMaxCapacity(Integer maxCapacity) {
         this.maxCapacity = maxCapacity;
+    }
+
+    public Integer getAggregatedCapacity() {
+        return aggregatedCapacity != null ? aggregatedCapacity : (maxCapacity != null ? maxCapacity : 0);
+    }
+
+    public void setAggregatedCapacity(Integer aggregatedCapacity) {
+        this.aggregatedCapacity = aggregatedCapacity;
     }
 }
