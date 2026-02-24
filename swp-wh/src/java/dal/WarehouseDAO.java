@@ -34,6 +34,10 @@ public class WarehouseDAO extends DBContext {
 
     public List<Warehouse> getAll() {
         List<Warehouse> list = new ArrayList<>();
+        if (connection == null) {
+            System.err.println("[CRITICAL] WarehouseDAO connection is NULL!");
+            return list;
+        }
         String sql = "SELECT * FROM Warehouse";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
