@@ -1,13 +1,6 @@
-<%-- 
-    Document   : page-list-product-detail.jsp
-    Created on : Feb 24, 2026, 11:15:20 AM
-    Author     : Asus
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
 <!doctype html>
 <html lang="en">
     <head>
@@ -20,64 +13,68 @@
             <%@ include file="../sidebar.jsp" %>
             <div class="content-page">
                 <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <h4 class="mb-3">Inventory Details (Lots/Serials)</h4>
-                            
-                            <div class="filter-section mb-4">
-                                <form method="get" action="list-product-detail">
-                                    <div class="row">
-                                        <div class="col-md-3">
-                                            <select name="productId" class="form-control" onchange="this.form.submit()">
-                                                <option value="0">-- All Products --</option>
-                                                <c:forEach items="${listProduct}" var="pro">
-                                                    <option value="${pro.id}" ${param.productId == pro.id ? 'selected' : ''}>${pro.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input type="text" name="search" class="form-control" placeholder="Search Lot or Serial..." value="${param.search}">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="submit" class="btn btn-primary">Filter</button>
-                                        </div>
+                    <h4 class="mb-3">Warehouse Inventory Details</h4>
+                    
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <form method="get" action="list-product-detail">
+                                <div class="row align-items-end">
+                                    <div class="col-md-3">
+                                        <label>Product</label>
+                                        <select name="productId" class="form-control" onchange="this.form.submit()">
+                                            <option value="0">-- All Products --</option>
+                                            <c:forEach items="${listProduct}" var="pro">
+                                                <option value="${pro.id}" ${param.productId == pro.id ? 'selected' : ''}>${pro.name}</option>
+                                            </c:forEach>
+                                        </select>
                                     </div>
-                                </form>
-                            </div>
-
-                            <table class="table mb-0">
-                                <thead class="bg-white text-uppercase">
-                                    <tr class="ligth">
-                                        <th>Product Name</th>
-                                        <th>Lot Number</th>
-                                        <th>Serial Number</th>
-                                        <th>Manufacture Date</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach items="${listDetail}" var="pd">
-                                        <tr>
-                                            <td>${pd.product.name} <br><small>${pd.product.code}</small></td>
-                                            <td>${pd.lotNumber}</td>
-                                            <td>${pd.serialNumber}</td>
-                                            <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
-                                            <td>
-                                                <a class="badge bg-warning" href="javascript:void(0)" onclick="openDeleteForm(${pd.id})">Delete</a>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                </tbody>
-                            </table>
-
-                            <div class="mt-3">
-                                <c:forEach begin="1" end="${totalPages}" var="i">
-                                    <a class="btn btn-sm ${i == currentPage ? 'btn-primary' : 'btn-outline-primary'}" 
-                                       href="list-product-detail?page=${i}&productId=${param.productId}&search=${param.search}">${i}</a>
-                                </c:forEach>
-                            </div>
+                                    <div class="col-md-4">
+                                        <label>Search Lot/Serial</label>
+                                        <input type="text" name="search" class="form-control" placeholder="Lot or Serial..." value="${param.search}">
+                                    </div>
+                                    <div class="col-md-2">
+                                        <button type="submit" class="btn btn-primary">Filter</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
+
+                    <table class="table">
+                        <thead class="bg-white text-uppercase">
+                            <tr>
+                                <th>Product</th>
+                                <th>Color</th>
+                                <th>Qty</th>
+                                <th>Lot / Serial</th>
+                                <th>Mfd Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach items="${listDetail}" var="pd">
+                                <tr>
+                                    <td><strong>${pd.product.name}</strong></td>
+                                    <td><span class="badge badge-light border">${pd.color}</span></td>
+                                    <td><b class="text-primary">${pd.quantity}</b></td>
+                                    <td>
+                                        <small>Lot: ${pd.lotNumber}</small><br>
+                                        <small>S/N: ${pd.serialNumber}</small>
+                                    </td>
+                                    <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+
+                    <nav class="mt-3">
+                        <ul class="pagination justify-content-end">
+                            <c:forEach begin="${startPage}" end="${endPage}" var="i">
+                                <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                    <a class="page-link" href="list-product-detail?page=${i}&productId=${param.productId}&search=${param.search}">${i}</a>
+                                </li>
+                            </c:forEach>
+                        </ul>
+                    </nav>
                 </div>
             </div>
         </div>

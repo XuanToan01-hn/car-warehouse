@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dal;
 
 import context.DBContext;
@@ -16,30 +12,25 @@ public class ProductDetailDAO extends DBContext {
 
     ProductDAO productDAO = new ProductDAO();
 
-    // Lọc và phân trang ProductDetail
-    public List<ProductDetail> getFilteredProductDetails(String search, String productId, int page, int pageSize) {
+    // Lọc danh sách ProductDetail theo ProductID và Tìm kiếm (Lot/Serial)
+    public List<ProductDetail> getFiltered(String search, String productId, int page, int pageSize) {
         List<ProductDetail> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("""
-            SELECT pd.* FROM ProductDetail pd 
-            JOIN Product p ON pd.ProductID = p.ProductID 
-            WHERE 1=1
-            """);
+        // Sử dụng đúng tên cột từ ảnh: ProductDetailID, ProductID, LotNumber, SerialNumber, ManufactureDate
+        StringBuilder sql = new StringBuilder("select * from Product_Detail WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
-        // Lọc theo Lot hoặc Serial
         if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (pd.LotNumber LIKE ? OR pd.SerialNumber LIKE ?)");
+            sql.append(" AND (LotNumber LIKE ? OR SerialNumber LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
 
-        // Lọc theo Product gốc
         if (productId != null && !productId.isEmpty() && !productId.equals("0")) {
-            sql.append(" AND pd.ProductID = ?");
+            sql.append(" AND ProductID = ?");
             params.add(Integer.parseInt(productId));
         }
 
-        sql.append(" ORDER BY pd.ProductDetailID ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        sql.append(" ORDER BY ProductDetailID ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
         params.add(pageSize);
 
@@ -54,6 +45,8 @@ public class ProductDetailDAO extends DBContext {
                 pd.setId(rs.getInt("ProductDetailID"));
                 pd.setLotNumber(rs.getString("LotNumber"));
                 pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setColor(rs.getString("Color"));       // Lấy màu
+                pd.setQuantity(rs.getInt("Quantity"));    // Lấy số lượng
                 pd.setManufactureDate(rs.getDate("ManufactureDate"));
                 pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
                 list.add(pd);
@@ -64,8 +57,9 @@ public class ProductDetailDAO extends DBContext {
         return list;
     }
 
-    public int getTotalFiltered(String search, String productId) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM ProductDetail WHERE 1=1");
+    // Đếm tổng số bản ghi sau khi lọc để phân trang
+    public int getTotal(String search, String productId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product_Detail WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
         if (search != null && !search.trim().isEmpty()) {
@@ -84,31 +78,50 @@ public class ProductDetailDAO extends DBContext {
                 ps.setObject(i + 1, params.get(i));
             }
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return 0;
     }
 
-    public void insert(ProductDetail pd) {
-        String sql = "INSERT INTO ProductDetail (ProductID, LotNumber, SerialNumber, ManufactureDate) VALUES (?,?,?,?)";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, pd.getProduct().getId());
-            ps.setString(2, pd.getLotNumber());
-            ps.setString(3, pd.getSerialNumber());
-            ps.setDate(4, new java.sql.Date(pd.getManufactureDate().getTime()));
-            ps.executeUpdate();
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-    
-    public void delete(int id) {
-        String sql = "DELETE FROM ProductDetail WHERE ProductDetailID = ?";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, id);
-            ps.executeUpdate();
-        } catch (Exception e) { e.printStackTrace(); }
+    public static void main(String[] args) {
+        ProductDetailDAO dao = new ProductDetailDAO();
+
+        System.out.println("--- KIỂM TRA KẾT NỐI VÀ DỮ LIỆU ---");
+
+        // 1. Kiểm tra hàm getTotal
+        int total = dao.getTotal(null, null);
+        System.out.println("Tổng số bản ghi tìm thấy: " + total);
+
+        if (total == 0) {
+            System.out.println("LỖI: Database không có dữ liệu hoặc câu lệnh COUNT bị sai.");
+        }
+
+        // 2. Kiểm tra hàm getFiltered (Trang 1, mỗi trang 10 cái)
+        System.out.println("\n--- DANH SÁCH CHI TIẾT SẢN PHẨM ---");
+        List<ProductDetail> list = dao.getFiltered(null, null, 1, 10);
+
+        if (list == null) {
+            System.out.println("LỖI: Danh sách trả về bị NULL (Kiểm tra try-catch trong DAO).");
+        } else if (list.isEmpty()) {
+            System.out.println("LỖI: Danh sách rỗng. Có thể do lỗi OFFSET/FETCH hoặc dữ liệu trống.");
+        } else {
+            for (ProductDetail pd : list) {
+                System.out.print("ID Detail: " + pd.getId());
+                System.out.print(" | Lot: " + pd.getLotNumber());
+                System.out.print(" | Serial: " + pd.getSerialNumber());
+
+                // Kiểm tra xem Product có bị null không (Lỗi Join/Mapping)
+                if (pd.getProduct() != null) {
+                    System.out.println(" | Sản phẩm: " + pd.getProduct().getName());
+                } else {
+                    System.out.println(" | LỖI: Product bị NULL (Kiểm tra ProductDAO.getById)");
+                }
+                System.out.println("--------------------------------------------------");
+            }
+        }
     }
 }

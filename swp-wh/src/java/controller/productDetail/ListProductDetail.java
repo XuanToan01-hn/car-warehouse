@@ -26,17 +26,22 @@ public class ListProductDetail extends HttpServlet {
         
         int page = 1;
         String pageParam = request.getParameter("page");
-        if (pageParam != null) page = Integer.parseInt(pageParam);
+        if (pageParam != null && !pageParam.isEmpty()) {
+            page = Integer.parseInt(pageParam);
+        }
         int pageSize = 10;
 
-        List<ProductDetail> list = detailDAO.getFilteredProductDetails(search, productId, page, pageSize);
-        int total = detailDAO.getTotalFiltered(search, productId);
+        List<ProductDetail> list = detailDAO.getFiltered(search, productId, page, pageSize);
+        int total = detailDAO.getTotal(search, productId);
         int totalPages = (int) Math.ceil((double) total / pageSize);
 
+        // Gửi dữ liệu sang JSP
         request.setAttribute("listDetail", list);
-        request.setAttribute("listProduct", productDAO.getAll()); // Để hiển thị trong dropdown lọc
+        request.setAttribute("listProduct", productDAO.getAll()); // Danh sách cho dropdown lọc
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
+        request.setAttribute("startPage", Math.max(1, page - 2));
+        request.setAttribute("endPage", Math.min(totalPages, page + 2));
         
         request.getRequestDispatcher("view/product-detail/page-list-product-detail.jsp").forward(request, response);
     }
