@@ -6,7 +6,6 @@ package controller.product;
 
 import dal.CategoryDAO;
 import dal.ProductDAO;
-import dal.UnitDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -66,13 +65,11 @@ public class ListProduct extends HttpServlet {
             throws ServletException, IOException {
         ProductDAO productDAO = new ProductDAO();
         CategoryDAO categoryDAO = new CategoryDAO();
-        UnitDAO unitDAO = new UnitDAO();
 
         // Get parameters with null checks
         String search = request.getParameter("search");
         String sortPrice = request.getParameter("sortPrice");
         String categoryId = request.getParameter("categoryId");
-        String unitId = request.getParameter("unitId");
 
         // Parse page with default value
         int page = 1;
@@ -99,8 +96,8 @@ public class ListProduct extends HttpServlet {
         }
 
         // Get filtered and paginated products
-        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, page, pageSize);
-        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId);
+        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, page, pageSize);
+        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         // Calculate pagination
@@ -110,7 +107,6 @@ public class ListProduct extends HttpServlet {
         boolean hasNext = page < totalPages;
 
         // Set attributes
-        request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
         request.setAttribute("listProduct", productList);
         request.setAttribute("currentPage", page);
@@ -144,13 +140,11 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("eDesc", request.getAttribute("errorDesc"));
         
         ProductDAO productDAO = new ProductDAO();
-        UnitDAO unitDAO = new UnitDAO();
         CategoryDAO categoryDAO = new CategoryDAO();
         
         String search = request.getParameter("search");
         String sortPrice = request.getParameter("sortPrice");
         String categoryId = request.getParameter("categoryId");
-        String unitId = request.getParameter("unitId");
 
         // Parse page with default value
         int page = 1;
@@ -179,8 +173,8 @@ public class ListProduct extends HttpServlet {
         
         //s
         // Get filtered and paginated products
-        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, page, pageSize);
-        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId);
+        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, page, pageSize);
+        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         // Calculate pagination
@@ -190,7 +184,6 @@ public class ListProduct extends HttpServlet {
         boolean hasNext = page < totalPages;
 
         // Set attributes
-        request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
         request.setAttribute("listProduct", productList);
         request.setAttribute("currentPage", page);
@@ -200,8 +193,7 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("hasPrevious", hasPrevious);
         request.setAttribute("hasNext", hasNext);
         request.setAttribute("pageSize", pageSize);
-        
-        request.setAttribute("listUnit", unitDAO.getAll());
+
         request.setAttribute("uId", request.getAttribute("updateid"));
         request.setAttribute("uName", request.getAttribute("updateName"));
         request.setAttribute("uCode", request.getAttribute("updateCode"));
@@ -209,7 +201,6 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("uImage", request.getAttribute("updateImage"));
         request.setAttribute("uCategory", request.getAttribute("updateCategory"));
         request.setAttribute("uDes", request.getAttribute("updateDes"));
-        request.setAttribute("unitS", request.getAttribute("updateUnit"));
         request.getRequestDispatcher("view/product/page-list-product.jsp").forward(request, response);
     }
 

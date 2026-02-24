@@ -44,8 +44,6 @@
                         <thead class="bg-white text-uppercase">
                             <tr>
                                 <th>Product</th>
-                                <th>Color</th>
-                                <th>Qty</th>
                                 <th>Lot / Serial</th>
                                 <th>Mfd Date</th>
                             </tr>
@@ -54,8 +52,6 @@
                             <c:forEach items="${listDetail}" var="pd">
                                 <tr>
                                     <td><strong>${pd.product.name}</strong></td>
-                                    <td><span class="badge badge-light border">${pd.color}</span></td>
-                                    <td><b class="text-primary">${pd.quantity}</b></td>
                                     <td>
                                         <small>Lot: ${pd.lotNumber}</small><br>
                                         <small>S/N: ${pd.serialNumber}</small>

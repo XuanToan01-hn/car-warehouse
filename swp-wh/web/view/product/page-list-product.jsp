@@ -67,7 +67,7 @@
                                             <th>Price</th>
                                             <th>Description</th>
                                             <th>Category</th>
-                                            <th>Unit</th>
+                                            <th>Quantity</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -75,23 +75,31 @@
                                         <c:forEach items="${listProduct}" var="p">
                                             <tr>
                                                 <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="${pageContext.request.contextPath}/assets/images/table/product/${p.image}" class="img-fluid rounded avatar-50 mr-3" alt="image">
+                                                    <a href="${pageContext.request.contextPath}/list-product-detail?productId=${p.id}" class="d-flex align-items-center" style="text-decoration: none; color: inherit;">
+                                                        <c:choose>
+                                                            <c:when test="${not empty p.image}">
+                                                                <img src="${pageContext.request.contextPath}/assets/images/table/product/${p.image}" class="img-fluid rounded avatar-50 mr-3" alt="image">
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <div class="rounded avatar-50 mr-3 bg-light d-flex align-items-center justify-content-center text-muted" style="width: 50px; height: 50px; font-size: 0.7rem;">No img</div>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                         <div class="data-name">
                                                             ${p.name}
                                                             <p class="mb-0" style="justify-self: baseline"><small>${p.code}</small></p>
                                                         </div>
-                                                    </div>
+                                                    </a>
                                                 </td>
                                                 <td><fmt:formatNumber value="${p.price}"/></td>
                                                 <td class="data-des">${p.description}</td>
                                                 <td>${p.category.name}</td>
-                                                <td>${p.unit.name}</td>
+                                                <td>${p.minStock}</td>
                                                 <td>
                                                     <div class="d-flex align-items-center list-action">
                                                         <%-- CHỖ NÀY QUAN TRỌNG: Sửa productId thành id, categoryId thành id --%>
+                                                        <a class="badge bg-info mr-2" href="${pageContext.request.contextPath}/list-product-detail?productId=${p.id}">Detail</a>
                                                         <a class="badge bg-success mr-2" href="javascript:void(0)" 
-                                                           onclick="openUpdateForm(${p.id}, '${p.name}', '${p.code}', '${p.description}', ${p.price}, '${p.image}', ${p.category.id}, ${p.unit.id})">Edit</a>
+                                                           onclick="openUpdateForm(${p.id}, '${p.name}', '${p.code}', '${p.description}', ${p.price}, '${p.image}', ${p.category.id}, ${p.minStock})">Edit</a>
                                                         <a class="badge bg-warning mr-2" href="javascript:void(0)" 
                                                            onclick="openDeleteForm(${p.id}, '${p.name}')">Delete</a>
                                                     </div>
@@ -105,13 +113,13 @@
                                     <c:if test="${totalPages > 1}">
                                         <ul class="pagination justify-content-center">
                                             <c:if test="${hasPrevious}">
-                                                <li class="page-item"><a class="page-link" href="list-product?page=${currentPage - 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">Previous</a></li>
+                                                <li class="page-item"><a class="page-link" href="list-product?page=${currentPage - 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&pageSize=${param.pageSize}">Previous</a></li>
                                             </c:if>
                                             <c:forEach var="i" begin="${startPage}" end="${endPage}">
-                                                <li class="page-item ${i == currentPage ? 'active' : ''}"><a class="page-link" href="list-product?page=${i}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">${i}</a></li>
+                                                <li class="page-item ${i == currentPage ? 'active' : ''}"><a class="page-link" href="list-product?page=${i}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&pageSize=${param.pageSize}">${i}</a></li>
                                             </c:forEach>
                                             <c:if test="${hasNext}">
-                                                <li class="page-item"><a class="page-link" href="list-product?page=${currentPage + 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">Next</a></li>
+                                                <li class="page-item"><a class="page-link" href="list-product?page=${currentPage + 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&pageSize=${param.pageSize}">Next</a></li>
                                             </c:if>
                                         </ul>
                                     </c:if>
@@ -152,12 +160,8 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label>Unit *</label>
-                                    <select name="unit" id="unit-select" class="form-control">
-                                        <c:forEach items="${listUnit}" var="unit">
-                                            <option ${unitS == unit.id ? 'selected' : ''} value="${unit.id}">${unit.name}</option>
-                                        </c:forEach>
-                                    </select>
+                                    <label for="product-quantity">Quantity * <span style="color: red;" id="error5">${eQuantity}</span></label>
+                                    <input type="number" value="${uQuantity}" style="${not empty eQuantity ? 'border: 1px solid red;' : ''}" name="quantity" class="form-control" id="product-quantity" min="0" required="">
                                 </div>
                                 <div class="form-group">
                                     <label>Image *</label>
