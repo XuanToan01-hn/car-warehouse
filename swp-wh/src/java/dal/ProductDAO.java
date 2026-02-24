@@ -215,7 +215,7 @@ public class ProductDAO extends DBContext {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getImage());
             ps.setInt(6, p.getCategory().getId());
-//            ps.setInt(7, p.getUnit().getId());
+            ps.setInt(7, p.getUnit().getId());
             ps.setInt(8, p.getMinStock());
 
             ps.executeUpdate();
