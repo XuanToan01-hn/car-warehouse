@@ -121,7 +121,7 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("hasNext", hasNext);
         request.setAttribute("pageSize", pageSize);
 
-        request.getRequestDispatcher("view/page-list-product.jsp").forward(request, response);
+        request.getRequestDispatcher("view/product/page-list-product.jsp").forward(request, response);
 
 
     }
@@ -210,7 +210,7 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("uCategory", request.getAttribute("updateCategory"));
         request.setAttribute("uDes", request.getAttribute("updateDes"));
         request.setAttribute("unitS", request.getAttribute("updateUnit"));
-        request.getRequestDispatcher("view/page-list-product.jsp").forward(request, response);
+        request.getRequestDispatcher("view/product/page-list-product.jsp").forward(request, response);
     }
 
     /**
