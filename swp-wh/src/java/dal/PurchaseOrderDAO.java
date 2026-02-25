@@ -36,10 +36,13 @@ public class PurchaseOrderDAO extends DBContext {
         s.setName(rs.getString("SupplierName"));
         po.setSupplier(s);
 
-        // CreatedBy user (chỉ ID)
-        User u = new User();
-        u.setId(rs.getInt("CreateBy"));
-        po.setCreateBy(u);
+        // CreatedBy user (chỉ ID, có thể null)
+        int createdById = rs.getInt("CreateBy");
+        if (!rs.wasNull()) {
+            User u = new User();
+            u.setId(createdById);
+            po.setCreateBy(u);
+        }
 
         return po;
     }
@@ -225,7 +228,11 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setInt(2, po.getSupplier().getId());
             ps.setInt(3, po.getStatus());
             ps.setDouble(4, po.getTotalAmount());
-            ps.setInt(5, po.getCreateBy().getId());
+            if (po.getCreateBy() != null) {
+                ps.setInt(5, po.getCreateBy().getId());
+            } else {
+                ps.setNull(5, java.sql.Types.INTEGER);
+            }
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next())

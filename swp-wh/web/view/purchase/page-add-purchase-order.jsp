@@ -66,8 +66,17 @@
             </div>
             <div class="wrapper">
                 <%@ include file="../sidebar.jsp" %>
+                <%@ include file="../header.jsp" %>
                     <div class="content-page">
                         <div class="container-fluid add-form-list">
+
+                            <!-- Thông báo thành công -->
+                            <c:if test="${param.success == 'created' || success == 'created'}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <strong>Thành công!</strong> Purchase Order đã được tạo.
+                                    <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                            </c:if>
 
                             <!-- Thông báo lỗi -->
                             <c:if test="${not empty error}">
@@ -107,7 +116,7 @@
                                                             class="form-control" required>
                                                             <option value="">-- Chọn Supplier --</option>
                                                             <c:forEach var="s" items="${supplierList}">
-                                                                <option value="${s.id}">${s.name}
+                                                                <option value="${s.id}" data-product-id="${s.productId}">${s.name}
                                                                     <c:if test="${not empty s.phone}"> — ${s.phone}
                                                                     </c:if>
                                                                 </option>
@@ -336,13 +345,16 @@
                 let rowCounter = 0;
                 let selectedSupplierId = null;
                 let selectedSupplierName = null;
+                let selectedSupplierProductId = null;
 
                 /* ============================================================
                    SUPPLIER SELECT — kích hoạt bước 2
                 ============================================================ */
                 document.getElementById('supplierSelect').addEventListener('change', function () {
                     selectedSupplierId = this.value;
-                    selectedSupplierName = this.options[this.selectedIndex].text;
+                    const opt = this.options[this.selectedIndex];
+                    selectedSupplierName = opt.text;
+                    selectedSupplierProductId = opt.getAttribute('data-product-id') || null;
                     if (selectedSupplierId) {
                         enableProductSection();
                     } else {
@@ -381,8 +393,14 @@
 
                 function buildProductOptions() {
                     let opts = '<option value="">-- Chọn sản phẩm --</option>';
+                    // Nếu supplier chưa gắn productId => không cho chọn sản phẩm có sẵn (bắt buộc tạo mới)
+                    if (!selectedSupplierProductId) {
+                        return opts;
+                    }
                     allProducts.forEach(function (p) {
-                        opts += '<option value="' + p.id + '" data-price="' + p.price + '">' + p.name + ' [' + p.code + ']</option>';
+                        if (p.id === Number(selectedSupplierProductId)) {
+                            opts += '<option value="' + p.id + '" data-price="' + p.price + '">' + p.name + ' [' + p.code + ']</option>';
+                        }
                     });
                     return opts;
                 }
@@ -600,6 +618,13 @@
                                 // Thêm product mới vào dropdown của hàng hiện tại
                                 const newProd = { id: data.productId, name: data.productName, code: data.productCode, price: parseFloat(price) || 0 };
                                 allProducts.push(newProd);
+
+                                // Gắn productId mới cho supplier hiện tại để các hàng sau chỉ thấy sản phẩm này
+                                selectedSupplierProductId = data.productId;
+                                const supSelect = document.getElementById('supplierSelect');
+                                if (supSelect && supSelect.selectedIndex >= 0) {
+                                    supSelect.options[supSelect.selectedIndex].setAttribute('data-product-id', data.productId);
+                                }
 
                                 // Cập nhật select trong row hiện tại
                                 const sel = document.getElementById('prodSel_' + rowIdx);

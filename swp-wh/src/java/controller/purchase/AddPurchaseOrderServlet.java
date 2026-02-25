@@ -55,10 +55,6 @@ public class AddPurchaseOrderServlet extends HttpServlet {
 
         HttpSession session = request.getSession(false);
         User loginUser = (session != null) ? (User) session.getAttribute("user") : null;
-        if (loginUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
-            return;
-        }
 
         try {
             PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
@@ -98,7 +94,10 @@ public class AddPurchaseOrderServlet extends HttpServlet {
             po.setSupplier(s);
             po.setStatus(status);
             po.setTotalAmount(totalAmount);
-            po.setCreateBy(loginUser);
+            // Cho phép null createBy nếu chưa đăng nhập (test khi bảng User trống)
+            if (loginUser != null) {
+                po.setCreateBy(loginUser);
+            }
 
             int newPoId = poDAO.insert(po);
             if (newPoId <= 0)
@@ -125,7 +124,10 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 poDAO.insertDetail(pod);
             }
 
-            response.sendRedirect(request.getContextPath() + "/purchase-orders?success=created");
+            // Sau khi tạo thành công, forward lại trang tạo PO với thông báo thành công
+            request.setAttribute("success", "created");
+            doGet(request, response);
+            return;
 
         } catch (Exception e) {
             e.printStackTrace();

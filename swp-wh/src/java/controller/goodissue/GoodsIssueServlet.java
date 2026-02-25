@@ -160,7 +160,7 @@ private final GoodsIssueDAO giDAO = new GoodsIssueDAO();
         }
 
         // Thực thi Transaction trong DAO
-        if (giDAO.createGoodsIssue(gi, details)) {
+        if (giDAO.confirmIssue(gi, details)) {
             response.sendRedirect("sales-order?action=view&id=" + soId);
         } else {
             errors.add("Lỗi hệ thống khi lưu phiếu xuất kho.");
