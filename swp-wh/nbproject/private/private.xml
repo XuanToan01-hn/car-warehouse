@@ -6,6 +6,7 @@
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/ProductDetailDAO.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Unit.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product-detail/page-list-product-detail.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/location/LocationServlet.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Product.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Category.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/ProductDetail.java</file>
@@ -13,8 +14,10 @@
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product/page-list-product.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product/page-add-product.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/ProductDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/location-detail-fragment.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/user/page-add-users.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/productDetail/ListProductDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/location.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/user/page-list-users.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/RoleDAO.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/product/AddProduct.java</file>
