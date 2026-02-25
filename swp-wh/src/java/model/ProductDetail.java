@@ -19,6 +19,8 @@ public class ProductDetail {
 private String color;      // Thêm mới
     private int quantity;
     public ProductDetail() {}
+    
+    
 
     public String getColor() {
         return color;

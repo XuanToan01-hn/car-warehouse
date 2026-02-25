@@ -10,8 +10,8 @@ public class SalesOrderDAO extends DBContext {
 
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final UserDAO userDAO = new UserDAO();
-    private final ProductDetailDAO productDetailDAO = new ProductDetailDAO();
 
+    private ProductDetailDAO pdd = new ProductDetailDAO();
     public List<SalesOrder> getAll() {
         List<SalesOrder> list = new ArrayList<>();
         String sql = "SELECT so.*, " +
@@ -32,24 +32,54 @@ public class SalesOrderDAO extends DBContext {
         return list;
     }
 
-    public SalesOrder getById(int id) {
-        String sql = "SELECT so.*, " +
-                     "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
-                     "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
-                     "FROM Sales_Order so WHERE so.SalesOrderID = ?";
+public SalesOrder getById(int id) {
+    String sql = "SELECT so.*, " +
+                 "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
+                 "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
+                 "FROM Sales_Order so WHERE so.SalesOrderID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            SalesOrder so = mapRow(rs);
+            so.setOrderedQty(rs.getInt("OrderedQty"));
+            so.setDeliveredQty(rs.getInt("DeliveredQty"));
+            
+            // FIX LỖI Ở ĐÂY: Gọi đúng hàm setter cho list details
+            so.setDetails(getDetailsByOrderId(id)); 
+            
+            return so;
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+
+    // THÊM HÀM MỚI NÀY
+    public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
+        List<SalesOrderDetail> list = new ArrayList<>();
+        String sql = "SELECT * FROM Sales_Order_Detail WHERE SalesOrderID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
+            ps.setInt(1, orderId);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                SalesOrder so = mapRow(rs);
-                so.setOrderedQty(rs.getInt("OrderedQty"));
-                so.setDeliveredQty(rs.getInt("DeliveredQty"));
-                return so;
+            while (rs.next()) {
+                SalesOrderDetail detail = new SalesOrderDetail();
+                detail.setId(rs.getInt(1)); // Hoặc tên cột ID chi tiết của bạn
+                detail.setQuantity(rs.getInt("Quantity"));
+                detail.setPrice(rs.getDouble("Price"));
+                detail.setSubTotal(rs.getDouble("SubTotal"));
+                
+                // Lấy thông tin chi tiết sản phẩm từ ProductDetailDAO
+                int pdId = rs.getInt("ProductDetailID");
+                detail.setProductDetail(pdd.getById(pdId));
+                
+                list.add(detail);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return null;
+        return list;
     }
 
     public void insert(SalesOrder order, List<SalesOrderDetail> details) {
