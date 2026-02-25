@@ -75,53 +75,74 @@ public class SalesOrderServlet extends HttpServlet {
         request.getRequestDispatcher("/view/sales-order-view.jsp").forward(request, response);
     }
 
-    private void createOrder(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            // Mocking a user if not logged in for testing, though in production should redirect to login
-            user = new UserDAO().getById(1); 
-        }
+   private void createOrder(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    HttpSession session = request.getSession();
+    User user = (User) session.getAttribute("user");
+    if (user == null) user = new UserDAO().getById(1); // Mock user nếu chưa login
 
-        int customerId = Integer.parseInt(request.getParameter("customerId"));
-        String note = request.getParameter("note");
-        String orderCode = "SO-" + System.currentTimeMillis();
+    int customerId = Integer.parseInt(request.getParameter("customerId"));
+    String note = request.getParameter("note");
+    String orderCode = "SO-" + System.currentTimeMillis();
 
-        SalesOrder order = new SalesOrder();
-        order.setOrderCode(orderCode);
-        order.setCustomer(customerDAO.getById(customerId));
-        order.setStatus(1); // Created
-        order.setNote(note);
-        order.setCreateBy(user);
+    String[] productDetailIds = request.getParameterValues("productDetailId");
+    String[] quantities = request.getParameterValues("quantity");
+    String[] prices = request.getParameterValues("price");
 
-        String[] productDetailIds = request.getParameterValues("productDetailId");
-        String[] quantities = request.getParameterValues("quantity");
-        String[] prices = request.getParameterValues("price");
+    List<SalesOrderDetail> details = new ArrayList<>();
+    List<String> inventoryErrors = new ArrayList<>(); // Danh sách chứa lỗi tồn kho
+    double totalAmount = 0;
 
-        List<SalesOrderDetail> details = new ArrayList<>();
-        double totalAmount = 0;
+    LocationProductDAO lpDAO = new LocationProductDAO();
+    ProductDetailDAO pdDAO = new ProductDetailDAO();
 
-        if (productDetailIds != null) {
-            for (int i = 0; i < productDetailIds.length; i++) {
+    if (productDetailIds != null) {
+        for (int i = 0; i < productDetailIds.length; i++) {
+            int pdId = Integer.parseInt(productDetailIds[i]);
+            int reqQty = Integer.parseInt(quantities[i]);
+            double price = Double.parseDouble(prices[i]);
+
+            // --- BƯỚC KIỂM TRA TỒN KHO ---
+            int availableStock = lpDAO.getStockQuantity(pdId);
+            if (reqQty > availableStock) {
+                ProductDetail pd = pdDAO.getById(pdId);
+                String msg = "Sản phẩm [" + pd.getProduct().getName() + " - " + pd.getColor() 
+                             + "] không đủ hàng. (Kho: " + availableStock + ", Yêu cầu: " + reqQty + ")";
+                inventoryErrors.add(msg);
+            } else {
+                // Nếu đủ hàng thì mới tính toán
                 SalesOrderDetail detail = new SalesOrderDetail();
-                ProductDetail pd = new ProductDetail();
-                pd.setId(Integer.parseInt(productDetailIds[i]));
-                detail.setProductDetail(pd);
-                int qty = Integer.parseInt(quantities[i]);
-                double price = Double.parseDouble(prices[i]);
-                detail.setQuantity(qty);
+                detail.setProductDetail(pdDAO.getById(pdId));
+                detail.setQuantity(reqQty);
                 detail.setPrice(price);
-                detail.setSubTotal(qty * price);
+                detail.setSubTotal(reqQty * price);
                 totalAmount += detail.getSubTotal();
                 details.add(detail);
             }
         }
+    }
+
+    // --- XỬ LÝ KẾT QUẢ ---
+    if (!inventoryErrors.isEmpty()) {
+        // Nếu có ít nhất 1 sản phẩm thiếu hàng, không lưu vào DB mà báo lỗi về trang create
+        request.setAttribute("inventoryErrors", inventoryErrors);
+        request.setAttribute("customers", customerDAO.getAll());
+        request.setAttribute("productDetails", productDetailDAO.getFiltered(null, null, 1, 100));
+        request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
+    } else {
+        // Mọi thứ OK, tiến hành lưu đơn hàng
+        SalesOrder order = new SalesOrder();
+        order.setOrderCode(orderCode);
+        order.setCustomer(customerDAO.getById(customerId));
+        order.setStatus(1); // Trạng thái: Draft/Created
+        order.setNote(note);
+        order.setCreateBy(user);
         order.setTotalAmount(totalAmount);
 
         salesOrderDAO.insert(order, details);
         response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
     }
+}
 
     private void cancelOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
