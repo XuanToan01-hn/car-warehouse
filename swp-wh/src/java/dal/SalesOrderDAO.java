@@ -10,7 +10,75 @@ public class SalesOrderDAO extends DBContext {
 
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final UserDAO userDAO = new UserDAO();
+    
+    
+    
+public SalesOrder getWarehouseOrderById(int id) {
+    String sqlHeader = "SELECT so.*, u.FullName as CreatorName FROM Sales_Order so " +
+                       "JOIN Users u ON so.CreateBy = u.UserID WHERE so.SalesOrderID = ?";
+    
+    String sqlDetails = "SELECT sod.*, " +
+                        "(SELECT ISNULL(SUM(gid.QuantityActual), 0) " +
+                        " FROM Goods_Issue_Detail gid " +
+                        " JOIN Goods_Issue gi ON gid.IssueID = gi.IssueID " +
+                        " WHERE gi.SalesOrderID = sod.SalesOrderID " +
+                        " AND gid.ProductDetailID = sod.ProductDetailID) as DeliveredQty " +
+                        "FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = ?";
 
+    try (PreparedStatement ps = connection.prepareStatement(sqlHeader)) {
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            SalesOrder so = mapRow(rs); // Dùng hàm mapRow cũ của bạn
+            
+            // Lấy chi tiết hàng hóa kèm tiến độ giao
+            List<SalesOrderDetail> details = new ArrayList<>();
+            try (PreparedStatement psD = connection.prepareStatement(sqlDetails)) {
+                psD.setInt(1, id);
+                ResultSet rsD = psD.executeQuery();
+                while (rsD.next()) {
+                    SalesOrderDetail d = new SalesOrderDetail();
+                    d.setQuantity(rsD.getInt("Quantity"));
+                    d.setDeliveredQty(rsD.getInt("DeliveredQty"));
+                    
+                    // Load thông tin sản phẩm (Màu, Lô...)
+                    d.setProductDetail(new ProductDetailDAO().getById(rsD.getInt("ProductDetailID")));
+                    details.add(d);
+                }
+            }
+            so.setDetails(details);
+            return so;
+        }
+    } catch (SQLException e) { e.printStackTrace(); }
+    return null;
+}
+    
+    // Sửa lại hàm getDetailsByOrderId để lấy thêm DeliveredQty từ các phiếu Goods Issue
+public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
+    List<SalesOrderDetail> list = new ArrayList<>();
+    String sql = "SELECT sod.*, " +
+                 " (SELECT ISNULL(SUM(gid.QuantityActual), 0) FROM Goods_Issue gi " +
+                 "  JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID " +
+                 "  WHERE gi.SalesOrderID = sod.SalesOrderID AND gid.ProductDetailID = sod.ProductDetailID) as DeliveredQty " +
+                 " FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, orderId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            SalesOrderDetail d = new SalesOrderDetail();
+            d.setId(rs.getInt(1));
+            d.setQuantity(rs.getInt("Quantity"));
+            d.setPrice(rs.getDouble("Price"));
+            d.setSubTotal(rs.getDouble("SubTotal"));
+            d.setDeliveredQty(rs.getInt("DeliveredQty")); // Bạn cần thêm field này vào model SalesOrderDetail
+            d.setProductDetail(pdd.getById(rs.getInt("ProductDetailID")));
+            list.add(d);
+        }
+    } catch (SQLException e) { e.printStackTrace(); }
+    return list;
+}
+    
+    
     private ProductDetailDAO pdd = new ProductDetailDAO();
     public List<SalesOrder> getAll() {
         List<SalesOrder> list = new ArrayList<>();
@@ -56,31 +124,6 @@ public SalesOrder getById(int id) {
     return null;
 }
 
-    // THÊM HÀM MỚI NÀY
-    public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
-        List<SalesOrderDetail> list = new ArrayList<>();
-        String sql = "SELECT * FROM Sales_Order_Detail WHERE SalesOrderID = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, orderId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                SalesOrderDetail detail = new SalesOrderDetail();
-                detail.setId(rs.getInt(1)); // Hoặc tên cột ID chi tiết của bạn
-                detail.setQuantity(rs.getInt("Quantity"));
-                detail.setPrice(rs.getDouble("Price"));
-                detail.setSubTotal(rs.getDouble("SubTotal"));
-                
-                // Lấy thông tin chi tiết sản phẩm từ ProductDetailDAO
-                int pdId = rs.getInt("ProductDetailID");
-                detail.setProductDetail(pdd.getById(pdId));
-                
-                list.add(detail);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
 
     public void insert(SalesOrder order, List<SalesOrderDetail> details) {
         String sqlOrder = "INSERT INTO Sales_Order (OrderCode, CustomerID, Status, TotalAmount, Note, CreateBy) VALUES (?, ?, ?, ?, ?, ?)";

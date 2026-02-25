@@ -29,6 +29,16 @@ public class LocationProductDAO extends DBContext {
         }
         return list;
     }
+    public int getStockAtLocation(int locId, int pdId) {
+    String sql = "SELECT Quantity FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, locId);
+        ps.setInt(2, pdId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1);
+    } catch (SQLException e) { e.printStackTrace(); }
+    return 0;
+}
 
     public int getStockQuantity(int productDetailId) {
         String sql = "SELECT SUM(Quantity) FROM Location_Product WHERE ProductDetailID = ?";
