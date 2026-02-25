@@ -9,8 +9,10 @@ package model;
  * @author Asus
  */
 import java.util.Date;
+import java.util.List;
 
 public class GoodsIssue {
+
     private int id;
     private String issueCode;
     private SalesOrder salesOrder;
@@ -21,37 +23,96 @@ public class GoodsIssue {
     private int status;
     private String note;
     private User createBy;
+    private List<GoodsIssueDetail> details;
 
-    public GoodsIssue() {}
+    public GoodsIssue() {
+    }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getIssueCode() { return issueCode; }
-    public void setIssueCode(String issueCode) { this.issueCode = issueCode; }
+    public List<GoodsIssueDetail> getDetails() {
+        return details;
+    }
 
-    public SalesOrder getSalesOrder() { return salesOrder; }
-    public void setSalesOrder(SalesOrder salesOrder) { this.salesOrder = salesOrder; }
+    public void setDetails(List<GoodsIssueDetail> details) {
+        this.details = details;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public Location getLocation() { return location; }
-    public void setLocation(Location location) { this.location = location; }
+    public String getIssueCode() {
+        return issueCode;
+    }
 
-    public Date getExpectedDeliveryDate() { return expectedDeliveryDate; }
-    public void setExpectedDeliveryDate(Date expectedDeliveryDate) { this.expectedDeliveryDate = expectedDeliveryDate; }
+    public void setIssueCode(String issueCode) {
+        this.issueCode = issueCode;
+    }
 
-    public Date getActualDeliveryDate() { return actualDeliveryDate; }
-    public void setActualDeliveryDate(Date actualDeliveryDate) { this.actualDeliveryDate = actualDeliveryDate; }
+    public SalesOrder getSalesOrder() {
+        return salesOrder;
+    }
 
-    public Date getIssueDate() { return issueDate; }
-    public void setIssueDate(Date issueDate) { this.issueDate = issueDate; }
+    public void setSalesOrder(SalesOrder salesOrder) {
+        this.salesOrder = salesOrder;
+    }
 
-    public int getStatus() { return status; }
-    public void setStatus(int status) { this.status = status; }
+    public Location getLocation() {
+        return location;
+    }
 
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
+    public void setLocation(Location location) {
+        this.location = location;
+    }
 
-    public User getCreateBy() { return createBy; }
-    public void setCreateBy(User createBy) { this.createBy = createBy; }
+    public Date getExpectedDeliveryDate() {
+        return expectedDeliveryDate;
+    }
+
+    public void setExpectedDeliveryDate(Date expectedDeliveryDate) {
+        this.expectedDeliveryDate = expectedDeliveryDate;
+    }
+
+    public Date getActualDeliveryDate() {
+        return actualDeliveryDate;
+    }
+
+    public void setActualDeliveryDate(Date actualDeliveryDate) {
+        this.actualDeliveryDate = actualDeliveryDate;
+    }
+
+    public Date getIssueDate() {
+        return issueDate;
+    }
+
+    public void setIssueDate(Date issueDate) {
+        this.issueDate = issueDate;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public User getCreateBy() {
+        return createBy;
+    }
+
+    public void setCreateBy(User createBy) {
+        this.createBy = createBy;
+    }
 }
-

@@ -7,15 +7,37 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.Warehouse;
-
-/**
- * DAO đơn giản cho bảng Warehouse,
- * chỉ dùng để phục vụ module Location (lấy danh sách kho).
- */
 public class WarehouseDAO extends DBContext {
+    
+    public Warehouse getById(int id) {
+        String sql = "SELECT * FROM Warehouse WHERE WarehouseID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Warehouse w = new Warehouse();
+                w.setId(rs.getInt("WarehouseID"));
+                w.setWarehouseCode(rs.getString("WarehouseCode"));
+                w.setWarehouseName(rs.getString("WarehouseName"));
+                w.setAddress(rs.getString("Address"));
+                w.setDescription(rs.getString("Description"));
+                w.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                return w;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     public List<Warehouse> getAll() {
         List<Warehouse> list = new ArrayList<>();
+        if (connection == null) {
+            System.err.println("[CRITICAL] WarehouseDAO connection is NULL!");
+            return list;
+        }
         String sql = "SELECT * FROM Warehouse";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
@@ -36,9 +58,6 @@ public class WarehouseDAO extends DBContext {
         return list;
     }
 
-    /**
-     * Thêm kho mới, dùng cho screen quản lý Warehouse.
-     */
     public void insert(Warehouse w) {
         String sql = "INSERT INTO Warehouse (WarehouseCode, WarehouseName, Address, Description) "
                    + "VALUES (?, ?, ?, ?)";
@@ -53,9 +72,6 @@ public class WarehouseDAO extends DBContext {
         }
     }
 
-    /**
-     * Xóa warehouse theo ID.
-     */
     public void delete(int id) {
         String sql = "DELETE FROM Warehouse WHERE WarehouseID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

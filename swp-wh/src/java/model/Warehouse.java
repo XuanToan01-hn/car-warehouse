@@ -1,13 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
-/**
- *
- * @author Asus
- */
 import java.util.Date;
 
 public class Warehouse {
@@ -19,6 +11,20 @@ public class Warehouse {
     private Date createdAt;
 
     public Warehouse() {}
+
+    public Warehouse(int id) {
+        this.id = id;
+    }
+
+    public Warehouse(String warehouseCode, String warehouseName, String address, String description, Date createdAt) {
+        this.warehouseCode = warehouseCode;
+        this.warehouseName = warehouseName;
+        this.address = address;
+        this.description = description;
+        this.createdAt = createdAt;
+    }
+    
+    
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }

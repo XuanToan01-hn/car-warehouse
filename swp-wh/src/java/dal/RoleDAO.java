@@ -81,4 +81,15 @@ public class RoleDAO extends DBContext{
             e.printStackTrace();
         }
     }
+    
+    public static void main(String[] args) {
+            RoleDAO dao = new RoleDAO();
+
+    // 1. Test getAll
+    System.out.println("=== GET ALL ===");
+    List<Role> list = dao.getAll();
+    for (Role role : list) {
+        System.out.println(role.getId() + " - " + role.getRoleName());
+    }
+    }
 }

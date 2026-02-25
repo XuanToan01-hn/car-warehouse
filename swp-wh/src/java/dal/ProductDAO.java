@@ -1,3 +1,7 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package dal;
 
 import context.DBContext;
@@ -8,15 +12,114 @@ import java.util.List;
 import model.Product;
 import model.Category;
 import model.Unit;
+import dal.UnitDAO;
 
 public class ProductDAO extends DBContext {
 
     CategoryDAO categoryDAO = new CategoryDAO();
     UnitDAO unitDAO = new UnitDAO();
 
-    // ===============================
-    // GET ALL
-    // ===============================
+
+
+    public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId, int page, int pageSize) {
+        List<Product> list = new ArrayList<>();
+        CategoryDAO categoryDAO = new CategoryDAO();
+        UnitDAO unitDAO = new UnitDAO();
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        // Search filter
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
+            params.add("%" + search + "%");
+            params.add("%" + search + "%");
+        }
+
+        // Category filter
+        if (categoryId != null && !categoryId.isEmpty()) {
+            sql.append(" AND CategoryID = ?");
+            params.add(Integer.parseInt(categoryId));
+        }
+
+        // Unit filter
+        if (unitId != null && !unitId.isEmpty()) {
+            sql.append(" AND UnitID = ?");
+            params.add(Integer.parseInt(unitId));
+        }
+
+        // Sort by price and required ORDER BY for pagination
+        sql.append(" ORDER BY ");
+        if (sortPrice != null && !sortPrice.isEmpty()) {
+            sql.append("Price ").append(sortPrice.equals("asc") ? "ASC" : "DESC");
+        } else {
+            sql.append("ProductID ASC"); // Default sorting if no price sort specified
+        }
+
+        // Pagination for SQL Server
+        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add((page - 1) * pageSize);
+        params.add(pageSize);
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(new Product(
+                    rs.getInt("ProductID"),
+                    rs.getString("Code"),
+                    rs.getString("Name"),
+                    rs.getDouble("Price"),
+                    rs.getString("Description"),
+                    rs.getString("Image"),
+                    unitDAO.getUnitById(rs.getInt("UnitID")),
+                    categoryDAO.getByID(rs.getInt("CategoryID"))
+                ));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+
+        public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+
+        if (search != null && !search.trim().isEmpty()) {
+            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
+            params.add("%" + search + "%");
+            params.add("%" + search + "%");
+        }
+
+        if (categoryId != null && !categoryId.isEmpty()) {
+            sql.append(" AND CategoryID = ?");
+            params.add(Integer.parseInt(categoryId));
+        }
+
+        if (unitId != null && !unitId.isEmpty()) {
+            sql.append(" AND UnitID = ?");
+            params.add(Integer.parseInt(unitId));
+        }
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql.toString());
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
     public List<Product> getAll() {
 
         List<Product> list = new ArrayList<>();
@@ -41,10 +144,10 @@ public class ProductDAO extends DBContext {
                 p.setMinStock(rs.getInt("MinStock"));
 
                 Category c = categoryDAO.getByID(rs.getInt("CategoryID"));
-                // Unit u = unitDAO.getUnitById(rs.getInt("UnitID"));
+//                Unit u = unitDAO.getUnitById(rs.getInt("UnitID"));
 
                 p.setCategory(c);
-                // p.setUnit(u);
+//                p.setUnit(u);
 
                 list.add(p);
             }
@@ -83,7 +186,7 @@ public class ProductDAO extends DBContext {
                 p.setMinStock(rs.getInt("MinStock"));
 
                 p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-                // p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+//                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
 
                 return p;
             }
@@ -101,10 +204,10 @@ public class ProductDAO extends DBContext {
     public void insert(Product p) {
 
         String sql = """
-                INSERT INTO Product
-                (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
+                     INSERT INTO Product
+                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     """;
 
         try {
 
@@ -116,7 +219,7 @@ public class ProductDAO extends DBContext {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getImage());
             ps.setInt(6, p.getCategory().getId());
-            // ps.setInt(7, p.getUnit().getId());
+            ps.setInt(7, p.getUnit().getId());
             ps.setInt(8, p.getMinStock());
 
             ps.executeUpdate();
@@ -124,43 +227,6 @@ public class ProductDAO extends DBContext {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    // ===============================
-    // INSERT AND GET GENERATED ID
-    // ===============================
-    public int insertAndGetId(Product p) {
-        String sql = """
-                INSERT INTO Product
-                (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                """;
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
-            ps.setString(1, p.getCode());
-            ps.setString(2, p.getName());
-            ps.setDouble(3, p.getPrice());
-            ps.setString(4, p.getDescription() != null ? p.getDescription() : "");
-            ps.setString(5, p.getImage() != null ? p.getImage() : "");
-            if (p.getCategory() != null) {
-                ps.setInt(6, p.getCategory().getId());
-            } else {
-                ps.setNull(6, java.sql.Types.INTEGER);
-            }
-            if (p.getUnit() != null) {
-                ps.setInt(7, p.getUnit().getId());
-            } else {
-                ps.setNull(7, java.sql.Types.INTEGER);
-            }
-            ps.setInt(8, p.getMinStock());
-            ps.executeUpdate();
-            java.sql.ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next())
-                return rs.getInt(1);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return -1;
     }
 
     // ===============================
@@ -169,17 +235,17 @@ public class ProductDAO extends DBContext {
     public void update(Product p) {
 
         String sql = """
-                UPDATE Product
-                SET Code = ?,
-                    Name = ?,
-                    Price = ?,
-                    Description = ?,
-                    Image = ?,
-                    CategoryID = ?,
-                    UnitID = ?,
-                    MinStock = ?
-                WHERE ProductID = ?
-                """;
+                     UPDATE Product
+                     SET Code = ?,
+                         Name = ?,
+                         Price = ?,
+                         Description = ?,
+                         Image = ?,
+                         CategoryID = ?,
+                         UnitID = ?,
+                         MinStock = ?
+                     WHERE ProductID = ?
+                     """;
 
         try {
 
@@ -191,7 +257,7 @@ public class ProductDAO extends DBContext {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getImage());
             ps.setInt(6, p.getCategory().getId());
-            // ps.setInt(7, p.getUnit().getC);
+//            ps.setInt(7, p.getUnit().getC);
             ps.setInt(8, p.getMinStock());
             ps.setInt(9, p.getId());
 
@@ -234,13 +300,13 @@ public class ProductDAO extends DBContext {
         List<Product> list = new ArrayList<>();
 
         String sql = """
-                    SELECT * FROM Product
-                    WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
-                    AND (? = 0 OR CategoryID = ?)
-                    AND (? = 0 OR UnitID = ?)
-                    ORDER BY ProductID
-                    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-                """;
+            SELECT * FROM Product
+            WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
+            AND (? = 0 OR CategoryID = ?)
+            AND (? = 0 OR UnitID = ?)
+            ORDER BY ProductID
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        """;
 
         try {
 
@@ -276,7 +342,7 @@ public class ProductDAO extends DBContext {
                 p.setMinStock(rs.getInt("MinStock"));
 
                 p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-                // p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+//                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
 
                 list.add(p);
             }

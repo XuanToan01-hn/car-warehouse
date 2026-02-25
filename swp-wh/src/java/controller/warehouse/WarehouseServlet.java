@@ -9,12 +9,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 import model.Warehouse;
-
-/**
- * Screen quản lý Warehouse (kho).
- * - GET: hiển thị form + danh sách warehouse
- * - POST: tạo warehouse mới đơn giản.
- */
 @WebServlet(name = "WarehouseServlet", urlPatterns = {"/warehouses"})
 public class WarehouseServlet extends HttpServlet {
 
@@ -22,7 +16,6 @@ public class WarehouseServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Kiểm tra nếu có action=delete
         String action = request.getParameter("action");
         if ("delete".equals(action)) {
             String idStr = request.getParameter("id");
@@ -32,7 +25,6 @@ public class WarehouseServlet extends HttpServlet {
                     WarehouseDAO warehouseDAO = new WarehouseDAO();
                     warehouseDAO.delete(id);
                 } catch (NumberFormatException e) {
-                    // ignore
                 }
             }
             response.sendRedirect(request.getContextPath() + "/warehouses");
@@ -60,7 +52,6 @@ public class WarehouseServlet extends HttpServlet {
         w.setWarehouseName(name);
         w.setAddress(address);
         w.setDescription(description);
-        // createdAt để DB tự set GETDATE()
 
         WarehouseDAO warehouseDAO = new WarehouseDAO();
         warehouseDAO.insert(w);

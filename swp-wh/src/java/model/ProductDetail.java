@@ -16,9 +16,29 @@ public class ProductDetail {
     private String lotNumber;
     private String serialNumber;
     private Date manufactureDate;
-
+private String color;      // Thêm mới
+    private int quantity;
     public ProductDetail() {}
+    
+    
 
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

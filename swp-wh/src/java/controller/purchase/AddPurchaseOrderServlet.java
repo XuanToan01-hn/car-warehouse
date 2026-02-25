@@ -53,10 +53,10 @@ public class AddPurchaseOrderServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
-        HttpSession session = request.getSession();
-        User loginUser = (User) session.getAttribute("user");
+        HttpSession session = request.getSession(false);
+        User loginUser = (session != null) ? (User) session.getAttribute("user") : null;
         if (loginUser == null) {
-            response.sendRedirect(request.getContextPath() + "/auth-sign-in.jsp");
+            response.sendRedirect(request.getContextPath() + "/login");
             return;
         }
 

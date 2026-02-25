@@ -10,21 +10,52 @@
 
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
+        <style>
+            #warehouseModal .modal-dialog {
+                max-width: 1100px;
+            }
+
+            #warehouseModal .modal-title {
+                font-size: 1.35rem;
+                font-weight: 700;
+            }
+
+            #warehouseModal .text-muted.small {
+                font-size: 0.95rem;
+            }
+
+            #warehouseModal label {
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            #warehouseModal .form-control {
+                padding: 12px 14px;
+                font-size: 1.05rem;
+            }
+
+            #warehouseModal textarea.form-control {
+                min-height: 120px;
+            }
+
+            #warehouseModal .btn {
+                padding: 10px 16px;
+                font-size: 1rem;
+            }
+        </style>
     </head>
     <body>
         <div class="container mt-4">
             <h2 class="mb-3">Quản lý Warehouse (kho)</h2>
 
-            <!-- Nút thêm mới -->
             <div class="mb-3">
                 <button type="button" class="btn btn-success" data-toggle="modal" data-target="#warehouseModal">
                     <i class="fas fa-plus"></i> Thêm Warehouse mới
                 </button>
             </div>
 
-            <!-- Modal Warehouse -->
             <div class="modal fade" id="warehouseModal" tabindex="-1" role="dialog" aria-labelledby="warehouseModalLabel" aria-hidden="true">
-                <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-dialog modal-lg" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
                             <h5 class="modal-title" id="warehouseModalLabel">Add New Warehouse</h5>
@@ -65,7 +96,6 @@
                 </div>
             </div>
 
-            <!-- Danh sách warehouse -->
             <div class="card">
                 <div class="card-header">
                     Danh sách warehouse
@@ -110,7 +140,6 @@
         <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
         <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
         <script>
-            // Focus vào input đầu tiên khi modal mở
             $('#warehouseModal').on('shown.bs.modal', function () {
                 $('#warehouseCode').focus();
             });

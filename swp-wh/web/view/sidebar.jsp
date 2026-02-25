@@ -212,6 +212,12 @@
                             </ul>
                         </li>
                         <li class=" ">
+                            <a href="goods-issue?action=list" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/export.png" alt="image">
+                                <span class="ml-4">Goods Issue</span>
+                            </a>
+                        </li>
+                        <li class=" ">
                             <a href="list-export" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/export.png" alt="image">
                                 <span class="ml-4">Export</span>
@@ -221,7 +227,7 @@
 
                     <c:if test="${user.role.roleId == 2}">
                         <li class=" ">
-                            <a href="list-sales-order" class="svg-icon">
+                            <a href="sales-order?action=list" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/sale.png" alt="image">
                                 <span class="ml-4">Sale Order</span>
                             </a>

@@ -21,6 +21,18 @@ public class Product {
 
     public Product() {}
 
+    public Product(int id, String code, String name, double price, String description, String image, Unit unit, Category category) {
+        this.id = id;
+        this.code = code;
+        this.name = name;
+        this.price = price;
+        this.description = description;
+        this.image = image;
+        this.unit = unit;
+        this.category = category;
+    }
+
+    
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
