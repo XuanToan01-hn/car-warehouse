@@ -16,9 +16,20 @@ public class SalesOrderDetail {
     private double price;
     private Tax tax;
     private double subTotal;
+    private int deliveredQty;
 
     public SalesOrderDetail() {}
 
+    public int getDeliveredQty() {
+        return deliveredQty;
+    }
+
+    public void setDeliveredQty(int deliveredQty) {
+        this.deliveredQty = deliveredQty;
+    }
+
+    
+    
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 

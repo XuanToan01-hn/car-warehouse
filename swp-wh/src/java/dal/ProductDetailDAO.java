@@ -8,10 +8,68 @@ import java.util.ArrayList;
 import java.util.List;
 import model.ProductDetail;
 import model.Product;
-
+import java.sql.SQLException;
 public class ProductDetailDAO extends DBContext {
 
-    ProductDAO productDAO = new ProductDAO();
+
+    // Cần ProductDAO để lấy thông tin Product cha cho ProductDetail
+    private final ProductDAO productDAO = new ProductDAO();
+
+/**
+ * Lấy toàn bộ danh sách ProductDetail
+ */
+public List<ProductDetail> getAll() {
+    List<ProductDetail> list = new ArrayList<>();
+    String sql = "SELECT * FROM Product_Detail ORDER BY ProductDetailID ASC";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+
+        while (rs.next()) {
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setLotNumber(rs.getString("LotNumber"));
+            pd.setSerialNumber(rs.getString("SerialNumber"));
+            pd.setManufactureDate(rs.getTimestamp("ManufactureDate"));
+
+            // nếu bảng có các field này
+            pd.setColor(rs.getString("Color"));
+            pd.setQuantity(rs.getInt("Quantity"));
+
+            // lấy Product cha
+            pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
+
+            list.add(pd);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+public ProductDetail getById(int id) {
+    String sql = "SELECT * FROM Product_Detail WHERE ProductDetailID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setLotNumber(rs.getString("LotNumber"));
+            pd.setSerialNumber(rs.getString("SerialNumber"));
+            pd.setManufactureDate(rs.getTimestamp("ManufactureDate"));
+            
+            // ĐỪNG QUÊN 2 DÒNG NÀY:
+            pd.setColor(rs.getString("Color")); 
+            pd.setQuantity(rs.getInt("Quantity")); 
+
+            pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
+            return pd;
+        }
+    } catch (SQLException e) { e.printStackTrace(); }
+    return null;
+}
 
     public ProductDetail getById(int id) {
         String sql = "SELECT * FROM Product_Detail WHERE ProductDetailID = ?";
