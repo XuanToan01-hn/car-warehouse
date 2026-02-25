@@ -39,11 +39,29 @@ public class LocationServlet extends HttpServlet {
             String idStr = request.getParameter("id");
             if (idStr != null) {
                 int id = Integer.parseInt(idStr);
-                Location loc = locationDAO.getById(id);
-                List<model.LocationProduct> products = locationDAO.getProductsByLocation(id);
+                model.Location loc = locationDAO.getById(id);
+                List<model.LocationProduct> rawProducts = locationDAO.getProductsByLocation(id);
+                
+                // Grouping logic for UI
+                java.util.Map<Integer, java.util.Map<String, Object>> groupedMap = new java.util.LinkedHashMap<>();
+                for (model.LocationProduct lp : rawProducts) {
+                    int pid = lp.getProduct().getId();
+                    if (!groupedMap.containsKey(pid)) {
+                        java.util.Map<String, Object> group = new java.util.HashMap<>();
+                        group.put("product", lp.getProduct());
+                        group.put("totalQty", 0);
+                        group.put("serials", new java.util.ArrayList<String>());
+                        groupedMap.put(pid, group);
+                    }
+                    java.util.Map<String, Object> group = groupedMap.get(pid);
+                    group.put("totalQty", (int)group.get("totalQty") + lp.getQuantity());
+                    if (lp.getProductDetail() != null && lp.getProductDetail().getSerialNumber() != null) {
+                        ((java.util.List<String>)group.get("serials")).add(lp.getProductDetail().getSerialNumber());
+                    }
+                }
                 
                 request.setAttribute("loc", loc);
-                request.setAttribute("products", products);
+                request.setAttribute("groupedProducts", groupedMap.values());
                 request.getRequestDispatcher("/view/location-detail-fragment.jsp").forward(request, response);
                 return;
             }

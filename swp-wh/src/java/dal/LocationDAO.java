@@ -118,7 +118,7 @@ public class LocationDAO extends DBContext {
                      "FROM Location_Product lp " +
                      "JOIN Product p ON lp.ProductID = p.ProductID " +
                      "LEFT JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID " +
-                     "WHERE lp.LocationID = ?";
+                     "WHERE lp.LocationID = ? AND lp.Quantity > 0";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, locationId);
             ResultSet rs = ps.executeQuery();

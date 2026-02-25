@@ -3,6 +3,7 @@ package dal;
 import context.DBContext;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import model.ProductDetail;
@@ -11,6 +12,26 @@ import model.Product;
 public class ProductDetailDAO extends DBContext {
 
     ProductDAO productDAO = new ProductDAO();
+
+    public ProductDetail getById(int id) {
+        String sql = "SELECT * FROM Product_Detail WHERE ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                ProductDetail pd = new ProductDetail();
+                pd.setId(rs.getInt("ProductDetailID"));
+                pd.setLotNumber(rs.getString("LotNumber"));
+                pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setManufactureDate(rs.getDate("ManufactureDate"));
+                pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
+                return pd;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
     // Lọc danh sách ProductDetail theo ProductID và Tìm kiếm (Lot/Serial)
     public List<ProductDetail> getFiltered(String search, String productId, int page, int pageSize) {
