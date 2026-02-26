@@ -1,3 +1,7 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package dal;
 
 import context.DBContext;
@@ -16,34 +20,34 @@ public class ProductDAO extends DBContext {
     UnitDAO unitDAO = new UnitDAO();
 
 
-    
+
     public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         CategoryDAO categoryDAO = new CategoryDAO();
         UnitDAO unitDAO = new UnitDAO();
-        
+
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-        
+
         // Search filter
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-        
+
         // Category filter
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-        
+
         // Unit filter
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
         }
-        
+
         // Sort by price and required ORDER BY for pagination
         sql.append(" ORDER BY ");
         if (sortPrice != null && !sortPrice.isEmpty()) {
@@ -51,7 +55,7 @@ public class ProductDAO extends DBContext {
         } else {
             sql.append("ProductID ASC"); // Default sorting if no price sort specified
         }
-        
+
         // Pagination for SQL Server
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
@@ -80,23 +84,23 @@ public class ProductDAO extends DBContext {
         }
         return list;
     }
-    
-    
+
+
         public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-        
+
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-        
+
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-        
+
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
@@ -348,6 +352,56 @@ public class ProductDAO extends DBContext {
         }
 
         return list;
+    }
+
+    // ===============================
+    // INSERT and return generated ID
+    // (dùng cho QuickAddProductServlet)
+    // ===============================
+    public int insertAndGetId(Product p) {
+
+        String sql = """
+                     INSERT INTO Product
+                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+
+            ps.setString(1, p.getCode());
+            ps.setString(2, p.getName());
+            ps.setDouble(3, p.getPrice());
+            ps.setString(4, p.getDescription());
+            ps.setString(5, p.getImage());
+
+            // Category có thể null trong quick-add
+            if (p.getCategory() != null) {
+                ps.setInt(6, p.getCategory().getId());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }
+
+            // Unit hiện không chọn trong quick-add -> cho phép null
+            if (p.getUnit() != null) {
+                ps.setInt(7, p.getUnit().getId());
+            } else {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            }
+
+            ps.setInt(8, p.getMinStock());
+
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1;
     }
 
 }

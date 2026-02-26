@@ -40,7 +40,7 @@
 //    private final SalesOrderDAO soDAO = new SalesOrderDAO();
 //    private final LocationProductDAO lpDAO = new LocationProductDAO();
 //    private final ProductDetailDAO pdDAO = new ProductDetailDAO();
-//    /** 
+//    /**
 //     * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
 //     * @param request servlet request
 //     * @param response servlet response
@@ -55,14 +55,14 @@
 //            out.println("<!DOCTYPE html>");
 //            out.println("<html>");
 //            out.println("<head>");
-//            out.println("<title>Servlet GoodsIssueServlet</title>");  
+//            out.println("<title>Servlet GoodsIssueServlet</title>");
 //            out.println("</head>");
 //            out.println("<body>");
 //            out.println("<h1>Servlet GoodsIssueServlet at " + request.getContextPath () + "</h1>");
 //            out.println("</body>");
 //            out.println("</html>");
 //        }
-//    } 
+//    }
 //
 //@Override
 //protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -73,7 +73,7 @@
 //
 //        // Mặc định lấy tồn kho tại vị trí đầu tiên trong danh sách để hiển thị ban đầu
 //        int defaultLocId = locations.isEmpty() ? 0 : locations.get(0).getId();
-//        
+//
 //        // Gọi hàm bạn đã viết trong GoodsIssueDAO
 //        List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, defaultLocId);
 //
@@ -90,15 +90,15 @@
 ////protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 ////    try {
 ////        // Lấy đúng soId từ request
-////        String idRaw = request.getParameter("soId"); 
+////        String idRaw = request.getParameter("soId");
 ////        if (idRaw == null) {
 ////            response.sendRedirect("sales-order?action=warehouse-list");
 ////            return;
 ////        }
-////        
+////
 ////        int soId = Integer.parseInt(idRaw);
 ////        SalesOrder order = soDAO.getById(soId); // Sử dụng biến soId thay vì số 1
-////        
+////
 ////        if (order == null || order.getStatus() == 4 || order.getStatus() == 3) { // 3 là Completed
 ////            response.sendRedirect("sales-order?action=warehouse-list");
 ////            return;
@@ -146,16 +146,16 @@
 //            int qtyToShip = Integer.parseInt(shipQtys[i]);
 //
 //            // HÀNH ĐỘNG: Nếu nhập 0 thì coi như không giao đợt này -> Skip
-//            if (qtyToShip <= 0) continue; 
+//            if (qtyToShip <= 0) continue;
 //
 //            SalesOrderDetail originalDetail = orderMap.get(pdId);
 //            if (originalDetail == null) continue;
 //
 //            int remaining = originalDetail.getQuantity() - originalDetail.getDeliveredQty();
-//            
+//
 //            // Validate số lượng nợ
 //            if (qtyToShip > remaining) {
-//                errors.add("Sản phẩm " + originalDetail.getProductDetail().getProduct().getName() 
+//                errors.add("Sản phẩm " + originalDetail.getProductDetail().getProduct().getName()
 //                           + ": Giao quá số nợ (" + remaining + ")");
 //                continue;
 //            }
@@ -163,7 +163,7 @@
 //            // Validate tồn kho
 //            int stockAtLoc = lpDAO.getStockAtLocation(locId, pdId);
 //            if (qtyToShip > stockAtLoc) {
-//                errors.add("Sản phẩm " + originalDetail.getProductDetail().getProduct().getName() 
+//                errors.add("Sản phẩm " + originalDetail.getProductDetail().getProduct().getName()
 //                           + ": Kho không đủ (Còn: " + stockAtLoc + ")");
 //                continue;
 //            }
@@ -202,7 +202,7 @@
 //    }
 //}
 //
-//    /** 
+//    /**
 //     * Returns a short description of the servlet.
 //     * @return a String containing servlet description
 //     */
