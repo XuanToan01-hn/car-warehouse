@@ -43,38 +43,40 @@ public class GoodsIssueDAO extends DBContext {
         return list;
     }
 
-    public List<Object[]> getDetailsForUI(int soId, int locationId) {
-        List<Object[]> uiDetails = new ArrayList<>();
-        // Product Name | Lot/Serial | Ordered | Delivered | Remaining | Stock | ProductDetailID
-        String sql = "SELECT p.Name, pd.LotNumber, pd.SerialNumber, sod.Quantity as Ordered, " +
-                     "ISNULL((SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = sod.SalesOrderID AND gid.ProductDetailID = sod.ProductDetailID), 0) as Delivered, " +
-                     "ISNULL((SELECT lp.Quantity FROM Location_Product lp WHERE lp.ProductDetailID = sod.ProductDetailID AND lp.LocationID = ?), 0) as Stock, " +
-                     "sod.ProductDetailID " +
-                     "FROM Sales_Order_Detail sod " +
-                     "JOIN Product_Detail pd ON sod.ProductDetailID = pd.ProductDetailID " +
-                     "JOIN Product p ON pd.ProductID = p.ProductID " +
-                     "WHERE sod.SalesOrderID = ?";
-        
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, locationId);
-            ps.setInt(2, soId);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                Object[] row = new Object[7];
-                row[0] = rs.getString("Name");
-                row[1] = rs.getString("LotNumber") != null ? rs.getString("LotNumber") : rs.getString("SerialNumber");
-                row[2] = rs.getInt("Ordered");
-                row[3] = rs.getInt("Delivered");
-                row[4] = rs.getInt("Ordered") - rs.getInt("Delivered"); // Remaining
-                row[5] = rs.getInt("Stock");
-                row[6] = rs.getInt("ProductDetailID");
-                uiDetails.add(row);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+public List<Object[]> getDetailsForUI(int soId, int locationId) {
+    List<Object[]> uiDetails = new ArrayList<>();
+    // Thêm pd.Color vào cuối câu SELECT
+    String sql = "SELECT p.Name, pd.LotNumber, pd.SerialNumber, sod.Quantity as Ordered, " +
+                 "ISNULL((SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = sod.SalesOrderID AND gid.ProductDetailID = sod.ProductDetailID), 0) as Delivered, " +
+                 "ISNULL((SELECT lp.Quantity FROM Location_Product lp WHERE lp.ProductDetailID = sod.ProductDetailID AND lp.LocationID = ?), 0) as Stock, " +
+                 "sod.ProductDetailID, " +
+                 "pd.Color " + // Cột mới ở đây (vị trí index 7)
+                 "FROM Sales_Order_Detail sod " +
+                 "JOIN Product_Detail pd ON sod.ProductDetailID = pd.ProductDetailID " +
+                 "JOIN Product p ON pd.ProductID = p.ProductID " +
+                 "WHERE sod.SalesOrderID = ?";
+    
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, locationId);
+        ps.setInt(2, soId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Object[] row = new Object[8]; // Tăng kích thước mảng lên 8
+            row[0] = rs.getString("Name");
+            row[1] = rs.getString("LotNumber") != null ? rs.getString("LotNumber") : rs.getString("SerialNumber");
+            row[2] = rs.getInt("Ordered");
+            row[3] = rs.getInt("Delivered");
+            row[4] = rs.getInt("Ordered") - rs.getInt("Delivered");
+            row[5] = rs.getInt("Stock");
+            row[6] = rs.getInt("ProductDetailID");
+            row[7] = rs.getString("Color"); // Gán giá trị màu
+            uiDetails.add(row);
         }
-        return uiDetails;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return uiDetails;
+}
 
     public boolean confirmIssue(GoodsIssue gi, List<GoodsIssueDetail> details) {
         String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, Note, CreateBy) VALUES (?, ?, ?, GETDATE(), ?, ?, ?)";
