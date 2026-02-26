@@ -1,5 +1,5 @@
-/swp-wh/build/
-/swp-wh/dist/
+swp-wh/build/
+swp-wh/nbproject
 
 .idea/
 out/

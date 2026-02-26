@@ -197,6 +197,51 @@ public class ProductDAO extends DBContext {
     // ===============================
     // INSERT
     // ===============================
+    public int insertAndGetId(Product p) {
+
+        String sql = """
+                     INSERT INTO Product
+                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+
+            ps.setString(1, p.getCode());
+            ps.setString(2, p.getName());
+            ps.setDouble(3, p.getPrice());
+            ps.setString(4, p.getDescription());
+            ps.setString(5, p.getImage());
+
+            // Category có thể null trong quick-add
+            if (p.getCategory() != null) {
+                ps.setInt(6, p.getCategory().getId());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }
+
+            // Unit hiện không chọn trong quick-add -> cho phép null
+            if (p.getUnit() != null) {
+                ps.setInt(7, p.getUnit().getId());
+            } else {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            }
+
+            ps.setInt(8, p.getMinStock());
+
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
     public void insert(Product p) {
 
         String sql = """

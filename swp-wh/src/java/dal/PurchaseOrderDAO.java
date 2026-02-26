@@ -284,47 +284,45 @@ public class PurchaseOrderDAO extends DBContext {
             e.printStackTrace();
         }
     }
-    // ===============================
-// MAIN TEST
-// ===============================
     public static void main(String[] args) {
         PurchaseOrderDAO dao = new PurchaseOrderDAO();
 
         System.out.println("===== TEST getAll() =====");
         List<PurchaseOrder> list = dao.getAll();
         for (PurchaseOrder po : list) {
-            System.out.println("ID: " + po.getId()
-                    + " | Code: " + po.getOrderCode()
-                    + " | Supplier: " + (po.getSupplier() != null ? po.getSupplier().getName() : "null")
-                    + " | Total: " + po.getTotalAmount()
-                    + " | Status: " + po.getStatus());
+            System.out.println(
+                    po.getId() + " | " +
+                            po.getOrderCode() + " | " +
+                            po.getSupplier().getName() + " | " +
+                            po.getTotalAmount()
+            );
         }
 
         System.out.println("\n===== TEST searchAndPaginate() =====");
         List<PurchaseOrder> searchList = dao.searchAndPaginate("", 0, 0, 5);
         for (PurchaseOrder po : searchList) {
-            System.out.println("ID: " + po.getId() + " | Code: " + po.getOrderCode());
+            System.out.println(po.getOrderCode());
         }
 
         System.out.println("\n===== TEST count() =====");
         int total = dao.count("", 0);
-        System.out.println("Total orders: " + total);
+        System.out.println("Total records: " + total);
 
         System.out.println("\n===== TEST getById() =====");
-        PurchaseOrder detail = dao.getById(22); // đổi ID nếu cần
-        if (detail != null) {
-            System.out.println("Order Code: " + detail.getOrderCode());
-            System.out.println("Supplier: " + detail.getSupplier().getName());
+        PurchaseOrder poDetail = dao.getById(1); // đổi ID nếu cần
+        if (poDetail != null) {
+            System.out.println("Order: " + poDetail.getOrderCode());
+            System.out.println("Supplier: " + poDetail.getSupplier().getName());
             System.out.println("Details:");
-            if (detail.getDetails() != null) {
-                for (PurchaseOrderDetail d : detail.getDetails()) {
-                    System.out.println("  Product: " + d.getProduct().getName()
-                            + " | Qty: " + d.getQuantity()
-                            + " | Price: " + d.getPrice());
-                }
+            for (PurchaseOrderDetail d : poDetail.getDetails()) {
+                System.out.println(
+                        " - " + d.getProduct().getName() +
+                                " | Qty: " + d.getQuantity() +
+                                " | SubTotal: " + d.getSubTotal()
+                );
             }
         } else {
-            System.out.println("Order not found!");
+            System.out.println("Order not found");
         }
 
         System.out.println("\n===== TEST insert() =====");
@@ -333,36 +331,42 @@ public class PurchaseOrderDAO extends DBContext {
         newPO.setStatus(1);
         newPO.setTotalAmount(1000);
 
-        Supplier supplier = new Supplier();
-        supplier.setId(1); // đảm bảo SupplierID = 1 tồn tại trong DB
-        newPO.setSupplier(supplier);
+        Supplier s = new Supplier();
+        s.setId(1); // phải tồn tại trong DB
+        newPO.setSupplier(s);
 
-        User user = new User();
-        user.setId(1); // đảm bảo UserID = 1 tồn tại
-        newPO.setCreateBy(user);
+        User u = new User();
+        u.setId(1); // nếu CreateBy có
+        newPO.setCreateBy(u);
 
         int newId = dao.insert(newPO);
         System.out.println("Inserted PurchaseOrder ID: " + newId);
 
-        if (newId > 0) {
+        if (newId != -1) {
             System.out.println("\n===== TEST insertDetail() =====");
+
             PurchaseOrderDetail pod = new PurchaseOrderDetail();
             pod.setPurchaseOrderId(newId);
 
-            Product product = new Product();
-            product.setId(1); // đảm bảo ProductID = 1 tồn tại
-            pod.setProduct(product);
+            Product p = new Product();
+            p.setId(1); // Product phải tồn tại
+            pod.setProduct(p);
 
-            pod.setQuantity(5);
-            pod.setPrice(200);
+            pod.setQuantity(2);
+            pod.setPrice(500);
             pod.setSubTotal(1000);
 
+            // Tax (optional)
+            Tax t = new Tax();
+            t.setId(1); // nếu có
+            pod.setTax(t);
+
             dao.insertDetail(pod);
-            System.out.println("Inserted detail for Order ID: " + newId);
+            System.out.println("Inserted detail for PO: " + newId);
 
             System.out.println("\n===== TEST updateStatus() =====");
             dao.updateStatus(newId, 2);
-            System.out.println("Updated status to 2 for Order ID: " + newId);
+            System.out.println("Updated status to 2 for PO: " + newId);
         }
 
         System.out.println("\n===== DONE TEST =====");
