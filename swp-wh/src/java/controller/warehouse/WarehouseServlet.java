@@ -29,6 +29,29 @@ public class WarehouseServlet extends HttpServlet {
             }
             response.sendRedirect(request.getContextPath() + "/warehouses");
             return;
+        } else if ("getDetailJson".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    WarehouseDAO warehouseDAO = new WarehouseDAO();
+                    Warehouse w = warehouseDAO.getById(id);
+                    if (w != null) {
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        String codeJson = w.getWarehouseCode() != null ? w.getWarehouseCode().replace("\"", "\\\"") : "";
+                        String nameJson = w.getWarehouseName() != null ? w.getWarehouseName().replace("\"", "\\\"") : "";
+                        String addrJson = w.getAddress() != null ? w.getAddress().replace("\"", "\\\"") : "";
+                        String descJson = w.getDescription() != null ? w.getDescription().replace("\"", "\\\"") : "";
+
+                        String json = String.format("{\"id\": %d, \"code\": \"%s\", \"name\": \"%s\", \"address\": \"%s\", \"description\": \"%s\"}",
+                            w.getId(), codeJson, nameJson, addrJson, descJson);
+                        response.getWriter().write(json);
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                }
+            }
         }
 
         WarehouseDAO warehouseDAO = new WarehouseDAO();
@@ -42,21 +65,29 @@ public class WarehouseServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
+        String action = request.getParameter("action");
         String code = request.getParameter("warehouseCode");
         String name = request.getParameter("warehouseName");
         String address = request.getParameter("address");
         String description = request.getParameter("description");
+        String idRaw = request.getParameter("id");
 
         Warehouse w = new Warehouse();
+        if (idRaw != null && !idRaw.isEmpty()) {
+            w.setId(Integer.parseInt(idRaw));
+        }
         w.setWarehouseCode(code);
         w.setWarehouseName(name);
         w.setAddress(address);
         w.setDescription(description);
 
         WarehouseDAO warehouseDAO = new WarehouseDAO();
-        warehouseDAO.insert(w);
+        if ("update".equals(action)) {
+            warehouseDAO.update(w);
+        } else {
+            warehouseDAO.insert(w);
+        }
 
         response.sendRedirect(request.getContextPath() + "/warehouses");
     }
 }
-

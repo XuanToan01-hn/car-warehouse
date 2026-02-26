@@ -89,8 +89,13 @@
                             </a>
                             <ul id="location" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
                                 <li class="">
-                                    <a href="ListLocation">
+                                    <a href="locations">
                                         <i>&bull;</i><span>List Location</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="warehouses">
+                                        <i>&bull;</i><span>List Warehouse</span>
                                     </a>
                                 </li>
                                 <li class="">

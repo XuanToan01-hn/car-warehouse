@@ -200,16 +200,16 @@
                                                         <button class="btn-action btn-edit mr-2"
                                                             style="background: #ecfdf5; color: #047857; border-color: #a7f3d0;"
                                                             onclick="viewDetail('${l.id}')">
-                                                            <i class="ri-eye-line"></i> Xem chi tiết
+                                                            <i class="ri-eye-line"></i> View Detail
                                                         </button>
                                                         <button class="btn-action btn-edit mr-2"
                                                             onclick="prepareEdit('${l.id}')">
-                                                            <i class="ri-pencil-line"></i> Sửa
+                                                            <i class="ri-pencil-line"></i> Edit
                                                         </button>
                                                         <a href="locations?action=delete&id=${l.id}"
                                                             class="btn-action btn-delete"
-                                                            onclick="return confirm('Xóa vị trí này?')">
-                                                            <i class="ri-delete-bin-line"></i> Xóa
+                                                            onclick="return confirm('Delete this location?')">
+                                                            <i class="ri-delete-bin-line"></i> Delete
                                                         </a>
                                                     </td>
                                                 </tr>
