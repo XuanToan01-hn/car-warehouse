@@ -187,7 +187,7 @@
                             </a>
                         </li>
                         <li class=" ">
-                            <a href="list-purchase-orders-ready" class="svg-icon">
+                            <a href="purchase-orders" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png"
                                     alt="image">
                                 <span class="ml-4">Purchase</span>
@@ -218,23 +218,11 @@
                             </a>
                         </li>
                         <li class=" ">
-                            <a href="#goods-receipt-menu" class="collapsed svg-icon" data-toggle="collapse"
-                                aria-expanded="false">
+                            <a href="goods-receipt" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/import.png" alt="image">
                                 <span class="ml-4">Goods Receipt</span>
                             </a>
-                            <ul id="goods-receipt-menu" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
-                                <li class="">
-                                    <a href="${pageContext.request.contextPath}/goods-receipt">
-                                        <i>&bull;</i><span>Danh Sách GRO</span>
-                                    </a>
-                                </li>
-                                <li class="">
-                                    <a href="${pageContext.request.contextPath}/create-goods-receipt">
-                                        <i>&bull;</i><span>Tạo GRO Mới</span>
-                                    </a>
-                                </li>
-                            </ul>
+                            
                         </li>
                         <li class=" ">
                             <a href="list-export" class="svg-icon">
