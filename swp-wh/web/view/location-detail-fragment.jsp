@@ -10,14 +10,14 @@
             <!-- Header Section -->
             <div class="d-flex justify-content-between align-items-center mb-4 px-3">
                 <div>
-                    <h2 class="font-weight-bold mb-1">Chi tiết Vị trí: <span
+                    <h2 class="font-weight-bold mb-1">Location Detail: <span
                             class="text-primary">${loc.locationCode}</span></h2>
-                    <p class="text-secondary mb-0">${loc.locationName} | Sức chứa: <strong>${loc.maxCapacity}</strong>
+                    <p class="text-secondary mb-0">${loc.locationName} | Capacity: <strong>${loc.maxCapacity}</strong>
                     </p>
                 </div>
                 <div class="badge badge-pill badge-light px-3 py-2 text-dark font-weight-bold"
                     style="background: #e2e8f0; box-shadow: 0 2px 4px rgba(0,0,0,0.05); border-radius: 10px;">
-                    ${totalQty} Xe hiện có
+                    ${totalQty} Vehicles currently in stock
                 </div>
             </div>
 
@@ -31,13 +31,13 @@
                                 <tr>
                                     <th
                                         style="font-weight: 800; color: #0f172a; text-transform: uppercase; font-size: 0.82rem; padding: 1rem 1.5rem;">
-                                        Tên Xe</th>
+                                        Vehicle Name</th>
                                     <th
                                         style="font-weight: 800; color: #0f172a; text-transform: uppercase; font-size: 0.82rem; padding: 1rem 1.5rem;">
-                                        Mã Xe</th>
+                                        Vehicle Code</th>
                                     <th class="text-center"
                                         style="font-weight: 800; color: #0f172a; text-transform: uppercase; font-size: 0.82rem; padding: 1rem 1.5rem;">
-                                        Tổng số</th>
+                                        Total Quantity</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -57,7 +57,8 @@
                                         <td class="text-center"
                                             style="padding: 1.25rem 1.5rem; vertical-align: middle;">
                                             <span class="badge badge-primary px-3 py-2"
-                                                style="font-size: 0.9rem; border-radius: 8px;">${g.totalQty} xe</span>
+                                                style="font-size: 0.9rem; border-radius: 8px;">${g.totalQty}
+                                                vehicles</span>
                                         </td>
                                     </tr>
                                     <tr id="serials-${status.index}" class="collapse">
@@ -66,7 +67,7 @@
                                             <div class="pt-3">
                                                 <div class="info-label mb-3"
                                                     style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
-                                                    Danh sách số khung (VIN):</div>
+                                                    VIN List:</div>
                                                 <div class="d-flex flex-column" style="gap: 4px;">
                                                     <c:forEach var="s" items="${g.serials}">
                                                         <div class="vin-tag-v">
@@ -74,8 +75,8 @@
                                                         </div>
                                                     </c:forEach>
                                                     <c:if test="${empty g.serials}">
-                                                        <span class="text-muted italic">Không có số khung (Hàng
-                                                            lô)</span>
+                                                        <span class="text-muted italic">No VIN Number (Bulk
+                                                            goods)</span>
                                                     </c:if>
                                                 </div>
                                             </div>
@@ -86,7 +87,8 @@
                                     <tr>
                                         <td colspan="3" class="text-center py-5" style="background: #f8fafc;">
                                             <i class="ri-inbox-line display-4 text-muted d-block opacity-25"></i>
-                                            <p class="text-secondary mt-3 font-weight-bold">Vị trí này hiện đang trống.
+                                            <p class="text-secondary mt-3 font-weight-bold">This location is currently
+                                                empty.
                                             </p>
                                         </td>
                                     </tr>
@@ -138,7 +140,7 @@
             <div class="text-right mt-4 px-2">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal"
                     style="border-radius: 12px; padding: 0.6rem 1.5rem; font-weight: 600; background: #94a3b8; border: none;">
-                    Đóng
+                    Close
                 </button>
             </div>
         </div>

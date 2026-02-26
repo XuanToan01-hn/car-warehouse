@@ -72,6 +72,21 @@ public class WarehouseDAO extends DBContext {
         }
     }
 
+    public void update(Warehouse w) {
+        String sql = "UPDATE Warehouse SET WarehouseCode = ?, WarehouseName = ?, Address = ?, Description = ? "
+                   + "WHERE WarehouseID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, w.getWarehouseCode());
+            ps.setString(2, w.getWarehouseName());
+            ps.setString(3, w.getAddress());
+            ps.setString(4, w.getDescription());
+            ps.setInt(5, w.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void delete(int id) {
         String sql = "DELETE FROM Warehouse WHERE WarehouseID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

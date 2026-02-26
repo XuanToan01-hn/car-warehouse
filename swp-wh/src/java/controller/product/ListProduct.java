@@ -73,6 +73,37 @@ public class ListProduct extends HttpServlet {
         String sortPrice = request.getParameter("sortPrice");
         String categoryId = request.getParameter("categoryId");
         String unitId = request.getParameter("unitId");
+        String action = request.getParameter("action");
+
+        if ("getDetailJson".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr.trim());
+                    ProductDAO dao = new ProductDAO();
+                    Product p = dao.getById(id);
+                    if (p != null) {
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        
+                        String nameJson = p.getName() != null ? p.getName().replace("\"", "\\\"") : "";
+                        String codeJson = p.getCode() != null ? p.getCode().replace("\"", "\\\"") : "";
+                        String descJson = p.getDescription() != null ? p.getDescription().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "") : "";
+                        String imageJson = p.getImage() != null ? p.getImage() : "";
+                        int catId = p.getCategory() != null ? p.getCategory().getId() : 0;
+                        int unitIdVal = p.getUnit() != null ? p.getUnit().getId() : 0;
+
+                        String json = String.format(
+                            "{\"id\": %d, \"name\": \"%s\", \"code\": \"%s\", \"price\": %.2f, \"description\": \"%s\", \"image\": \"%s\", \"categoryId\": %d, \"unitId\": %d}",
+                            p.getId(), nameJson, codeJson, p.getPrice(), descJson, imageJson, catId, unitIdVal
+                        );
+                        response.getWriter().write(json);
+                        return;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
+        }
 
         // Parse page with default value
         int page = 1;

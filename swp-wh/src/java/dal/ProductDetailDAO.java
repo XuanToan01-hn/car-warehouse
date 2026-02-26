@@ -59,10 +59,10 @@ public ProductDetail getById(int id) {
             pd.setLotNumber(rs.getString("LotNumber"));
             pd.setSerialNumber(rs.getString("SerialNumber"));
             pd.setManufactureDate(rs.getTimestamp("ManufactureDate"));
-            
+
             // ĐỪNG QUÊN 2 DÒNG NÀY:
-            pd.setColor(rs.getString("Color")); 
-            pd.setQuantity(rs.getInt("Quantity")); 
+            pd.setColor(rs.getString("Color"));
+            pd.setQuantity(rs.getInt("Quantity"));
 
             pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
             return pd;

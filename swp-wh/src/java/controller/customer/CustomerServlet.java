@@ -31,6 +31,33 @@ public class CustomerServlet extends HttpServlet {
             }
             response.sendRedirect(request.getContextPath() + "/customers");
             return;
+        } else if ("getDetailJson".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr.trim());
+                    CustomerDAO dao = new CustomerDAO();
+                    Customer c = dao.getById(id);
+                    if (c != null) {
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        
+                        String codeJson = c.getCustomerCode() != null ? c.getCustomerCode().replace("\"", "\\\"") : "";
+                        String nameJson = c.getName() != null ? c.getName().replace("\"", "\\\"") : "";
+                        String phoneJson = c.getPhone() != null ? c.getPhone().replace("\"", "\\\"") : "";
+                        String emailJson = c.getEmail() != null ? c.getEmail().replace("\"", "\\\"") : "";
+                        String addrJson = c.getAddress() != null ? c.getAddress().replace("\"", "\\\"") : "";
+
+                        String json = String.format(
+                            "{\"id\": %d, \"customerCode\": \"%s\", \"name\": \"%s\", \"phone\": \"%s\", \"email\": \"%s\", \"address\": \"%s\"}",
+                            c.getId(), codeJson, nameJson, phoneJson, emailJson, addrJson
+                        );
+                        response.getWriter().write(json);
+                        return;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
         }
 
         CustomerDAO dao = new CustomerDAO();
