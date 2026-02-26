@@ -239,7 +239,7 @@
                         </li>
 
                         <li class=" ">
-                            <a href="list-customer" class="svg-icon">
+                            <a href="customers" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/people.png" alt="image">
                                 <span class="ml-4">Customer</span>
                             </a>
@@ -247,7 +247,7 @@
                     </c:if>
 
 
-                    <c:if test="${user.role.id == 3}">
+                    <c:if test="${user.role.id == 3 || user.role.id == 2}">
                         <li class=" ">
                             <a href="purchase-orders" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png"
@@ -267,7 +267,7 @@
             <nav class="navbar navbar-expand-lg navbar-light p-0">
                 <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
                     <i class="ri-menu-line wrapper-menu"></i>
-                    <a href="index.html" class="header-logo">
+                    <a href="index.jsp" class="header-logo">
                         <img src="${pageContext.request.contextPath}/assets/images/logo.png"
                             class="img-fluid rounded-normal" alt="logo">
                         <h5 class="logo-title ml-3">POSDash</h5>

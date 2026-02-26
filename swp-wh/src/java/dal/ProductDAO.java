@@ -8,6 +8,7 @@ import java.util.List;
 import model.Product;
 import model.Category;
 import model.Unit;
+import model.Supplier;
 import dal.UnitDAO;
 
 public class ProductDAO extends DBContext {
@@ -395,4 +396,41 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    // ===============================
+    // GET PRODUCTS BY SUPPLIER
+    // ===============================
+    public List<Product> getProductsBySupplier(int supplierId) {
+        List<Product> list = new ArrayList<>();
+        // Get supplier's product ID first
+        SupplierDAO supplierDAO = new SupplierDAO();
+        Supplier supplier = supplierDAO.getById(supplierId);
+
+        if (supplier != null && supplier.getProductId() != null && supplier.getProductId() > 0) {
+            // Get the product
+            String sql = "SELECT ProductID, Code, Name, Price, Description, Image, MinStock, CategoryID, UnitID FROM Product WHERE ProductID = ?";
+            try {
+                PreparedStatement ps = connection.prepareStatement(sql);
+                ps.setInt(1, supplier.getProductId());
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    Product p = new Product();
+                    p.setId(rs.getInt("ProductID"));
+                    p.setCode(rs.getString("Code"));
+                    p.setName(rs.getString("Name"));
+                    p.setPrice(rs.getDouble("Price"));
+                    p.setDescription(rs.getString("Description"));
+                    p.setImage(rs.getString("Image"));
+                    p.setMinStock(rs.getInt("MinStock"));
+                    p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
+                    list.add(p);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return list;
+    }
+
 }
+
+
