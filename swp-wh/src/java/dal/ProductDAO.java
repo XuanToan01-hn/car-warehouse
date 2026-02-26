@@ -8,6 +8,7 @@ import java.util.List;
 import model.Product;
 import model.Category;
 import model.Unit;
+import model.Supplier;
 import dal.UnitDAO;
 
 public class ProductDAO extends DBContext {
@@ -197,6 +198,51 @@ public class ProductDAO extends DBContext {
     // ===============================
     // INSERT
     // ===============================
+    public int insertAndGetId(Product p) {
+
+        String sql = """
+                     INSERT INTO Product
+                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+
+            ps.setString(1, p.getCode());
+            ps.setString(2, p.getName());
+            ps.setDouble(3, p.getPrice());
+            ps.setString(4, p.getDescription());
+            ps.setString(5, p.getImage());
+
+            // Category có thể null trong quick-add
+            if (p.getCategory() != null) {
+                ps.setInt(6, p.getCategory().getId());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }
+
+            // Unit hiện không chọn trong quick-add -> cho phép null
+            if (p.getUnit() != null) {
+                ps.setInt(7, p.getUnit().getId());
+            } else {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            }
+
+            ps.setInt(8, p.getMinStock());
+
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
     public void insert(Product p) {
 
         String sql = """
@@ -350,4 +396,41 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    // ===============================
+    // GET PRODUCTS BY SUPPLIER
+    // ===============================
+    public List<Product> getProductsBySupplier(int supplierId) {
+        List<Product> list = new ArrayList<>();
+        // Get supplier's product ID first
+        SupplierDAO supplierDAO = new SupplierDAO();
+        Supplier supplier = supplierDAO.getById(supplierId);
+
+        if (supplier != null && supplier.getProductId() != null && supplier.getProductId() > 0) {
+            // Get the product
+            String sql = "SELECT ProductID, Code, Name, Price, Description, Image, MinStock, CategoryID, UnitID FROM Product WHERE ProductID = ?";
+            try {
+                PreparedStatement ps = connection.prepareStatement(sql);
+                ps.setInt(1, supplier.getProductId());
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    Product p = new Product();
+                    p.setId(rs.getInt("ProductID"));
+                    p.setCode(rs.getString("Code"));
+                    p.setName(rs.getString("Name"));
+                    p.setPrice(rs.getDouble("Price"));
+                    p.setDescription(rs.getString("Description"));
+                    p.setImage(rs.getString("Image"));
+                    p.setMinStock(rs.getInt("MinStock"));
+                    p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
+                    list.add(p);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return list;
+    }
+
 }
+
+

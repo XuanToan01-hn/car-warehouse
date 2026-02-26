@@ -1,5 +1,5 @@
-/swp-wh/build/
-/swp-wh/dist/
+swp-wh/build/
+swp-wh/nbproject
 
 .idea/
 out/
@@ -13,3 +13,5 @@ swp-wh/swp-wh.iml
 
 
 nbproject/private/private.xml
+
+*.iml

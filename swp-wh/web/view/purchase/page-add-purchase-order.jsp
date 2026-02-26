@@ -102,7 +102,9 @@
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label><i class="fas fa-hashtag mr-1"></i> Mã đơn hàng *</label>
+                                                    <label>
+<%--                                                        <i class="fas fa-hashtag mr-1"></i>--%>
+                                                        Mã đơn hàng *</label>
                                                     <input type="text" name="orderCode" id="orderCode"
                                                         class="form-control" value="${autoCode}"
                                                         placeholder="Mã đơn hàng" required>
@@ -110,7 +112,9 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label><i class="fas fa-truck mr-1"></i> Supplier *</label>
+                                                    <label>
+<%--                                                        <i class="fas fa-truck mr-1"></i> --%>
+                                                        Supplier *</label>
                                                     <div class="input-group">
                                                         <select name="supplierId" id="supplierSelect"
                                                             class="form-control" required>
@@ -126,7 +130,8 @@
                                                             <button type="button" class="btn btn-outline-success"
                                                                 data-toggle="modal" data-target="#modalAddSupplier"
                                                                 title="Tạo supplier mới">
-                                                                <i class="fas fa-plus"></i> Tạo mới
+<%--                                                                <i class="fas fa-plus"></i> --%>
+                                                                Tạo mới
                                                             </button>
                                                         </div>
                                                     </div>
@@ -134,7 +139,7 @@
                                             </div>
                                         </div>
                                         <div id="supplierInfo" class="alert alert-info py-2 d-none">
-                                            <i class="fas fa-info-circle mr-1"></i>
+<%--                                            <i class="fas fa-info-circle mr-1"></i>--%>
                                             Supplier đã chọn. Bạn có thể thêm sản phẩm bên dưới.
                                         </div>
                                     </div>
@@ -150,7 +155,8 @@
                                             <h5 class="mb-0">Danh Sách Sản Phẩm</h5>
                                         </div>
                                         <button type="button" class="btn btn-success" id="btnAddRow" disabled>
-                                            <i class="fas fa-plus mr-1"></i> Thêm Sản Phẩm
+<%--                                            <i class="fas fa-plus mr-1"></i> --%>
+                                            Thêm Sản Phẩm
                                         </button>
                                     </div>
                                     <div class="card-body">
@@ -158,13 +164,15 @@
                                             <!-- Rows inserted by JS -->
                                         </div>
                                         <div id="emptyMsg" class="text-center text-muted py-4">
-                                            <i class="fas fa-arrow-up fa-2x mb-2 d-block"></i>
+<%--                                            <i class="fas fa-arrow-up fa-2x mb-2 d-block"></i>--%>
                                             Chọn Supplier trước, sau đó thêm sản phẩm
                                         </div>
 
                                         <!-- Total -->
                                         <div class="total-bar mt-3 d-flex justify-content-between align-items-center">
-                                            <span><i class="fas fa-calculator mr-2"></i> Tổng Cộng:</span>
+                                            <span>
+<%--                                                <i class="fas fa-calculator mr-2"></i> --%>
+                                                Tổng Cộng:</span>
                                             <span id="grandTotal" class="font-weight-bold">0 đ</span>
                                         </div>
                                     </div>
@@ -174,11 +182,13 @@
                                 <div class="d-flex justify-content-between mb-4">
                                     <a href="${pageContext.request.contextPath}/purchase-orders"
                                         class="btn btn-secondary btn-lg">
-                                        <i class="fas fa-times mr-1"></i> Hủy
+<%--                                        <i class="fas fa-times mr-1"></i>--%>
+                                        Hủy
                                     </a>
                                     <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit"
                                         style="background-color:#17AEDF" disabled>
-                                        <i class="fas fa-save mr-1"></i> Tạo Purchase Order
+<%--                                        <i class="fas fa-save mr-1"></i> --%>
+                                        Tạo Purchase Order
                                     </button>
                                 </div>
 
@@ -192,7 +202,9 @@
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header" style="background:#17AEDF; color:#fff;">
-                                            <h5 class="modal-title"><i class="fas fa-truck mr-2"></i>Tạo Supplier Mới
+                                            <h5 class="modal-title">
+<%--                                                <i class="fas fa-truck mr-2"></i>--%>
+                                                Tạo Supplier Mới
                                             </h5>
                                             <button type="button" class="close text-white"
                                                 data-dismiss="modal">&times;</button>
@@ -364,13 +376,33 @@
                     selectedSupplierId = this.value;
                     const opt = this.options[this.selectedIndex];
                     selectedSupplierName = opt.text;
-                    selectedSupplierProductId = opt.getAttribute('data-product-id') || null;
+
                     if (selectedSupplierId) {
+                        // Fetch products for this supplier
+                        fetchSupplierProducts(selectedSupplierId);
                         enableProductSection();
                     } else {
                         disableProductSection();
                     }
                 });
+
+                // Fetch products from server for selected supplier
+                function fetchSupplierProducts(supplierId) {
+                    fetch(ctx + '/get-supplier-products?supplierId=' + supplierId)
+                        .then(function(response) { return response.json(); })
+                        .then(function(products) {
+                            // Update global allProducts with only supplier's products
+                            if (Array.isArray(products) && products.length > 0) {
+                                selectedSupplierProductId = products[0].id; // Set first product as default
+                            } else {
+                                selectedSupplierProductId = null;
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error('Error fetching products:', err);
+                            selectedSupplierProductId = null;
+                        });
+                }
 
                 function enableProductSection() {
                     document.getElementById('btnAddRow').disabled = false;
@@ -413,14 +445,19 @@
 
                 function buildProductOptions() {
                     let opts = '<option value="">-- Chọn sản phẩm --</option>';
-                    if (!selectedSupplierProductId) {
-                        return opts;
-                    }
+
+                    // Filter products that match the selected supplier's product
                     allProducts.forEach(function (p) {
-                        if (p.id === Number(selectedSupplierProductId)) {
+                        if (selectedSupplierProductId && p.id === Number(selectedSupplierProductId)) {
                             opts += '<option value="' + p.id + '" data-price="' + p.price + '">' + p.name + ' [' + p.code + ']</option>';
                         }
                     });
+
+                    // If no products found in allProducts, build from server data
+                    if (opts === '<option value="">-- Chọn sản phẩm --</option>' && selectedSupplierId) {
+                        opts += '<option value="">Đang tải sản phẩm...</option>';
+                    }
+
                     return opts;
                 }
 
