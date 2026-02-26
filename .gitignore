@@ -5,3 +5,7 @@
 out/
 
 swp-wh/src/java/context/DBContext.java
+
+swp-wh/.idea/
+swp-wh/nbproject/
+
