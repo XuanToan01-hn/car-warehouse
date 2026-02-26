@@ -1,3 +1,7 @@
 /swp-wh/build/
 /swp-wh/dist/
 
+.idea/
+out/
+
+swp-wh/src/java/context/DBContext.java

@@ -39,7 +39,7 @@
                                                 </div>
                                                 <a href="${pageContext.request.contextPath}/purchase-orders"
                                                     class="btn btn-secondary">
-                                                    <i class="fas fa-arrow-left mr-1"></i> Quay lại
+<%--                                                    <i class="fas fa-arrow-left mr-1"></i>--%> Quay lại
                                                 </a>
                                             </div>
                                             <div class="card-body">
@@ -56,11 +56,11 @@
                                                                 <td>
                                                                     <strong>${po.supplier.name}</strong><br>
                                                                     <small class="text-muted">
-                                                                        <i
-                                                                            class="fas fa-phone mr-1"></i>${po.supplier.phone}
+<%--                                                                        <i--%>
+<%--                                                                            class="fas fa-phone mr-1"></i>--%>${po.supplier.phone}
                                                                         &nbsp;|&nbsp;
-                                                                        <i
-                                                                            class="fas fa-envelope mr-1"></i>${po.supplier.email}
+<%--                                                                        <i--%>
+<%--                                                                            class="fas fa-envelope mr-1"></i>--%>${po.supplier.email}
                                                                     </small>
                                                                 </td>
                                                             </tr>
