@@ -156,6 +156,21 @@
                                                         </c:if>
                                                     </div>
                                                 </c:if>
+
+                                                <!-- Nút Tạo Goods Receipt cho Warehouse Staff (role 4) khi PO đã Confirmed -->
+                                                <c:if test="${po.status == 2 && user.role.roleId == 4}">
+                                                    <div class="border-top pt-3 mt-2">
+                                                        <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
+                                                            class="btn btn-success btn-lg">
+                                                            <i class="fas fa-truck-loading mr-2"></i>Tạo Goods Receipt
+                                                            Order
+                                                        </a>
+                                                        <small class="text-muted ml-3">
+                                                            <i class="fas fa-info-circle mr-1"></i>
+                                                            PO đã được xác nhận — sẵn sàng nhập kho
+                                                        </small>
+                                                    </div>
+                                                </c:if>
                                             </div>
                                         </div>
 

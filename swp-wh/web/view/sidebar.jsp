@@ -1,5 +1,5 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<div class="iq-sidebar  sidebar-default ">
+    <div class="iq-sidebar  sidebar-default ">
         <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
             <a href="index.jsp" class="header-logo">
                 <img src="${pageContext.request.contextPath}/assets/images/logo.png"
@@ -172,7 +172,7 @@
                         </li>
                     </c:if>
 
-                    <c:if test="${user.role.roleId == 4}">
+                    <c:if test="${user.role.roleId == 4 || empty user}">
                         <li class=" ">
                             <a href="inventory-report-staff" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png"
@@ -216,6 +216,25 @@
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/export.png" alt="image">
                                 <span class="ml-4">Goods Issue</span>
                             </a>
+                        </li>
+                        <li class=" ">
+                            <a href="#goods-receipt-menu" class="collapsed svg-icon" data-toggle="collapse"
+                                aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/import.png" alt="image">
+                                <span class="ml-4">Goods Receipt</span>
+                            </a>
+                            <ul id="goods-receipt-menu" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="${pageContext.request.contextPath}/goods-receipt">
+                                        <i>&bull;</i><span>Danh Sách GRO</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="${pageContext.request.contextPath}/create-goods-receipt">
+                                        <i>&bull;</i><span>Tạo GRO Mới</span>
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                         <li class=" ">
                             <a href="list-export" class="svg-icon">
