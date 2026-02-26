@@ -30,6 +30,31 @@ public class TaxServlet extends HttpServlet {
             }
             response.sendRedirect(request.getContextPath() + "/taxes");
             return;
+        } else if ("getDetailJson".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr.trim());
+                    TaxDAO dao = new TaxDAO();
+                    Tax t = dao.getById(id);
+                    if (t != null) {
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        
+                        String nameJson = t.getTaxName() != null ? t.getTaxName().replace("\"", "\\\"") : "";
+                        String effFrom = t.getEffectiveFrom() != null ? t.getEffectiveFrom().toString() : "";
+                        String expDate = t.getExpiredDate() != null ? t.getExpiredDate().toString() : "";
+
+                        String json = String.format(
+                            "{\"id\": %d, \"taxName\": \"%s\", \"taxRate\": %.2f, \"effectiveFrom\": \"%s\", \"expiredDate\": \"%s\"}",
+                            t.getId(), nameJson, t.getTaxRate(), effFrom, expDate
+                        );
+                        response.getWriter().write(json);
+                        return;
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
         }
 
         TaxDAO dao = new TaxDAO();
@@ -44,10 +69,12 @@ public class TaxServlet extends HttpServlet {
 
         request.setCharacterEncoding("UTF-8");
 
+        String action = trim(request.getParameter("action"));
         String taxName = trim(request.getParameter("taxName"));
         String taxRateRaw = trim(request.getParameter("taxRate"));
         String effectiveFromRaw = trim(request.getParameter("effectiveFrom"));
         String expiredDateRaw = trim(request.getParameter("expiredDate"));
+        String idRaw = trim(request.getParameter("taxId"));
 
         if (taxName.isEmpty() || taxRateRaw.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/taxes");
@@ -63,6 +90,9 @@ public class TaxServlet extends HttpServlet {
         }
 
         Tax t = new Tax();
+        if (!idRaw.isEmpty()) {
+            t.setId(Integer.parseInt(idRaw));
+        }
         t.setTaxName(taxName);
         t.setTaxRate(taxRate);
 
@@ -80,7 +110,11 @@ public class TaxServlet extends HttpServlet {
         }
 
         TaxDAO dao = new TaxDAO();
-        dao.insert(t);
+        if ("update".equals(action)) {
+            dao.update(t);
+        } else {
+            dao.insert(t);
+        }
 
         response.sendRedirect(request.getContextPath() + "/taxes");
     }

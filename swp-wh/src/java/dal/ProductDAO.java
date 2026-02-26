@@ -182,7 +182,7 @@ public class ProductDAO extends DBContext {
                 p.setMinStock(rs.getInt("MinStock"));
 
                 p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-//                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
 
                 return p;
             }
@@ -253,7 +253,7 @@ public class ProductDAO extends DBContext {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getImage());
             ps.setInt(6, p.getCategory().getId());
-//            ps.setInt(7, p.getUnit().getC);
+            ps.setInt(7, p.getUnit().getId());
             ps.setInt(8, p.getMinStock());
             ps.setInt(9, p.getId());
 
