@@ -14,6 +14,7 @@ public class Supplier {
     private String address;
     private String phone;
     private String email;
+    private Integer productId; // Product chính gắn với supplier (dùng cho Purchase Order)
 
     public Supplier() {}
 
@@ -31,5 +32,8 @@ public class Supplier {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public Integer getProductId() { return productId; }
+    public void setProductId(Integer productId) { this.productId = productId; }
 }
 

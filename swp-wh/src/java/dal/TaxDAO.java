@@ -107,4 +107,3 @@ public class TaxDAO extends DBContext {
         return s == null ? "" : s.trim();
     }
 }
-
