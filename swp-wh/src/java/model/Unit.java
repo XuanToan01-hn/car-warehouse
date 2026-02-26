@@ -4,10 +4,6 @@
  */
 package model;
 
-/**
- *
- * @author Asus
- */
 public class Unit {
 
     private Integer id;
@@ -47,3 +43,4 @@ public class Unit {
         this.type = t;
     }
 }
+

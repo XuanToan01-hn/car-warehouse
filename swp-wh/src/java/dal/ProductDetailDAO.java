@@ -48,28 +48,28 @@ public List<ProductDetail> getAll() {
 
     return list;
 }
-//public ProductDetail getById(int id) {
-//    String sql = "SELECT * FROM Product_Detail WHERE ProductDetailID = ?";
-//    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-//        ps.setInt(1, id);
-//        ResultSet rs = ps.executeQuery();
-//        if (rs.next()) {
-//            ProductDetail pd = new ProductDetail();
-//            pd.setId(rs.getInt("ProductDetailID"));
-//            pd.setLotNumber(rs.getString("LotNumber"));
-//            pd.setSerialNumber(rs.getString("SerialNumber"));
-//            pd.setManufactureDate(rs.getTimestamp("ManufactureDate"));
-//            
-//            // ĐỪNG QUÊN 2 DÒNG NÀY:
-//            pd.setColor(rs.getString("Color")); 
-//            pd.setQuantity(rs.getInt("Quantity")); 
-//
-//            pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
-//            return pd;
-//        }
-//    } catch (SQLException e) { e.printStackTrace(); }
-//    return null;
-//}
+public ProductDetail getById(int id) {
+    String sql = "SELECT * FROM Product_Detail WHERE ProductDetailID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setLotNumber(rs.getString("LotNumber"));
+            pd.setSerialNumber(rs.getString("SerialNumber"));
+            pd.setManufactureDate(rs.getTimestamp("ManufactureDate"));
+            
+            // ĐỪNG QUÊN 2 DÒNG NÀY:
+            pd.setColor(rs.getString("Color")); 
+            pd.setQuantity(rs.getInt("Quantity")); 
+
+            pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
+            return pd;
+        }
+    } catch (SQLException e) { e.printStackTrace(); }
+    return null;
+}
 
 
 
