@@ -46,11 +46,11 @@
                                                 if(cookies != null){
                                                      for(Cookie cookie : cookies){
                                                        switch(cookie.getName()){
-                                                       case "email": email = cookie.getValue(); 
+                                                       case "email": email = cookie.getValue();
                                                        break;
-                                                       case "password": password = cookie.getValue(); 
+                                                       case "password": password = cookie.getValue();
                                                        break;
-                                                       case "remember": remember = cookie.getValue(); 
+                                                       case "remember": remember = cookie.getValue();
                                                        break;
                                                     }
                                                     }

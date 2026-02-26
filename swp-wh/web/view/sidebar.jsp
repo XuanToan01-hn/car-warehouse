@@ -1,117 +1,326 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:choose>
-    <c:when test="${not empty requestScope.roleId}">
-        <c:set var="roleId" value="${requestScope.roleId}" />
-    </c:when>
-    <c:otherwise>
-        <c:set var="roleId" value="${sessionScope.user.role.id}" />
-    </c:otherwise>
-</c:choose>
-<c:choose>
-    <c:when test="${not empty requestScope.fullName}">
-        <c:set var="fullName" value="${requestScope.fullName}" />
-    </c:when>
-    <c:otherwise>
-        <c:set var="fullName" value="${sessionScope.user.fullName}" />
-    </c:otherwise>
-</c:choose>
-<c:choose>
-    <c:when test="${not empty requestScope.roleName}">
-        <c:set var="roleName" value="${requestScope.roleName}" />
-    </c:when>
-    <c:otherwise>
-        <c:set var="roleName" value="${sessionScope.user.role.roleName}" />
-    </c:otherwise>
-</c:choose>
-<!-- Simplified Sidebar - self-contained styles to avoid dependency on external broken CSS -->
-<style>
-    .app-sidebar {
-        width: 240px;
-        background: #0f172a; /* dark slate */
-        color: #e6eef8;
-        position: fixed;
-        top: 0;
-        left: 0;
-        bottom: 0;
-        padding: 18px 12px;
-        box-shadow: 2px 0 6px rgba(2,6,23,0.15);
-        overflow-y: auto;
-        z-index: 50;
-        font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
-    .app-sidebar .logo {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 18px;
-    }
-    .app-sidebar .logo img { width: 36px; height: 36px; object-fit: cover; }
-    .app-sidebar h4 { margin: 0; font-size: 16px; color: #fff; }
-    .app-sidebar nav ul { list-style: none; padding: 0; margin: 12px 0 40px 0; }
-    .app-sidebar nav li { margin: 8px 0; }
-    .app-sidebar a.menu-link {
-        display: flex; align-items: center; gap: 10px;
-        color: #cbd5e1; text-decoration: none; padding: 8px 10px; border-radius: 6px;
-    }
-    .app-sidebar a.menu-link:hover { background: rgba(255,255,255,0.03); color: #fff; }
-    .app-sidebar .menu-icon { width: 20px; height: 20px; opacity: 0.9; }
-    .app-sidebar .section-title { color: #94a3b8; font-size: 12px; margin: 14px 6px 6px; }
-    .app-sidebar .user-info { margin-top: 18px; font-size: 13px; color: #cbd5e1; }
-</style>
+    <div class="iq-sidebar  sidebar-default ">
+        <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
+            <a href="index.jsp" class="header-logo">
+                <img src="${pageContext.request.contextPath}/assets/images/logo.png"
+                    class="img-fluid rounded-normal light-logo" alt="logo">
+                <h5 class="logo-title light-logo ml-3">POSDash</h5>
+            </a>
+            <div class="iq-menu-bt-sidebar ml-0">
+                <a href="javascript:void(0)">
+                    <i class="las la-bars wrapper-menu"></i>
+                </a>
 
-<div class="app-sidebar">
-    <div class="logo">
-        <a href="${pageContext.request.contextPath}/home" style="display:flex; align-items:center; text-decoration:none; color:inherit;">
-            <img src="${pageContext.request.contextPath}/assets/images/logo.png" alt="logo"/>
-            <h4>Dream Warehouse</h4>
-        </a>
+            </div>
+        </div>
+        <div class="data-scrollbar" data-scroll="1">
+            <nav class="iq-sidebar-menu">
+                <ul id="iq-sidebar-toggle" class="iq-menu">
+                    <c:if test="${user.role.roleId == 5}">
+                        <li class=" ">
+                            <a href="dash-board" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/dashboard.png"
+                                    alt="image">
+                                <span class="ml-4">Dashboards</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="inventory-management" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png"
+                                    alt="image">
+                                <span class="ml-4">Inventory</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="list-request-management" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/request.png"
+                                    alt="image">
+                                <span class="ml-4">Request</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="#product" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/product.png"
+                                    alt="image">
+                                <span class="ml-4">Product</span>
+                            </a>
+                            <ul id="product" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="list-product">
+                                        <i>&bull;</i><span>List Product</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="add-product">
+                                        <i>&bull;</i><span>Add Product</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="list-product-pricing">
+                                        <i>&bull;</i><span>List Product Pricing</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class=" ">
+                            <a href="#category" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/category.png"
+                                    alt="image">
+                                <span class="ml-4">Categories</span>
+                            </a>
+                            <ul id="category" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="list-category">
+                                        <i>&bull;</i><span>List Category</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="add-category">
+                                        <i>&bull;</i><span>Add Category</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class=" ">
+                            <a href="#location" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/location.png"
+                                    alt="image">
+                                <span class="ml-4">Location</span>
+                            </a>
+                            <ul id="location" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="locations">
+                                        <i>&bull;</i><span>List Location</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="warehouses">
+                                        <i>&bull;</i><span>List Warehouse</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="AddLocation">
+                                        <i>&bull;</i><span>Add Location</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class=" ">
+                            <a href="#tax" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/tax.png" alt="image">
+                                <span class="ml-4">Tax</span>
+                            </a>
+                            <ul id="tax" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="list-tax">
+                                        <i>&bull;</i><span>List Tax</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="add-tax">
+                                        <i>&bull;</i><span>Add Tax</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class=" ">
+                            <a href="#supplier" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/supplier.png"
+                                    alt="image">
+                                <span class="ml-4">Supplier</span>
+                            </a>
+                            <ul id="supplier" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="supplierlist">
+                                        <i>&bull;</i><span>List Supplier</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="addsupplier">
+                                        <i>&bull;</i><span>Add Supplier</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="list-supplier-product">
+                                        <i>&bull;</i><span>Supplier Product</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </c:if>
+
+                    <c:if test="${user.role.roleId == 1}">
+                        <li class=" ">
+                            <a href="permissions" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/permissions.png"
+                                    alt="image">
+                                <span class="ml-4">Permissions</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="#user" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/people.png" alt="image">
+                                <span class="ml-4">User</span>
+                            </a>
+                            <ul id="user" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="userlist">
+                                        <i>&bull;</i><span>List Users</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="registeruser">
+                                        <i>&bull;</i><span>Add Users</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    </c:if>
+
+                    <c:if test="${user.role.roleId == 4}">
+                        <li class=" ">
+                            <a href="inventory-report-staff" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png"
+                                    alt="image">
+                                <span class="ml-4">Inventory Staff</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="list-sale-order" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/sale.png" alt="image">
+                                <span class="ml-4">Sale</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="list-purchase-orders-ready" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png"
+                                    alt="image">
+                                <span class="ml-4">Purchase</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="#return" class="collapsed" data-toggle="collapse" aria-expanded="false">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/import.png" alt="image">
+                                <span class="ml-4">Import Order</span>
+                            </a>
+                            <ul id="return" class="iq-submenu collapse" data-parent="#iq-sidebar-toggle">
+                                <li class="">
+                                    <a href="list-import-orders">
+                                        <i>&bull;</i><span>List Import Order</span>
+                                    </a>
+                                </li>
+                                <li class="">
+                                    <a href="internal-transfer-imports">
+                                        <i>&bull;</i><span>List Import Internal</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                        <li class=" ">
+                            <a href="goods-issue?action=list" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/export.png" alt="image">
+                                <span class="ml-4">Goods Issue</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="list-export" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/export.png" alt="image">
+                                <span class="ml-4">Export</span>
+                            </a>
+                        </li>
+                    </c:if>
+
+                    <c:if test="${user.role.roleId == 2}">
+                        <li class=" ">
+                            <a href="sales-order?action=list" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/sale.png" alt="image">
+                                <span class="ml-4">Sale Order</span>
+                            </a>
+                        </li>
+
+                        <li class=" ">
+                            <a href="list-customer" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/people.png" alt="image">
+                                <span class="ml-4">Customer</span>
+                            </a>
+                        </li>
+                    </c:if>
+
+
+                    <c:if test="${user.role.roleId == 3}">
+                        <li class=" ">
+                            <a href="purchase-orders" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png"
+                                    alt="image">
+                                <span class="ml-4">Purchase Order</span>
+                            </a>
+                        </li>
+                    </c:if>
+                </ul>
+            </nav>
+        </div>
     </div>
 
-    <nav>
-        <ul>
-            <!-- Admin / Super (id == 5) -->
-            <c:if test="${roleId == 5}">
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/dash-board"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/dashboard.png" alt="">Dashboards</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/inventory-management"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/inventory.png" alt="">Inventory</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/list-request-management"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/request.png" alt="">Request</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/list-product"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/product.png" alt="">Products</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/list-category"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/category.png" alt="">Categories</a></li>
-            </c:if>
 
-            <!-- Role 1: permissions / user management -->
-            <c:if test="${roleId == 1}">
-                <li class="section-title">Administration</li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/permissions"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/permissions.png" alt="">Permissions</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/userlist"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/people.png" alt="">Users</a></li>
-            </c:if>
+    <div class="iq-top-navbar">
+        <div class="iq-navbar-custom">
+            <nav class="navbar navbar-expand-lg navbar-light p-0">
+                <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
+                    <i class="ri-menu-line wrapper-menu"></i>
+                    <a href="index.html" class="header-logo">
+                        <img src="${pageContext.request.contextPath}/assets/images/logo.png"
+                            class="img-fluid rounded-normal" alt="logo">
+                        <h5 class="logo-title ml-3">POSDash</h5>
 
-            <!-- Role 4: staff -->
-            <c:if test="${roleId == 4}">
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/inventory-report-staff"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/inventory.png" alt="">Inventory Staff</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/list-sale-order"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/sale.png" alt="">Sale</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/list-purchase-orders-ready"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/purchases.png" alt="">Purchase</a></li>
-            </c:if>
+                    </a>
+                </div>
+                <div class="iq-search-bar device-search">
 
-            <!-- Role 2: sales -->
-            <c:if test="${roleId == 2}">
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/sales-order?action=list"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/sale.png" alt="">Sale Orders</a></li>
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/list-customer"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/people.png" alt="">Customers</a></li>
-            </c:if>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button class="navbar-toggler" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                        aria-label="Toggle navigation">
+                        <i class="ri-menu-3-line"></i>
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav ml-auto navbar-list align-items-center">
+                            <input type="text" class="w-50 text-center border-radio-10px  badge-danger mr-3"
+                                value="${sessionScope.user.role.roleName}" readonly="">
+                            <c:if test="${sessionScope.user.role.roleId == 2 || sessionScope.user.role.roleId == 4}">
+                                <input type="text" class="w-35 text-center border-radio-10px  badge-orange mr-3"
+                                    value="${sessionScope.user.location.name}" readonly="">
+                            </c:if>
 
-            <!-- Role 3: purchase -->
-            <c:if test="${roleId == 3}">
-                <li><a class="menu-link" href="${pageContext.request.contextPath}/purchase-orders"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/purchases.png" alt="">Purchase Orders</a></li>
-            </c:if>
-
-            <!-- Common links -->
-            <li class="section-title">Common</li>
-            <li><a class="menu-link" href="${pageContext.request.contextPath}/profile"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/people.png" alt="">Profile</a></li>
-            <li><a class="menu-link" href="${pageContext.request.contextPath}/logout"><img class="menu-icon" src="${pageContext.request.contextPath}/assets/images/icon/back.png" alt="">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="user-info">
-        Logged in as: <strong>${fullName}</strong><br/>
-        Role: <strong>${roleName}</strong>
+                            <li class="nav-item nav-icon dropdown caption-content">
+                                <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <img src="${pageContext.request.contextPath}/assets/images/user/1.png"
+                                        class="img-fluid rounded" alt="user">
+                                </a>
+                                <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                    <div class="card shadow-none m-0">
+                                        <div class="card-body p-0 text-center">
+                                            <div class="media-body profile-detail text-center">
+                                                <img src="${pageContext.request.contextPath}/assets/images/page-img/profile-bg.jpg"
+                                                    alt="profile-bg" class="rounded-top img-fluid mb-4">
+                                                <img src="${pageContext.request.contextPath}/assets/images/user/1.png"
+                                                    alt="profile-img" class="rounded profile-img img-fluid avatar-70">
+                                            </div>
+                                            <div class="p-3">
+                                                <h5 class="mb-1">${sessionScope.user.email}</h5>
+                                                <div class="d-flex align-items-center justify-content-center mt-3">
+                                                    <!--                                                            <a href="${pageContext.request.contextPath}/app/user-profile.html" class="btn border mr-2">Profile</a>-->
+                                                    <a href="logout" class="btn border">Sign Out</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </div>
     </div>
-</div>

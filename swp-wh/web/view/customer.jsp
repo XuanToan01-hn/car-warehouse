@@ -2,557 +2,347 @@
     <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
         <!doctype html>
-        <html lang="vi">
+        <html lang="en">
 
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-            <title>Quản lý Khách hàng</title>
+            <title>Customer Management | InventoryPro</title>
 
+            <link
+                href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+                rel="stylesheet">
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css">
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
-            <link rel="stylesheet"
-                href="${pageContext.request.contextPath}/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+
             <style>
-                body {
-                    background-color: var(--light-gray, #f4f5fa);
+                :root {
+                    --primary: #0EA5E9;
+                    --success: #15803d;
+                    --danger: #ef4444;
+                    --gray-dark: #0f172a;
                 }
 
-                .customer-page {
-                    max-width: 1280px;
-                    margin: 0 auto;
-                    padding: 1.5rem;
+                body {
+                    font-family: 'Be Vietnam Pro', sans-serif;
+                    background-color: #f1f5f9;
+                    color: #1e293b;
                 }
 
                 .page-header {
                     display: flex;
-                    align-items: center;
                     justify-content: space-between;
-                    flex-wrap: wrap;
-                    gap: 1rem;
-                    margin-bottom: 1.5rem;
-                }
-
-                .page-title {
-                    display: flex;
                     align-items: center;
-                    gap: 0.75rem;
-                    font-size: 1.5rem;
-                    font-weight: 700;
-                    color: var(--gray-dark, #01041b);
-                    margin: 0;
+                    margin-bottom: 2rem;
+                    padding: 1.5rem 0;
                 }
 
-                .page-title .icon-wrap {
-                    width: 48px;
-                    height: 48px;
+                .btn-add {
+                    background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
+                    color: white;
                     border-radius: 12px;
-                    background: linear-gradient(135deg, var(--primary, #32BDEA) 0%, var(--skyblue, #158df7) 100%);
-                    color: #fff;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    font-size: 1.25rem;
-                }
-
-                .toolbar {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.75rem;
-                    flex-wrap: wrap;
-                }
-
-                .btn-add-customer {
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    padding: 0.6rem 1.25rem;
-                    font-weight: 600;
-                    border-radius: 10px;
+                    padding: 0.75rem 1.5rem;
+                    font-weight: 700;
                     border: none;
-                    background: linear-gradient(135deg, var(--success, #78C091) 0%, #5fb87a 100%);
-                    color: #fff;
-                    box-shadow: 0 2px 8px rgba(120, 192, 145, 0.4);
+                    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+                    transition: all 0.3s ease;
                 }
 
-                .btn-add-customer:hover {
-                    color: #fff;
-                    opacity: 0.95;
-                    transform: translateY(-1px);
-                    box-shadow: 0 4px 12px rgba(120, 192, 145, 0.45);
+                .btn-add:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+                    color: white;
                 }
 
-                .search-box {
-                    position: relative;
-                    width: 100%;
-                    max-width: 280px;
-                }
-
-                .search-box .form-control {
-                    padding-left: 2.5rem;
-                    border-radius: 10px;
-                    border: 1px solid #e2e6ec;
-                    height: 42px;
-                }
-
-                .search-box .form-control:focus {
-                    border-color: var(--primary);
-                    box-shadow: 0 0 0 3px rgba(50, 189, 234, 0.15);
-                }
-
-                .search-box .search-icon {
-                    position: absolute;
-                    left: 14px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    color: #9ca3af;
-                    pointer-events: none;
-                }
-
-                .search-box .btn-clear {
-                    position: absolute;
-                    right: 8px;
-                    top: 50%;
-                    transform: translateY(-50%);
-                    padding: 4px 8px;
-                    color: #9ca3af;
+                .card-main {
+                    border-radius: 16px;
                     border: none;
-                    background: none;
-                }
-
-                .search-box .btn-clear:hover {
-                    color: var(--danger);
-                }
-
-                .card-customer {
-                    border: none;
-                    border-radius: 14px;
-                    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+                    background: white;
                     overflow: hidden;
                 }
 
-                .card-customer .card-header {
-                    background: #fff;
-                    border-bottom: 1px solid #eef1f5;
-                    padding: 1rem 1.25rem;
-                    font-weight: 700;
-                    font-size: 1rem;
-                    color: var(--gray-dark);
-                }
-
-                .table-customer {
-                    margin: 0;
-                }
-
-                .table-customer thead th {
-                    background: #f8f9fc;
-                    color: #4b5563;
-                    font-weight: 600;
-                    font-size: 0.8rem;
+                .table thead th {
+                    background: #e2e8f0;
+                    font-weight: 800;
+                    color: #0f172a;
                     text-transform: uppercase;
-                    letter-spacing: 0.02em;
-                    padding: 1rem 1rem;
-                    border-bottom: 1px solid #eef1f5;
+                    font-size: 0.85rem;
+                    padding: 1.25rem 1.5rem;
                 }
 
-                .table-customer tbody td {
-                    padding: 1rem;
+                .table tbody td {
+                    padding: 1.25rem 1.5rem;
                     vertical-align: middle;
-                    border-bottom: 1px solid #f0f2f5;
-                }
-
-                .table-customer tbody tr:hover {
-                    background-color: #fafbfc;
-                }
-
-                .table-customer .col-stt {
-                    width: 56px;
-                    text-align: center;
-                    color: #9ca3af;
-                    font-weight: 600;
-                }
-
-                .table-customer .col-code {
-                    font-weight: 600;
-                    color: var(--gray-dark);
-                }
-
-                .table-customer .col-name {
                     font-weight: 500;
                 }
 
-                .col-actions {
-                    width: 140px;
-                    text-align: center;
-                }
-
-                .btn-link-action {
+                .btn-action {
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 8px;
                     font-weight: 600;
-                    font-size: 0.9rem;
-                    padding: 4px 8px;
+                    font-size: 0.85rem;
+                    border: 1px solid transparent;
                     transition: all 0.2s;
+                }
+
+                .btn-edit {
+                    background: #f0f9ff;
+                    color: #0369a1;
+                    border-color: #bae6fd;
+                }
+
+                .btn-delete {
+                    background: #fff1f2;
+                    color: #be123c;
+                    border-color: #fecdd3;
+                }
+
+                /* Modal Style */
+                .modal-content {
+                    border-radius: 20px;
                     border: none;
-                    background: none;
+                    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
                 }
 
-                .btn-link-edit {
-                    color: var(--primary);
+                .modal-header {
+                    border-bottom: 1px solid #f1f5f9;
+                    padding: 1.5rem 2rem;
                 }
 
-                .btn-link-edit:hover {
-                    color: #0284c7;
-                    text-decoration: underline;
+                .modal-body {
+                    padding: 2rem;
                 }
 
-                .btn-link-delete {
-                    color: var(--danger);
-                }
-
-                .btn-link-delete:hover {
-                    color: #dc2626;
-                    text-decoration: underline;
-                }
-
-                .empty-state {
-                    padding: 3rem 1.5rem;
-                    text-align: center;
-                    color: #9ca3af;
-                }
-
-                .empty-state .empty-icon {
-                    font-size: 3.5rem;
-                    margin-bottom: 1rem;
-                    opacity: 0.5;
-                }
-
-                .empty-state .empty-text {
-                    font-size: 1rem;
-                }
-
-                /* Modal form - giống warehouse & location */
-                #customerAddModal .modal-dialog,
-                #customerEditModal .modal-dialog {
-                    max-width: 1100px;
-                }
-
-                #customerAddModal .modal-title,
-                #customerEditModal .modal-title {
-                    font-size: 1.35rem;
+                .form-label {
                     font-weight: 700;
+                    color: var(--gray-dark);
+                    text-transform: uppercase;
+                    font-size: 0.8rem;
                 }
 
-                #customerAddModal .text-muted.small,
-                #customerEditModal .text-muted.small {
-                    font-size: 0.95rem;
-                }
-
-                #customerAddModal label,
-                #customerEditModal label {
+                .form-control {
+                    border-radius: 10px;
+                    border: 2px solid #e2e8f0;
                     font-weight: 600;
-                    margin-bottom: 8px;
+                    padding: 0.6rem 1rem;
                 }
 
-                #customerAddModal .form-control,
-                #customerEditModal .form-control {
-                    padding: 12px 14px;
-                    font-size: 1.05rem;
+                .form-control:focus {
+                    border-color: var(--primary);
+                    box-shadow: none;
                 }
 
-                #customerAddModal textarea.form-control,
-                #customerEditModal textarea.form-control {
-                    min-height: 120px;
+                .search-container {
+                    position: relative;
+                    max-width: 400px;
                 }
 
-                #customerAddModal .btn,
-                #customerEditModal .btn {
-                    padding: 10px 16px;
-                    font-size: 1rem;
+                .search-icon {
+                    position: absolute;
+                    left: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    color: #64748b;
+                }
+
+                #searchInput {
+                    padding-left: 45px;
+                    border-radius: 12px;
+                }
+
+                .clear-btn {
+                    position: absolute;
+                    right: 15px;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    cursor: pointer;
+                    color: #94a3b8;
+                    display: none;
                 }
             </style>
         </head>
 
         <body>
-            <div class="customer-page">
-                <header class="page-header">
-                    <h1 class="page-title">
-                        Quản lý Khách hàng
-                    </h1>
-                    <div class="toolbar">
-                        <button type="button" class="btn btn-add-customer" data-toggle="modal"
-                            data-target="#customerAddModal">
-                            Thêm khách hàng
-                        </button>
-                        <div class="search-box">
-                            <input type="text" id="searchCustomer" class="form-control" style="padding-left: 1rem;"
-                                placeholder="Tìm mã, tên, SĐT, email...">
-                            <button type="button" class="btn-clear" id="btnClearSearch" title="Xóa bộ lọc"
-                                style="display: none;">Xóa</button>
-                        </div>
-                    </div>
-                </header>
-
-                <!-- Modal Thêm khách hàng -->
-                <div class="modal fade" id="customerAddModal" tabindex="-1" role="dialog"
-                    aria-labelledby="customerAddModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="customerAddModalLabel">Thêm khách hàng</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
+            <div class="wrapper">
+                <div class="content-page">
+                    <div class="container-fluid">
+                        <div class="page-header">
+                            <div>
+                                <h1 class="font-weight-bold mb-1">Customer Management</h1>
+                                <p class="text-secondary">View and manage all customer information</p>
                             </div>
-                            <div class="modal-body">
-                                <p class="text-muted small mb-3">Nhập thông tin khách hàng mới</p>
-                                <form id="customerAddForm" action="${pageContext.request.contextPath}/customers"
-                                    method="post">
-                                    <input type="hidden" name="action" value="add">
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label>Mã khách hàng</label>
-                                            <input type="text" name="customerCode" id="addCustomerCode"
-                                                class="form-control" required placeholder="VD: KH001">
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label>Họ tên</label>
-                                            <input type="text" name="name" id="addName" class="form-control" required
-                                                placeholder="Nguyễn Văn A">
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label>Số điện thoại</label>
-                                            <input type="text" name="phone" id="addPhone" class="form-control"
-                                                placeholder="0901234567">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label>Email</label>
-                                            <input type="email" name="email" id="addEmail" class="form-control"
-                                                placeholder="email@example.com">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12 mb-3">
-                                            <label>Địa chỉ</label>
-                                            <textarea name="address" id="addAddress" class="form-control" rows="3"
-                                                placeholder="Địa chỉ liên hệ"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer" style="border-top: none; padding: 0; margin-top: 20px;">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Lưu</button>
-                                    </div>
-                                </form>
+                            <button class="btn btn-add" data-toggle="modal" data-target="#customerModal"
+                                onclick="prepareAdd()">
+                                <i class="ri-user-add-line"></i> Add New Customer
+                            </button>
+                        </div>
+
+                        <div class="mb-4 d-flex justify-content-between align-items-center">
+                            <div class="search-container flex-grow-1">
+                                <i class="ri-search-line search-icon"></i>
+                                <input type="text" id="searchInput" class="form-control"
+                                    placeholder="Search by name, code, or phone...">
+                                <i class="ri-close-circle-fill clear-btn" id="clearSearch"></i>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <!-- Modal Sửa khách hàng -->
-                <div class="modal fade" id="customerEditModal" tabindex="-1" role="dialog"
-                    aria-labelledby="customerEditModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="customerEditModalLabel">Cập nhật khách hàng</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <p class="text-muted small mb-3">Chỉnh sửa thông tin khách hàng</p>
-                                <form id="customerEditForm" action="${pageContext.request.contextPath}/customers"
-                                    method="post">
-                                    <input type="hidden" name="action" value="update">
-                                    <input type="hidden" name="customerId" id="editCustomerId">
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label>Mã khách hàng</label>
-                                            <input type="text" name="customerCode" id="editCustomerCode"
-                                                class="form-control" required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label>Họ tên</label>
-                                            <input type="text" name="name" id="editName" class="form-control" required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label>Số điện thoại</label>
-                                            <input type="text" name="phone" id="editPhone" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label>Email</label>
-                                            <input type="email" name="email" id="editEmail" class="form-control">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12 mb-3">
-                                            <label>Địa chỉ</label>
-                                            <textarea name="address" id="editAddress" class="form-control"
-                                                rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer" style="border-top: none; padding: 0; margin-top: 20px;">
-                                        <button type="button" class="btn btn-secondary"
-                                            data-dismiss="modal">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Cập nhật</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Modal Xóa -->
-                <div class="modal fade" id="customerDeleteModal" tabindex="-1" role="dialog">
-                    <div class="modal-dialog modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Xác nhận xóa</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                                        aria-hidden="true">&times;</span></button>
-                            </div>
-                            <div class="modal-body">
-                                <p class="mb-0">Bạn có chắc chắn muốn xóa khách hàng <strong
-                                        id="deleteCustomerCode"></strong>?</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                                <form id="customerDeleteForm" action="${pageContext.request.contextPath}/customers"
-                                    method="post" class="d-inline">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="hidden" name="customerId" id="deleteCustomerId">
-                                    <button type="submit" class="btn btn-danger">Xóa</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bảng danh sách -->
-                <div class="card card-customer">
-                    <div class="card-header">Danh sách khách hàng</div>
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table table-customer" id="customerTable">
-                                <thead>
-                                    <tr>
-                                        <th class="col-stt">STT</th>
-                                        <th>Mã KH</th>
-                                        <th>Họ tên</th>
-                                        <th>Số điện thoại</th>
-                                        <th>Email</th>
-                                        <th>Địa chỉ</th>
-                                        <th class="col-actions">Thao tác</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:choose>
-                                        <c:when test="${empty customers}">
+                        <div class="card card-main">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="table mb-0" id="customerTable">
+                                        <thead>
                                             <tr>
-                                                <td colspan="7">
-                                                    <div class="empty-state">
-                                                        <div class="empty-icon"><i class="fas fa-users"></i></div>
-                                                        <div class="empty-text">Chưa có khách hàng nào. Nhấn
-                                                            <strong>Thêm khách hàng</strong> để tạo mới.</div>
-                                                    </div>
-                                                </td>
+                                                <th style="width: 80px;">No.</th>
+                                                <th>Customer Code</th>
+                                                <th>Full Name</th>
+                                                <th>Phone</th>
+                                                <th>Email</th>
+                                                <th>Address</th>
+                                                <th class="text-right">Actions</th>
                                             </tr>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <c:forEach var="c" items="${customers}" varStatus="st">
-                                                <tr data-code="${c.customerCode}" data-name="${c.name}"
-                                                    data-phone="${c.phone}" data-email="${c.email}"
-                                                    data-address="${c.address}">
-                                                    <td class="col-stt">${st.index + 1}</td>
-                                                    <td class="col-code">${c.customerCode}</td>
-                                                    <td class="col-name">${c.name}</td>
+                                        </thead>
+                                        <tbody>
+                                            <c:forEach var="c" items="${customers}" varStatus="status">
+                                                <tr class="customer-row">
+                                                    <td><span class="text-secondary font-weight-bold">${status.index +
+                                                            1}</span></td>
+                                                    <td><span
+                                                            class="font-weight-bold text-primary">${c.customerCode}</span>
+                                                    </td>
+                                                    <td><span class="font-weight-bold">${c.name}</span></td>
                                                     <td>${c.phone}</td>
                                                     <td>${c.email}</td>
-                                                    <td>${c.address}</td>
-                                                    <td class="col-actions">
-                                                        <button type="button"
-                                                            class="btn-link-action btn-link-edit btn-edit"
-                                                            data-id="${c.id}" data-code="${c.customerCode}"
-                                                            data-name="${c.name}" data-phone="${c.phone}"
-                                                            data-email="${c.email}"
-                                                            data-address="${c.address}">Sửa</button>
-                                                        <span class="text-muted" style="opacity: 0.3;">|</span>
-                                                        <button type="button"
-                                                            class="btn-link-action btn-link-delete btn-delete"
-                                                            data-id="${c.id}" data-code="${c.customerCode}">Xóa</button>
+                                                    <td style="max-width: 250px;" class="text-truncate">${c.address}
+                                                    </td>
+                                                    <td class="text-right">
+                                                        <button class="btn-action btn-edit mr-2"
+                                                            onclick="prepareEdit('${c.id}')">
+                                                            <i class="ri-pencil-line"></i> Edit
+                                                        </button>
+                                                        <a href="customers?action=delete&id=${c.id}"
+                                                            class="btn-action btn-delete"
+                                                            onclick="return confirm('Are you sure you want to delete this customer?')">
+                                                            <i class="ri-delete-bin-line"></i> Delete
+                                                        </a>
                                                     </td>
                                                 </tr>
                                             </c:forEach>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </tbody>
-                            </table>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <script src="${pageContext.request.contextPath}/assets/js/jquery-3.6.0.min.js"></script>
+            <!-- Modal -->
+            <div class="modal fade" id="customerModal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title font-weight-bold" id="form-title">Add New Customer</h5>
+                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="customerForm" action="customers" method="post">
+                                <input type="hidden" name="action" id="form-action" value="add">
+                                <input type="hidden" name="customerId" id="c-id">
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Customer Code</label>
+                                        <input type="text" name="customerCode" id="f-code" class="form-control"
+                                            placeholder="e.g. CUST-001" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" name="name" id="f-name" class="form-control"
+                                            placeholder="e.g. John Doe" required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <input type="text" name="phone" id="f-phone" class="form-control"
+                                            placeholder="Enter phone number">
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Email Address</label>
+                                        <input type="email" name="email" id="f-email" class="form-control"
+                                            placeholder="example@mail.com">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Address</label>
+                                        <input type="text" name="address" id="f-address" class="form-control"
+                                            placeholder="Enter customer address">
+                                    </div>
+                                </div>
+
+                                <div class="text-right mt-4">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
+                                        style="border-radius:10px;">Cancel</button>
+                                    <button type="submit" class="btn btn-add ml-2">Save Customer</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
-            <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
             <script>
-                (function () {
-                    var $search = $('#searchCustomer');
-                    var $btnClear = $('#btnClearSearch');
-                    var $rows = $('#customerTable tbody tr[data-code]');
+                function prepareAdd() {
+                    document.getElementById('form-title').innerText = "Add New Customer";
+                    document.getElementById('form-action').value = "add";
+                    document.getElementById('customerForm').reset();
+                    document.getElementById('c-id').value = "";
+                }
 
-                    function filterRows() {
-                        var q = ($search.val() || '').toLowerCase().trim();
-                        $btnClear.toggle(!!q);
-                        var stt = 0;
-                        $rows.each(function () {
-                            if (!q) {
-                                $(this).show();
-                                $(this).find('td:first').text(++stt);
-                                return;
-                            }
-                            var code = ($(this).data('code') || '').toLowerCase();
-                            var name = ($(this).data('name') || '').toLowerCase();
-                            var phone = ($(this).data('phone') || '').toLowerCase();
-                            var email = ($(this).data('email') || '').toLowerCase();
-                            var match = code.indexOf(q) >= 0 || name.indexOf(q) >= 0 || phone.indexOf(q) >= 0 || email.indexOf(q) >= 0;
-                            $(this).toggle(match);
-                            if (match) $(this).find('td:first').text(++stt);
+                function prepareEdit(id) {
+                    fetch('customers?action=getDetailJson&id=' + id)
+                        .then(r => r.json())
+                        .then(data => {
+                            document.getElementById('form-title').innerText = "Edit Customer";
+                            document.getElementById('form-action').value = "update";
+                            document.getElementById('c-id').value = data.id;
+                            document.getElementById('f-code').value = data.customerCode || '';
+                            document.getElementById('f-name').value = data.name || '';
+                            document.getElementById('f-phone').value = data.phone || '';
+                            document.getElementById('f-email').value = data.email || '';
+                            document.getElementById('f-address').value = data.address || '';
+                            $('#customerModal').modal('show');
                         });
-                    }
+                }
 
-                    $search.on('input', filterRows);
-                    $btnClear.on('click', function () {
-                        $search.val('');
-                        filterRows();
-                        $search.focus();
-                    });
+                // Search logic
+                const searchInput = document.getElementById('searchInput');
+                const clearBtn = document.getElementById('clearSearch');
+                const tableRows = document.querySelectorAll('.customer-row');
 
-                    $('#customerTable').on('click', '.btn-edit', function () {
-                        var $t = $(this);
-                        $('#editCustomerId').val($t.data('id'));
-                        $('#editCustomerCode').val($t.data('code'));
-                        $('#editName').val($t.data('name'));
-                        $('#editPhone').val($t.data('phone') || '');
-                        $('#editEmail').val($t.data('email') || '');
-                        $('#editAddress').val($t.data('address') || '');
-                        $('#customerEditModal').modal('show');
-                    });
+                searchInput.addEventListener('input', function () {
+                    const query = this.value.toLowerCase().trim();
+                    clearBtn.style.display = query ? 'block' : 'none';
 
-                    $('#customerTable').on('click', '.btn-delete', function () {
-                        var $t = $(this);
-                        $('#deleteCustomerId').val($t.data('id'));
-                        $('#deleteCustomerCode').text($t.data('code'));
-                        $('#customerDeleteModal').modal('show');
+                    tableRows.forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        row.style.display = text.includes(query) ? '' : 'none';
                     });
+                });
 
-                    $('#customerAddModal').on('shown.bs.modal', function () {
-                        $('#addCustomerCode').focus();
-                    });
-                })();
+                clearBtn.addEventListener('click', function () {
+                    searchInput.value = '';
+                    this.style.display = 'none';
+                    tableRows.forEach(row => row.style.display = '');
+                    searchInput.focus();
+                });
             </script>
         </body>
 

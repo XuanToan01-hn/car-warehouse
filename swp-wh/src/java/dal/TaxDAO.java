@@ -61,6 +61,28 @@ public class TaxDAO extends DBContext {
         }
     }
 
+    public void update(Tax t) {
+        String sql = "UPDATE Tax SET TaxName = ?, TaxRate = ?, EffectiveFrom = ?, ExpiredDate = ? WHERE TaxID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, safeTrim(t.getTaxName()));
+            ps.setDouble(2, t.getTaxRate());
+            if (t.getEffectiveFrom() != null) {
+                ps.setDate(3, new java.sql.Date(t.getEffectiveFrom().getTime()));
+            } else {
+                ps.setNull(3, java.sql.Types.DATE);
+            }
+            if (t.getExpiredDate() != null) {
+                ps.setDate(4, new java.sql.Date(t.getExpiredDate().getTime()));
+            } else {
+                ps.setNull(4, java.sql.Types.DATE);
+            }
+            ps.setInt(5, t.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void delete(int id) {
         String sql = "DELETE FROM Tax WHERE TaxID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -85,3 +107,4 @@ public class TaxDAO extends DBContext {
         return s == null ? "" : s.trim();
     }
 }
+
