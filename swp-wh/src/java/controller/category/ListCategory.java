@@ -60,7 +60,40 @@ public class ListCategory extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-         final int PAGE_SIZE = 5;
+        String action = request.getParameter("action");
+        if ("getDetailJson".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    CategoryDAO dao = new CategoryDAO();
+                    Category c = dao.getByID(id);
+                    if (c != null) {
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        String nameJson = c.getName() != null ? c.getName().replace("\"", "\\\"") : "";
+                        String descJson = c.getDescription() != null ? c.getDescription().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "") : "";
+                        String json = String.format("{\"id\": %d, \"name\": \"%s\", \"description\": \"%s\"}",
+                                c.getId(), nameJson, descJson);
+                        response.getWriter().write(json);
+                        return;
+                    }
+                } catch (NumberFormatException ignored) {}
+            }
+        } else if ("delete".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    CategoryDAO dao = new CategoryDAO();
+                    dao.delete(id);
+                } catch (NumberFormatException ignored) {}
+            }
+            response.sendRedirect("list-category");
+            return;
+        }
+
+        final int PAGE_SIZE = 10;
         String keyword = request.getParameter("search");
         if (keyword == null) {
             keyword = "";
@@ -102,7 +135,24 @@ public class ListCategory extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        processRequest(request, response);
+        request.setCharacterEncoding("UTF-8");
+        String action = request.getParameter("action");
+        String name = request.getParameter("name");
+        String description = request.getParameter("description");
+        String idStr = request.getParameter("id");
+
+        CategoryDAO dao = new CategoryDAO();
+        if ("add".equals(action)) {
+            dao.insert(new Category(0, name, description));
+        } else if ("update".equals(action)) {
+            if (idStr != null) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    dao.update(new Category(id, name, description));
+                } catch (NumberFormatException ignored) {}
+            }
+        }
+        response.sendRedirect("list-category");
     }
 
     /**
