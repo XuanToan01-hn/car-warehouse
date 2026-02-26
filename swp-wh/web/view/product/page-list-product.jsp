@@ -76,7 +76,9 @@
                                             <tr>
                                                 <td>
                                                     <div class="d-flex align-items-center">
-                                                        <img src="${pageContext.request.contextPath}/assets/images/table/product/${p.image}" class="img-fluid rounded avatar-50 mr-3" alt="image">
+                                                        <img src="${p.image}" 
+                                                             class="img-fluid rounded avatar-50 mr-3" 
+                                                             alt="image">
                                                         <div class="data-name">
                                                             ${p.name}
                                                             <p class="mb-0" style="justify-self: baseline"><small>${p.code}</small></p>
@@ -107,13 +109,13 @@
                                         <ul class="pagination justify-content-center">
                                             <c:if test="${hasPrevious}">
                                                 <li class="page-item"><a class="page-link" href="list-product?page=${currentPage - 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">Previous</a></li>
-                                            </c:if>
-                                            <c:forEach var="i" begin="${startPage}" end="${endPage}">
+                                                </c:if>
+                                                <c:forEach var="i" begin="${startPage}" end="${endPage}">
                                                 <li class="page-item ${i == currentPage ? 'active' : ''}"><a class="page-link" href="list-product?page=${i}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">${i}</a></li>
-                                            </c:forEach>
-                                            <c:if test="${hasNext}">
+                                                </c:forEach>
+                                                <c:if test="${hasNext}">
                                                 <li class="page-item"><a class="page-link" href="list-product?page=${currentPage + 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">Next</a></li>
-                                            </c:if>
+                                                </c:if>
                                         </ul>
                                     </c:if>
                                 </div>
@@ -207,9 +209,9 @@
 
         <c:if test="${showUpdateModal}">
             <script>
-                document.addEventListener("DOMContentLoaded", function () {
-                    document.getElementById('updateModal').style.display = 'block';
-                });
+                                        document.addEventListener("DOMContentLoaded", function () {
+                                            document.getElementById('updateModal').style.display = 'block';
+                                        });
             </script>
         </c:if>
     </body>
