@@ -66,7 +66,7 @@
                                                         <button type="submit" class="btn btn-primary mr-2"><i
                                                                 class="fas fa-search mr-1"></i> Tìm</button>
                                                         <a href="${pageContext.request.contextPath}/goods-receipt"
-                                                            class="btn btn-warning"><i class="fas fa-undo mr-1"></i></a>
+                                                            class="btn btn-warning"><i class="fas fa-undo mr-1"></i>Reset</a>
                                                     </div>
                                                 </form>
 
@@ -100,7 +100,7 @@
                                                                     <c:forEach var="gr" items="${grList}"
                                                                         varStatus="st">
                                                                         <tr>
-                                                                            <td>${(page-1)*10 + st.index + 1}</td>
+                                                                            <td>${(page-1)*pageSize + st.index + 1}</td>
                                                                             <td><strong
                                                                                     class="text-primary">${gr.receiptCode}</strong>
                                                                             </td>

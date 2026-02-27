@@ -19,6 +19,15 @@ public class DetailGoodsReceiptServlet extends HttpServlet {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             GoodsReceipt gr = dao.getById(id);
+
+            // Nếu là Draft và chưa có chi tiết => tự tạo chi tiết từ PO để màn detail
+            // hiển thị giống lúc tạo mới.
+            if (gr != null && gr.getStatus() == 1
+                    && (gr.getDetails() == null || gr.getDetails().isEmpty())) {
+                dao.createDetailsFromPOIfMissing(id);
+                gr = dao.getById(id);
+            }
+
             if (gr == null) {
                 response.sendRedirect(request.getContextPath() + "/goods-receipt");
                 return;

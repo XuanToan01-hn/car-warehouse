@@ -120,8 +120,8 @@
                                                                 method="post" class="d-inline">
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="2">
-                                                                <button type="submit" class="btn btn-primary mr-2">
-                                                                    <i class="fas fa-check mr-1"></i> Confirm
+                                                                <button type="submit" class="btn btn-primary mr-2" title="Khóa đơn, không cho chỉnh sửa">
+                                                                    <i class="fas fa-lock mr-1"></i> Confirm
                                                                 </button>
                                                             </form>
                                                             <form
@@ -140,7 +140,7 @@
                                                                 method="post" class="d-inline">
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="3">
-                                                                <button type="submit" class="btn btn-success mr-2">
+                                                                <button type="submit" class="btn btn-success mr-2" title="Cho phép chuyển sang tạo phiếu nhập kho (GRO)">
                                                                     <i class="fas fa-truck mr-1"></i> Mark Received
                                                                 </button>
                                                             </form>
@@ -157,8 +157,8 @@
                                                     </div>
                                                 </c:if>
 
-                                                <!-- Nút Tạo Goods Receipt cho Warehouse Staff (role 4) khi PO đã Confirmed -->
-                                                <c:if test="${po.status == 2 && user.role.roleId == 4}">
+                                                <!-- Nút Tạo GRO chỉ hiện khi PO đã Mark Received (status 3) -->
+                                                <c:if test="${po.status == 3 && user.role.roleId == 4}">
                                                     <div class="border-top pt-3 mt-2">
                                                         <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
                                                             class="btn btn-success btn-lg">
@@ -167,7 +167,7 @@
                                                         </a>
                                                         <small class="text-muted ml-3">
                                                             <i class="fas fa-info-circle mr-1"></i>
-                                                            PO đã được xác nhận — sẵn sàng nhập kho
+                                                            PO đã Mark Received — sẵn sàng tạo phiếu nhập kho
                                                         </small>
                                                     </div>
                                                 </c:if>

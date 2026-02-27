@@ -40,6 +40,8 @@
                         box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, .25);
                         border-color: #28a745;
                     }
+                    .diff-ok { color: #28a745; font-weight: bold; }
+                    .diff-warn { color: #dc3545; font-weight: bold; }
 
                     #no-po-msg {
                         color: #6c757d;
@@ -162,16 +164,15 @@
                                                                     <th>Mã SP</th>
                                                                     <th>Tên Sản Phẩm</th>
                                                                     <th class="text-center">SL Đặt Hàng</th>
-                                                                    <th class="text-center" style="color:#28a745;">SL
-                                                                        Thực Tế Nhận <span class="text-danger">*</span>
+                                                                    <th class="text-center">SL
+                                                                        Thực Tế Nhận <span class="text-danger"></span>
                                                                     </th>
-                                                                    <input type="hidden" name="productId[]" value="">
-                                                                    <input type="hidden" name="qtyExpected[]" value="">
+                                                                    <th class="text-center">Chênh Lệch</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="product-tbody">
                                                                 <tr id="no-po-msg-row">
-                                                                    <td colspan="5" id="no-po-msg"><i
+                                                                    <td colspan="6" id="no-po-msg"><i
                                                                             class="fas fa-hand-point-up mr-2"></i>Vui
                                                                         lòng chọn Purchase Order để xem sản phẩm</td>
                                                                 </tr>
@@ -290,7 +291,7 @@
 
                         var html = '';
                         if (!details || details.length === 0) {
-                            html = '<tr><td colspan="5" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
+                            html = '<tr><td colspan="6" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
                             submitBtn.disabled = true;
                         } else {
                             details.forEach(function (d, idx) {
@@ -301,15 +302,38 @@
                                     '<td class="text-center font-weight-bold">' + d.quantity + '</td>' +
                                     '<td class="text-center">' +
                                     '<input type="number" class="form-control qty-actual-input text-center" ' +
-                                    'name="qtyActual[]" min="0" max="' + d.quantity + '" value="' + d.quantity + '" required style="width:100px;margin:auto;">' +
-                                    '<input type="hidden" name="productId[]" value="' + d.productId + '">' +
-                                    '<input type="hidden" name="qtyExpected[]" value="' + d.quantity + '">' +
+                                    'name="qtyActual[]" form="groForm" min="0" value="' + d.quantity + '" required style="width:100px;margin:auto;" data-min="0">' +
+                                    '<input type="hidden" name="productId[]" form="groForm" value="' + d.productId + '">' +
+                                    '<input type="hidden" name="qtyExpected[]" form="groForm" value="' + d.quantity + '">' +
                                     '</td>' +
+                                    '<td class="text-center"><span class="diff-display">0</span></td>' +
                                     '</tr>';
                             });
                             submitBtn.disabled = false;
                         }
                         tbody.innerHTML = html;
+                        tbody.querySelectorAll('.qty-actual-input').forEach(function (input) {
+                            input.addEventListener('input', updateDiffInRow);
+                            input.addEventListener('change', updateDiffInRow);
+                        });
+                    }
+
+                    function updateDiffInRow(e) {
+                        var row = e.target.closest('tr');
+                        if (!row) return;
+                        var actualInput = row.querySelector('input[name="qtyActual[]"]');
+                        var expectedInput = row.querySelector('input[name="qtyExpected[]"]');
+                        var span = row.querySelector('.diff-display');
+                        if (!actualInput || !expectedInput || !span) return;
+                        var actual = parseInt(actualInput.value, 10) || 0;
+                        if (actual < 0) {
+                            actual = 0;
+                            actualInput.value = 0;
+                        }
+                        var expected = parseInt(expectedInput.value, 10) || 0;
+                        var diff = expected - actual;
+                        span.textContent = diff === 0 ? '0' : (diff > 0 ? diff : diff);
+                        span.className = 'diff-display ' + (diff <= 0 ? 'diff-ok' : 'diff-warn');
                     }
 
                     // On page load: if preloaded PO exists, render it

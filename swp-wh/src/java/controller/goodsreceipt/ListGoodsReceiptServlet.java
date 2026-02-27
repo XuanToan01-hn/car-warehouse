@@ -13,7 +13,7 @@ import model.GoodsReceipt;
 @WebServlet(name = "ListGoodsReceiptServlet", urlPatterns = { "/goods-receipt" })
 public class ListGoodsReceiptServlet extends HttpServlet {
 
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_SIZE = 5;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -46,6 +46,7 @@ public class ListGoodsReceiptServlet extends HttpServlet {
         request.setAttribute("page", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("total", total);
+        request.setAttribute("pageSize", PAGE_SIZE);
 
         request.getRequestDispatcher("/view/goods-receipt/page-list-goods-receipt.jsp")
                 .forward(request, response);

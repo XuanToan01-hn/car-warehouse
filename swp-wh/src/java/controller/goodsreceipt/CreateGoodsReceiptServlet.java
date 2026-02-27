@@ -83,6 +83,11 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             String[] qtyActual = request.getParameterValues("qtyActual[]");
 
             List<GoodsReceiptDetail> details = new java.util.ArrayList<>();
+            if (productIds == null || productIds.length == 0) {
+                request.setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
+                doGet(request, response);
+                return;
+            }
             if (productIds != null) {
                 for (int i = 0; i < productIds.length; i++) {
                     GoodsReceiptDetail d = new GoodsReceiptDetail();

@@ -9,6 +9,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.GoodsReceipt;
 import model.GoodsReceiptDetail;
 import model.Product;
 
@@ -37,7 +38,7 @@ public class ConfirmGoodsReceiptServlet extends HttpServlet {
             String[] qtyActuals = request.getParameterValues("qtyActual[]");
 
             List<GoodsReceiptDetail> updatedDetails = new ArrayList<>();
-            if (detailIds != null && qtyActuals != null) {
+            if (detailIds != null && qtyActuals != null && detailIds.length > 0) {
                 for (int i = 0; i < detailIds.length; i++) {
                     GoodsReceiptDetail d = new GoodsReceiptDetail();
                     d.setId(Integer.parseInt(detailIds[i]));
@@ -52,6 +53,21 @@ public class ConfirmGoodsReceiptServlet extends HttpServlet {
                 }
             }
 
+            // Phiếu chưa có chi tiết (hiển thị fallback từ PO): cố gắng tạo chi tiết từ PO rồi confirm
+            if (updatedDetails.isEmpty()) {
+                grDAO.createDetailsFromPOIfMissing(receiptId);
+                GoodsReceipt gr = grDAO.getById(receiptId);
+                if (gr != null && gr.getDetails() != null) {
+                    for (GoodsReceiptDetail d : gr.getDetails()) {
+                        GoodsReceiptDetail u = new GoodsReceiptDetail();
+                        u.setId(d.getId());
+                        u.setQuantityActual(d.getQuantityActual());
+                        updatedDetails.add(u);
+                    }
+                }
+            }
+
+            // Cho phép confirm ngay cả khi không có chi tiết (phiếu cũ, chỉ cần chốt trạng thái)
             boolean ok = grDAO.confirmDraft(receiptId, updatedDetails);
             String qs = ok ? "success=confirmed" : "error=confirm_failed";
             response.sendRedirect(request.getContextPath() + "/detail-goods-receipt?id=" + receiptId + "&" + qs);
