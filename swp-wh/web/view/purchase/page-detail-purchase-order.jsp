@@ -112,16 +112,18 @@
 
                                                 <!-- Nút thay đổi trạng thái -->
                                                 <c:if test="${po.status != 4}">
-                                                    <div class="border-top pt-3 mt-2">
-                                                        <strong class="mr-2">Cập nhật trạng thái:</strong>
-                                                        <c:if test="${po.status == 1}">
+                                                    <!-- DRAFT (status == 1): Chỉ Manager thấy Confirm/Cancel -->
+                                                    <c:if test="${po.status == 1 && sessionScope.user.role.id == 2}">
+                                                        <div class="border-top pt-3 mt-2">
+                                                            <strong class="mr-2">Cập nhật trạng thái:</strong>
                                                             <form
                                                                 action="${pageContext.request.contextPath}/detail-purchase-order"
                                                                 method="post" class="d-inline">
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="2">
                                                                 <button type="submit" class="btn btn-primary mr-2">
-                                                                    <i class="fas fa-check mr-1"></i> Confirm
+<%--                                                                    <i class="fas fa-check mr-1"></i> --%>
+                                                                    Confirm
                                                                 </button>
                                                             </form>
                                                             <form
@@ -130,18 +132,25 @@
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="4">
                                                                 <button type="submit" class="btn btn-danger">
-                                                                    <i class="fas fa-times mr-1"></i> Cancel
+<%--                                                                    <i class="fas fa-times mr-1"></i> --%>
+                                                                    Cancel
                                                                 </button>
                                                             </form>
-                                                        </c:if>
-                                                        <c:if test="${po.status == 2}">
+                                                        </div>
+                                                    </c:if>
+
+                                                    <!-- CONFIRMED (status == 2): Chỉ Staff thấy Mark Received/Cancel -->
+                                                    <c:if test="${po.status == 2 && sessionScope.user.role.id == 3}">
+                                                        <div class="border-top pt-3 mt-2">
+                                                            <strong class="mr-2">Cập nhật trạng thái:</strong>
                                                             <form
                                                                 action="${pageContext.request.contextPath}/detail-purchase-order"
                                                                 method="post" class="d-inline">
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="3">
                                                                 <button type="submit" class="btn btn-success mr-2">
-                                                                    <i class="fas fa-truck mr-1"></i> Mark Received
+<%--                                                                    <i class="fas fa-truck mr-1"></i>--%>
+                                                                    Mark Received
                                                                 </button>
                                                             </form>
                                                             <form
@@ -150,11 +159,12 @@
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="4">
                                                                 <button type="submit" class="btn btn-danger">
-                                                                    <i class="fas fa-times mr-1"></i> Cancel
+<%--                                                                    <i class="fas fa-times mr-1"></i>--%>
+                                                                    Cancel
                                                                 </button>
                                                             </form>
-                                                        </c:if>
-                                                    </div>
+                                                        </div>
+                                                    </c:if>
                                                 </c:if>
                                             </div>
                                         </div>

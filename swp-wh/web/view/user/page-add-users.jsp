@@ -5,93 +5,108 @@
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
-﻿<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!doctype html>
-<html lang="en">
+<html lang="vi">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-        <title>POS Dash | Responsive Bootstrap 4 Admin Dashboard Template</title>
+        <title>Thêm Người Dùng</title>
 
         <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/modeladmin.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
-
-        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/%40fortawesome/fontawesome-free/css/all.min.css">
+        <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/remixicon/fonts/remixicon.css">  
-
     </head>
-    <body class="  ">
+    <body>
         <!-- loader Start -->
         <div id="loading">
-            <div id="loading-center">
-            </div>
+            <div id="loading-center"></div>
         </div>
         <!-- loader END -->
         <!-- Wrapper Start -->
         <div class="wrapper">
-
-
-
+            <%@ include file="../sidebar.jsp" %>
+            <%@ include file="../header.jsp" %>
             <div class="content-page">
-                <div class="container-fluid add-form-list">
+                <div class="container-fluid">
                     <div class="row">
                         <div class="col-sm-12">
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between">
                                     <div class="header-title">
-                                        <h4 class="card-title">Add Users</h4>
+                                        <h4 class="card-title">Thêm Người Dùng Mới</h4>
                                     </div>
+                                    <a href="userlist" class="btn btn-secondary">Quay lại</a>
                                 </div>
                                 <div class="card-body">
+                                    <!-- Error Message -->
+                                    <c:if test="${not empty error}">
+                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                            <strong>Lỗi:</strong> ${error}
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    </c:if>
+                                    <!-- Success Message -->
+                                    <c:if test="${not empty success}">
+                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                            <strong>Thành công:</strong> ${success}
+                                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                                <span aria-hidden="true">&times;</span>
+                                            </button>
+                                        </div>
+                                    </c:if>
+
                                     <form action="registeruser" method="post">
                                         <div class="row">
                                             <div class="col-md-6">                      
                                                 <div class="form-group">
-                                                    <label>Full Name *</label>
-                                                    <input type="text" class="form-control" name="name" value="${name}" placeholder="Enter full name" required>
+                                                    <label class="form-label font-weight-bold">Họ và Tên *</label>
+                                                    <input type="text" class="form-control" name="name" value="${name}" placeholder="Nhập họ và tên" required>
                                                     <c:if test="${not empty error_name}">
-                                                        <small class="text-red">${error_name}</small>
+                                                        <small class="text-danger">${error_name}</small>
                                                     </c:if>
                                                 </div>
                                             </div>    
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Phone Number *</label>
-                                                    <input type="text" class="form-control" name="phone" value="${phone}" placeholder="Enter phone number" required>
+                                                    <label class="form-label font-weight-bold">Số Điện Thoại *</label>
+                                                    <input type="text" class="form-control" name="phone" value="${phone}" placeholder="Nhập số điện thoại" required>
                                                     <c:if test="${not empty error_phone}">
-                                                        <small class="text-red">${error_phone}</small>
+                                                        <small class="text-danger">${error_phone}</small>
                                                     </c:if>
                                                 </div>
                                             </div> 
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Employee Code *</label>
-                                                    <input type="text" class="form-control" name="userCode" value="${userCode}" placeholder="Enter employee code" required>
+                                                    <label class="form-label font-weight-bold">Mã Nhân Viên *</label>
+                                                    <input type="text" class="form-control" name="userCode" value="${userCode}" placeholder="Nhập mã nhân viên" required>
                                                     <c:if test="${not empty error_userCode}">
-                                                        <small class="text-red">${error_userCode}</small>
+                                                        <small class="text-danger">${error_userCode}</small>
                                                     </c:if>
                                                 </div>
                                             </div> 
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Email *</label>
-                                                    <input type="email" class="form-control" name="email" value="${email}" placeholder="Enter email" required>
+                                                    <label class="form-label font-weight-bold">Email *</label>
+                                                    <input type="email" class="form-control" name="email" value="${email}" placeholder="Nhập email" required>
                                                     <c:if test="${not empty error_email}">
-                                                        <small class="text-red">${error_email}</small>
+                                                        <small class="text-danger">${error_email}</small>
                                                     </c:if>
                                                 </div>
                                             </div> 
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Role</label>
-                                                    <select name="role" class="selectpicker form-control" data-style="py-0">
+                                                    <label class="form-label font-weight-bold">Vai Trò</label>
+                                                    <select name="role" class="form-control">
                                                         <c:forEach var="r" items="${listR}">
                                                             <option value="${r.id}" <c:if test="${r.id == role}">selected</c:if>>${r.roleName}</option>
                                                         </c:forEach>
@@ -101,143 +116,138 @@
 
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label>Gender</label>
-                                                    <select name="male" class="selectpicker form-control" data-style="py-0">
-                                                        <option value="0" <c:if test="${male == '0'}">selected</c:if>>Male</option>
-                                                        <option value="1" <c:if test="${male == '1'}">selected</c:if>>Female</option>
-                                                        </select>
-                                                    </div>
-                                                </div> 
+                                                    <label class="form-label font-weight-bold">Giới Tính</label>
+                                                    <select name="male" class="form-control">
+                                                        <option value="0" <c:if test="${male == '0'}">selected</c:if>>Nam</option>
+                                                        <option value="1" <c:if test="${male == '1'}">selected</c:if>>Nữ</option>
+                                                    </select>
+                                                </div>
+                                            </div>
 
-                                                <div class="col-md-6">                      
-                                                    <div class="form-group">
-                                                        <label>Username *</label>
-                                                        <input type="text" class="form-control" name="username" value="${username}" placeholder="Enter username" required>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label class="form-label font-weight-bold">Tên Đăng Nhập *</label>
+                                                    <input type="text" class="form-control" name="username" value="${username}" placeholder="Nhập tên đăng nhập" required>
                                                     <c:if test="${not empty error_username}">
-                                                        <small class="text-red">${error_username}</small>
+                                                        <small class="text-danger">${error_username}</small>
                                                     </c:if>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-6">                      
                                                 <div class="form-group">
-                                                    <label>Date of Birth *</label>
+                                                    <label class="form-label font-weight-bold">Ngày Sinh *</label>
                                                     <input type="date" class="form-control" name="dateOfBirth" value="${dateOfBirth}" required>
                                                     <c:if test="${not empty error_dateOfBirth}">
-                                                        <small class="text-red">${error_dateOfBirth}</small>
+                                                        <small class="text-danger">${error_dateOfBirth}</small>
                                                     </c:if>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-6">                      
                                                 <div class="form-group">
-                                                    <label>Password *</label>
-                                                    <input type="text" class="form-control" name="password" placeholder="Enter password" required>
+                                                    <label class="form-label font-weight-bold">Mật Khẩu *</label>
+                                                    <input type="password" class="form-control" name="password" placeholder="Nhập mật khẩu" required>
                                                     <c:if test="${not empty error_password}">
-                                                        <small class="text-red">${error_password}</small>
+                                                        <small class="text-danger">${error_password}</small>
                                                     </c:if>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-6">                      
                                                 <div class="form-group">
-                                                    <label>Confirm Password *</label>
-                                                    <input type="text" class="form-control" name="confirmPassword" placeholder="Re-enter password" required>
+                                                    <label class="form-label font-weight-bold">Xác Nhận Mật Khẩu *</label>
+                                                    <input type="password" class="form-control" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
                                                     <c:if test="${not empty error_confirmPassword}">
-                                                        <small class="text-red">${error_confirmPassword}</small>
+                                                        <small class="text-danger">${error_confirmPassword}</small>
                                                     </c:if>
                                                 </div>
                                             </div>
 
                                             <div class="col-md-6" id="warehouseDropdown" style="display: none;">
                                                 <div class="form-group">
-                                                    <label>Warehouse</label>
+                                                    <label class="form-label font-weight-bold">Kho Hàng</label>
                                                     <select name="warehouseId" class="form-control">
+                                                        <option value="">-- Chọn Kho Hàng --</option>
                                                         <c:forEach var="w" items="${listWarehouse}">
-                                                            <option value="${w.id}" <c:if test="${w.id == warehouseId}">selected</c:if>>${w.warehouseName}- ${w.address}</option>
+                                                            <option value="${w.id}" <c:if test="${w.id == warehouseId}">selected</c:if>>${w.warehouseName} - ${w.address}</option>
                                                         </c:forEach>
                                                     </select>
                                                     <c:if test="${not empty error_warehouse}">
-                                                        <small class="text-red">${error_warehouse}</small>
+                                                        <small class="text-danger">${error_warehouse}</small>
                                                     </c:if>
                                                 </div>
                                             </div>
                                         </div>
 
-
-                                        <button type="submit" class="btn btn-primary mr-2">Add User</button>
-                                        <button type="reset" class="btn btn-danger">Reset</button>
+                                        <div class="mt-3">
+                                            <button type="submit" class="btn btn-primary">
+<%--                                                <i class="fas fa-save mr-2"></i>--%>
+                                                Thêm Người Dùng
+                                            </button>
+                                            <button type="reset" class="btn btn-secondary ml-2">
+<%--                                                <i class="fas fa-redo mr-2"></i>--%>
+                                                Đặt Lại
+                                            </button>
+                                        </div>
                                     </form>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Page end  -->
                 </div>
             </div>
         </div>
+
+        <footer class="iq-footer">
+            <div class="container-fluid">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <ul class="list-inline mb-0">
+                                    <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+                                    <li class="list-inline-item"><a href="#">Terms of Use</a></li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-6 text-right">
+                                <span class="mr-1">
+                                    <script>document.write(new Date().getFullYear())</script>©
+                                </span>
+                                <a href="#">POS Dash</a>.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+
         <!-- Backend Bundle JavaScript -->
         <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
-
         <!-- Table Treeview JavaScript -->
         <script src="${pageContext.request.contextPath}/assets/js/table-treeview.js"></script>
-
-        <!-- Chart Custom JavaScript -->
+        <!-- Customizer JavaScript -->
         <script src="${pageContext.request.contextPath}/assets/js/customizer.js"></script>
-
         <!-- Chart Custom JavaScript -->
-        <script async="" src="${pageContext.request.contextPath}/assets/js/chart-custom.js"></script>
-
+        <script async src="${pageContext.request.contextPath}/assets/js/chart-custom.js"></script>
         <!-- app JavaScript -->
         <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
 
-        <div id="errorToast" class="toast-message" style="display: none;">
-            <%= request.getAttribute("error") != null ? request.getAttribute("error") : "" %>
-        </div>
+        <script>
+            const roleSelect = document.querySelector('select[name="role"]');
+            const warehouseDropdown = document.getElementById('warehouseDropdown');
 
-        <div id="successToast" class="toast-message" style="display: none;">
-            <%= request.getAttribute("success") != null ? request.getAttribute("success") : "" %>
-        </div>
-
-    </body>
-
-    <script>
-        const roleSelect = document.querySelector('select[name="role"]');
-        const warehouseDropdown = document.getElementById('warehouseDropdown');
-
-        function toggleWarehouseField() {
-            const selectedText = roleSelect.options[roleSelect.selectedIndex].text;
-            if (selectedText === 'Warehouse Staff' || selectedText === 'Sales Staff') {
-                warehouseDropdown.style.display = 'block';
-            } else {
-                warehouseDropdown.style.display = 'none';
+            function toggleWarehouseField() {
+                const selectedText = roleSelect.options[roleSelect.selectedIndex].text;
+                if (selectedText === 'Warehouse Staff' || selectedText === 'Sales Staff') {
+                    warehouseDropdown.style.display = 'block';
+                } else {
+                    warehouseDropdown.style.display = 'none';
+                }
             }
-        }
 
-        roleSelect.addEventListener('change', toggleWarehouseField);
-        window.onload = toggleWarehouseField; // kiểm tra lại khi reload form (giữ trạng thái đã chọn)
-    </script>
-    <% if (request.getAttribute("error") != null) { %>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var toast = document.getElementById("errorToast");
-            toast.style.display = "block";
-            setTimeout(function () {
-                toast.style.display = "none";
-            }, 4000); // Tự động ẩn sau 4 giây
-        });
-    </script>
-    <% } %>
-    <% if (request.getAttribute("success") != null) { %>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var toast = document.getElementById("successToast");
-            toast.style.display = "block";
-            setTimeout(function () {
-                toast.style.display = "none";
-            }, 4000); // Tự động ẩn sau 4 giây
-        });
-    </script>
-    <% } %>
-</script>
+            roleSelect.addEventListener('change', toggleWarehouseField);
+            window.onload = toggleWarehouseField;
+        </script>
+    </body>
 </html>
