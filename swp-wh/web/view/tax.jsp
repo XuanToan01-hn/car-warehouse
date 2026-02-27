@@ -1,13 +1,222 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
-    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-        <!doctype html>
-        <html lang="en">
+<!doctype html>
+<html lang="vi">
 
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-            <title>Tax Management | InventoryPro</title>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Quản Lý Thuế</title>
+    <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/remixicon/fonts/remixicon.css">
+</head>
+
+<body>
+    <div id="loading">
+        <div id="loading-center"></div>
+    </div>
+    <div class="wrapper">
+        <%@ include file="sidebar.jsp" %>
+        <%@ include file="header.jsp" %>
+        <div class="content-page">
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div class="header-title">
+                                    <h4 class="card-title">Danh Sách Thuế</h4>
+                                </div>
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#taxModal" onclick="prepareAdd()">
+                                    <i class="fas fa-plus mr-1"></i> Thêm Thuế Mới
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <div class="form-group">
+                                        <input type="text" id="searchInput" class="form-control" placeholder="Tìm kiếm theo tên thuế...">
+                                    </div>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Tên Thuế</th>
+                                                <th>Tỉ Lệ (%)</th>
+                                                <th>Có Hiệu Lực Từ</th>
+                                                <th>Ngày Hết Hạn</th>
+                                                <th class="text-right">Hành Động</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:choose>
+                                                <c:when test="${empty taxes}">
+                                                    <tr>
+                                                        <td colspan="6" class="text-center py-5">
+                                                            <i class="fas fa-inbox display-4 text-muted d-block" style="opacity: 0.25;"></i>
+                                                            <p class="text-secondary mt-3">Không tìm thấy bản ghi thuế nào.</p>
+                                                        </td>
+                                                    </tr>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:forEach var="t" items="${taxes}" varStatus="status">
+                                                        <tr class="tax-row">
+                                                            <td>${status.index + 1}</td>
+                                                            <td>
+                                                                <span class="font-weight-bold">${t.taxName}</span>
+                                                            </td>
+                                                            <td>
+                                                                <span class="badge badge-success">${t.taxRate}%</span>
+                                                            </td>
+                                                            <td>${t.effectiveFrom != null ? t.effectiveFrom : '—'}</td>
+                                                            <td>${t.expiredDate != null ? t.expiredDate : '—'}</td>
+                                                            <td class="text-right">
+                                                                <button class="btn btn-sm btn-info mr-2" onclick="prepareEdit('${t.id}')">
+                                                                    <i class="fas fa-edit mr-1"></i> Sửa
+                                                                </button>
+                                                                <a href="taxes?action=delete&id=${t.id}" class="btn btn-sm btn-danger" onclick="return confirm('Bạn có chắc muốn xóa thuế này?')">
+                                                                    <i class="fas fa-trash mr-1"></i> Xóa
+                                                                </a>
+                                                            </td>
+                                                        </tr>
+                                                    </c:forEach>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Add/Edit Tax -->
+    <div class="modal fade" id="taxModal" tabindex="-1" role="dialog" aria-labelledby="taxModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="form-title">Thêm Thuế Mới</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="taxForm" action="taxes" method="post">
+                        <input type="hidden" name="action" id="form-action" value="add">
+                        <input type="hidden" name="taxId" id="t-id">
+
+                        <div class="form-group">
+                            <label class="form-label">Tên Thuế</label>
+                            <input type="text" name="taxName" id="f-name" class="form-control" placeholder="VD: VAT 10%" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tỉ Lệ (%)</label>
+                            <input type="number" name="taxRate" id="f-rate" class="form-control" placeholder="10.00" step="0.01" min="0" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Có Hiệu Lực Từ</label>
+                            <input type="date" name="effectiveFrom" id="f-effective" class="form-control">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Ngày Hết Hạn</label>
+                            <input type="date" name="expiredDate" id="f-expired" class="form-control">
+                        </div>
+
+                        <div class="text-right">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-primary ml-2">Lưu</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="iq-footer">
+        <div class="container-fluid">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <ul class="list-inline mb-0">
+                                <li class="list-inline-item"><a href="#">Privacy Policy</a></li>
+                                <li class="list-inline-item"><a href="#">Terms of Use</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-lg-6 text-right">
+                            <span class="mr-1">
+                                <script>document.write(new Date().getFullYear())</script>©
+                            </span>
+                            <a href="#">POS Dash</a>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/table-treeview.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/customizer.js"></script>
+    <script async src="${pageContext.request.contextPath}/assets/js/chart-custom.js"></script>
+    <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
+
+    <script>
+        function prepareAdd() {
+            document.getElementById('form-title').innerText = "Thêm Thuế Mới";
+            document.getElementById('form-action').value = "add";
+            document.getElementById('taxForm').reset();
+            document.getElementById('t-id').value = "";
+        }
+
+        function prepareEdit(id) {
+            fetch('taxes?action=getDetailJson&id=' + id)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('form-title').innerText = "Cập Nhật Thuế";
+                    document.getElementById('form-action').value = "update";
+                    document.getElementById('t-id').value = data.id;
+                    document.getElementById('f-name').value = data.taxName || '';
+                    document.getElementById('f-rate').value = data.taxRate || '';
+                    document.getElementById('f-effective').value = data.effectiveFrom || '';
+                    document.getElementById('f-expired').value = data.expiredDate || '';
+                    $('#taxModal').modal('show');
+                })
+                .catch(err => {
+                    console.error('Error loading tax:', err);
+                    alert('Lỗi khi tải dữ liệu thuế');
+                });
+        }
+
+        // Search logic
+        const searchInput = document.getElementById('searchInput');
+        const tableRows = document.querySelectorAll('.tax-row');
+
+        searchInput.addEventListener('input', function () {
+            const query = this.value.toLowerCase().trim();
+
+            tableRows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+
+</html>
 
             <link
                 href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
