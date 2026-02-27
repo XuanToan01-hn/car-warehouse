@@ -98,7 +98,7 @@ public class LoginServlet extends HttpServlet {
 
         UserDAO userService = new UserDAO();
         String passwordEncode = EndCode.toSHA1(passwordStr);
-        User user = userService.loginAuth(emailStr, passwordStr);
+        User user = userService.loginAuth(emailStr, passwordEncode);
         if (user != null) {
             // Login successful -> Save to session
             HttpSession session = request.getSession();

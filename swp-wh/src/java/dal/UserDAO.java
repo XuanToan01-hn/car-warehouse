@@ -32,7 +32,7 @@ public class UserDAO extends DBContext {
                 User user = new User();
                 user.setId(resultSet.getInt("UserId"));
                 user.setFullName(resultSet.getString("FullName"));
-                user.setFullName(resultSet.getString("UserName"));
+                user.setUsername(resultSet.getString("UserName"));
                 user.setUserCode(resultSet.getString("UserCode"));
                 user.setPhone(resultSet.getString("Phone"));
                 user.setImage(resultSet.getString("Image"));
