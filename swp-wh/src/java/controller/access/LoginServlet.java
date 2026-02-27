@@ -98,7 +98,7 @@ public class LoginServlet extends HttpServlet {
 
         UserDAO userService = new UserDAO();
         String passwordEncode = EndCode.toSHA1(passwordStr);
-        User user = userService.loginAuth(emailStr, passwordStr);
+        User user = userService.loginAuth(emailStr, passwordEncode);
         if (user != null) {
             // Login successful -> Save to session
             HttpSession session = request.getSession();
@@ -108,7 +108,7 @@ public class LoginServlet extends HttpServlet {
             if ("on".equals(remember)) {
                 // Save email and password to cookies for 7 days
                 Cookie emailCookie = new Cookie("email", emailStr);
-                Cookie passwordCookie = new Cookie("password", passwordEncode);
+                Cookie passwordCookie = new Cookie("password", passwordStr);
                 Cookie rememberCookie = new Cookie("remember", "on");
 
                 int expiry = 7 * 24 * 60 * 60; // 7 days in seconds

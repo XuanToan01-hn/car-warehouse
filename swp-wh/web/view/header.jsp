@@ -1,65 +1,68 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<div class="iq-top-navbar">
-    <div class="iq-navbar-custom">
-        <nav class="navbar navbar-expand-lg navbar-light p-0">
-            <div class="iq-navbar-logo d-flex align-items-center justify-content-between">
-                <i class="ri-menu-line wrapper-menu"></i>
-                <a href="index.html" class="header-logo">
-                    <img src="${pageContext.request.contextPath}/assets/images/logo.png"
-                         class="img-fluid rounded-normal" alt="logo">
-                    <h5 class="logo-title ml-3">POSDash</h5>
-                </a>
-            </div>
-            <div class="iq-search-bar device-search">
-            </div>
-            <div class="d-flex align-items-center">
-                <button class="navbar-toggler" type="button" data-toggle="collapse"
-                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                        aria-label="Toggle navigation">
-                    <i class="ri-menu-3-line"></i>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav ml-auto navbar-list align-items-center">
-                        <input type="text"
-                               class="w-50 text-center border-radio-10px  badge-danger mr-3"
-                               value="${sessionScope.user.role.roleName}" readonly="">
-                        <c:if test="${sessionScope.user.role.roleId == 2 || sessionScope.user.role.roleId == 4}">
-                            <input type="text"
-                                   class="w-35 text-center border-radio-10px  badge-orange mr-3"
-                                   value="${sessionScope.user.location.name}" readonly="">
-                        </c:if>
 
-                        <li class="nav-item nav-icon dropdown caption-content">
-                            <a href="#" class="search-toggle dropdown-toggle" id="dropdownMenuButton4"
-                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <img src="${pageContext.request.contextPath}/assets/images/user/1.png"
-                                     class="img-fluid rounded" alt="user">
-                            </a>
-                            <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                <div class="card shadow-none m-0">
-                                    <div class="card-body p-0 text-center">
-                                        <div class="media-body profile-detail text-center">
-                                            <img src="${pageContext.request.contextPath}/assets/images/page-img/profile-bg.jpg"
-                                                 alt="profile-bg" class="rounded-top img-fluid mb-4">
-                                            <img src="${pageContext.request.contextPath}/assets/images/user/1.png"
-                                                 alt="profile-img"
-                                                 class="rounded profile-img img-fluid avatar-70">
-                                        </div>
-                                        <div class="p-3">
-                                            <h5 class="mb-1">${sessionScope.user.email}</h5>
-                                            <div class="d-flex align-items-center justify-content-center mt-3">
-                                                <%-- <a href="${pageContext.request.contextPath}/app/user-profile.html" class="btn border mr-2">Profile</a> --%>
-                                                <a href="logout" class="btn border">Sign Out</a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
+<c:choose>
+    <c:when test="${not empty requestScope.roleName}">
+        <c:set var="roleName" value="${requestScope.roleName}" />
+    </c:when>
+    <c:otherwise>
+        <c:set var="roleName" value="${sessionScope.user.role.roleName}" />
+    </c:otherwise>
+</c:choose>
+<c:choose>
+    <c:when test="${not empty requestScope.fullName}">
+        <c:set var="fullName" value="${requestScope.fullName}" />
+    </c:when>
+    <c:otherwise>
+        <c:set var="fullName" value="${sessionScope.user.fullName}" />
+    </c:otherwise>
+</c:choose>
+<!-- Simplified Header -->
+<style>
+    .app-header {
+        margin-left: 240px; /* match sidebar width */
+        background: #fff;
+        border-bottom: 1px solid #e6eef8;
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .app-header .left { display:flex; align-items:center; gap:12px; }
+    .app-header .page-title { font-size:18px; font-weight:600; color:#0f172a; }
+    .app-header .right { display:flex; align-items:center; gap:12px; }
+    .app-header .user-avatar { width:36px; height:36px; border-radius:50%; object-fit:cover; }
+    .app-header .badge { background:#eef2ff; color:#3730a3; padding:6px 10px; border-radius:12px; font-size:13px; }
+</style>
+
+<div class="app-header">
+    <div class="left">
+        <button id="sidebarToggle" onclick="toggleSidebar()" style="background:transparent;border:0;cursor:pointer;padding:6px 8px; font-size:16px; color:#0f172a;"></button>
+        <div class="page-title">Dashboard</div>
+    </div>
+
+    <div class="right">
+        <div class="badge">${roleName}</div>
+        <div style="display:flex; align-items:center; gap:8px">
+            <img class="user-avatar" src="${pageContext.request.contextPath}/assets/images/user/1.png" alt="avatar"/>
+            <div style="font-size:14px">${fullName}</div>
+        </div>
     </div>
 </div>
 
+<script>
+    function toggleSidebar(){
+        const sb = document.querySelector('.app-sidebar');
+        if(!sb) return;
+        if(sb.style.display === 'none'){
+            sb.style.display = 'block';
+            document.querySelector('.app-header').style.marginLeft = '240px';
+        } else {
+            sb.style.display = 'none';
+            document.querySelector('.app-header').style.marginLeft = '12px';
+        }
+    }
+</script>

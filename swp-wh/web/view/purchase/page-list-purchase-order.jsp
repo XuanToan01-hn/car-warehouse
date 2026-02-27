@@ -28,11 +28,14 @@
                             <div class="header-title">
                                 <h4 class="card-title">Danh Sách Purchase Order</h4>
                             </div>
+                            <c:if test="${not empty sessionScope.user and sessionScope.user.role.id == 3}">
                             <a href="${pageContext.request.contextPath}/add-purchase-order"
                                class="btn btn-primary" style="background-color:#17AEDF">
-                                <i class="fas fa-plus mr-1"></i> Tạo PO Mới
+<%--                                <i class="fas fa-plus mr-1"></i> --%>Tạo PO Mới
                             </a>
+                            </c:if>
                         </div>
+
                         <div class="card-body">
                             <!-- Thông báo thành công -->
                             <c:if test="${param.success == 'created'}">
@@ -61,12 +64,12 @@
                                     </div>
                                     <div class="col-md-2">
                                         <button type="submit" class="btn btn-primary w-100" style="background-color:#17AEDF">
-                                            <i class="fas fa-search"></i> Tìm
+<%--                                            <i class="fas fa-search"></i> --%>Tìm
                                         </button>
                                     </div>
                                     <div class="col-md-2">
-                                        <a href="${pageContext.request.contextPath}/purchase-orders" class="btn btn-secondary w-100">
-                                            <i class="fas fa-redo"></i> Reset
+                                        <a href="${pageContext.request.contextPath}/purchase-orders" class="btn btn-secondary w-100" style="display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+<%--                                            <i class="fas fa-redo"></i> --%>Reset
                                         </a>
                                     </div>
                                 </div>
@@ -116,8 +119,8 @@
                                                 </td>
                                                 <td>
                                                     <a href="${pageContext.request.contextPath}/detail-purchase-order?id=${po.id}"
-                                                       class="btn btn-sm btn-info">
-                                                        <i class="fas fa-eye"></i> Chi tiết
+                                                       class="btn btn-sm btn-info" style="display:inline-flex; align-items:center; gap:4px;">
+<%--                                                        <i class="fas fa-eye"></i> --%>Chi tiết
                                                     </a>
                                                 </td>
                                             </tr>
@@ -125,7 +128,6 @@
                                         <c:if test="${empty poList}">
                                             <tr>
                                                 <td colspan="7" class="text-center text-muted py-4">
-                                                    <i class="fas fa-inbox fa-2x mb-2"></i><br>
                                                     Không có Purchase Order nào
                                                 </td>
                                             </tr>

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import model.ProductDetail;
 import model.Product;
+import java.sql.SQLException;
 public class ProductDetailDAO extends DBContext {
 
 
@@ -70,8 +71,8 @@ public ProductDetail getById(int id) {
             pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
             return pd;
         }
-    } catch (SQLException e) { 
-        e.printStackTrace(); 
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
     return null;
 }

@@ -16,7 +16,7 @@ public class ProductDetail {
     private String lotNumber;
     private String serialNumber;
     private Date manufactureDate;
-private String color;      // Thêm mới
+    private String color;      // Thêm mới
     private int quantity;
     public ProductDetail() {}
     

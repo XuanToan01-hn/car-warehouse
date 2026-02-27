@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dal;
 
 import context.DBContext;
@@ -12,6 +8,7 @@ import java.util.List;
 import model.Product;
 import model.Category;
 import model.Unit;
+import model.Supplier;
 import dal.UnitDAO;
 
 public class ProductDAO extends DBContext {
@@ -20,34 +17,34 @@ public class ProductDAO extends DBContext {
     UnitDAO unitDAO = new UnitDAO();
 
 
-
+    
     public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         CategoryDAO categoryDAO = new CategoryDAO();
         UnitDAO unitDAO = new UnitDAO();
-
+        
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-
+        
         // Search filter
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-
+        
         // Category filter
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-
+        
         // Unit filter
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
         }
-
+        
         // Sort by price and required ORDER BY for pagination
         sql.append(" ORDER BY ");
         if (sortPrice != null && !sortPrice.isEmpty()) {
@@ -55,7 +52,7 @@ public class ProductDAO extends DBContext {
         } else {
             sql.append("ProductID ASC"); // Default sorting if no price sort specified
         }
-
+        
         // Pagination for SQL Server
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
@@ -84,23 +81,23 @@ public class ProductDAO extends DBContext {
         }
         return list;
     }
-
-
+    
+    
         public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-
+        
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-
+        
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-
+        
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
@@ -186,7 +183,7 @@ public class ProductDAO extends DBContext {
                 p.setMinStock(rs.getInt("MinStock"));
 
                 p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-//                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
 
                 return p;
             }
@@ -201,6 +198,51 @@ public class ProductDAO extends DBContext {
     // ===============================
     // INSERT
     // ===============================
+    public int insertAndGetId(Product p) {
+
+        String sql = """
+                     INSERT INTO Product
+                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     """;
+
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
+
+            ps.setString(1, p.getCode());
+            ps.setString(2, p.getName());
+            ps.setDouble(3, p.getPrice());
+            ps.setString(4, p.getDescription());
+            ps.setString(5, p.getImage());
+
+            // Category có thể null trong quick-add
+            if (p.getCategory() != null) {
+                ps.setInt(6, p.getCategory().getId());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }
+
+            // Unit hiện không chọn trong quick-add -> cho phép null
+            if (p.getUnit() != null) {
+                ps.setInt(7, p.getUnit().getId());
+            } else {
+                ps.setNull(7, java.sql.Types.INTEGER);
+            }
+
+            ps.setInt(8, p.getMinStock());
+
+            ps.executeUpdate();
+
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return -1;
+    }
     public void insert(Product p) {
 
         String sql = """
@@ -257,7 +299,7 @@ public class ProductDAO extends DBContext {
             ps.setString(4, p.getDescription());
             ps.setString(5, p.getImage());
             ps.setInt(6, p.getCategory().getId());
-//            ps.setInt(7, p.getUnit().getC);
+            ps.setInt(7, p.getUnit().getId());
             ps.setInt(8, p.getMinStock());
             ps.setInt(9, p.getId());
 
@@ -355,53 +397,40 @@ public class ProductDAO extends DBContext {
     }
 
     // ===============================
-    // INSERT and return generated ID
-    // (dùng cho QuickAddProductServlet)
+    // GET PRODUCTS BY SUPPLIER
     // ===============================
-    public int insertAndGetId(Product p) {
+    public List<Product> getProductsBySupplier(int supplierId) {
+        List<Product> list = new ArrayList<>();
+        // Get supplier's product ID first
+        SupplierDAO supplierDAO = new SupplierDAO();
+        Supplier supplier = supplierDAO.getById(supplierId);
 
-        String sql = """
-                     INSERT INTO Product
-                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                     """;
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
-
-            ps.setString(1, p.getCode());
-            ps.setString(2, p.getName());
-            ps.setDouble(3, p.getPrice());
-            ps.setString(4, p.getDescription());
-            ps.setString(5, p.getImage());
-
-            // Category có thể null trong quick-add
-            if (p.getCategory() != null) {
-                ps.setInt(6, p.getCategory().getId());
-            } else {
-                ps.setNull(6, java.sql.Types.INTEGER);
+        if (supplier != null && supplier.getProductId() != null && supplier.getProductId() > 0) {
+            // Get the product
+            String sql = "SELECT ProductID, Code, Name, Price, Description, Image, MinStock, CategoryID, UnitID FROM Product WHERE ProductID = ?";
+            try {
+                PreparedStatement ps = connection.prepareStatement(sql);
+                ps.setInt(1, supplier.getProductId());
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    Product p = new Product();
+                    p.setId(rs.getInt("ProductID"));
+                    p.setCode(rs.getString("Code"));
+                    p.setName(rs.getString("Name"));
+                    p.setPrice(rs.getDouble("Price"));
+                    p.setDescription(rs.getString("Description"));
+                    p.setImage(rs.getString("Image"));
+                    p.setMinStock(rs.getInt("MinStock"));
+                    p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
+                    list.add(p);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-            // Unit hiện không chọn trong quick-add -> cho phép null
-            if (p.getUnit() != null) {
-                ps.setInt(7, p.getUnit().getId());
-            } else {
-                ps.setNull(7, java.sql.Types.INTEGER);
-            }
-
-            ps.setInt(8, p.getMinStock());
-
-            ps.executeUpdate();
-
-            ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-
-        return -1;
+        return list;
     }
 
 }
+
+

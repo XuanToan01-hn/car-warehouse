@@ -77,16 +77,16 @@ public class PurchaseOrderDAO extends DBContext {
     public List<PurchaseOrder> searchAndPaginate(String keyword, int status, int offset, int limit) {
         List<PurchaseOrder> list = new ArrayList<>();
         String sql = """
-                    SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
-                           po.CreatedDate, po.CreateBy,
-                           po.SupplierID, s.Name AS SupplierName
-                    FROM Purchase_Order po
-                    LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
-                    WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
-                      AND (? = 0 OR po.Status = ?)
-                    ORDER BY po.CreatedDate DESC
-                    LIMIT ?, ?
-                """;
+            SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
+                   po.CreatedDate, po.CreateBy,
+                   po.SupplierID, s.Name AS SupplierName
+            FROM Purchase_Order po
+            LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
+            WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
+              AND (? = 0 OR po.Status = ?)
+            ORDER BY po.CreatedDate DESC
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+            """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             String kw = "%" + keyword + "%";
@@ -96,6 +96,7 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setInt(4, status);
             ps.setInt(5, offset);
             ps.setInt(6, limit);
+
             ResultSet rs = ps.executeQuery();
             while (rs.next())
                 list.add(mapRow(rs));
@@ -282,5 +283,92 @@ public class PurchaseOrderDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    public static void main(String[] args) {
+        PurchaseOrderDAO dao = new PurchaseOrderDAO();
+
+        System.out.println("===== TEST getAll() =====");
+        List<PurchaseOrder> list = dao.getAll();
+        for (PurchaseOrder po : list) {
+            System.out.println(
+                    po.getId() + " | " +
+                            po.getOrderCode() + " | " +
+                            po.getSupplier().getName() + " | " +
+                            po.getTotalAmount()
+            );
+        }
+
+        System.out.println("\n===== TEST searchAndPaginate() =====");
+        List<PurchaseOrder> searchList = dao.searchAndPaginate("", 0, 0, 5);
+        for (PurchaseOrder po : searchList) {
+            System.out.println(po.getOrderCode());
+        }
+
+        System.out.println("\n===== TEST count() =====");
+        int total = dao.count("", 0);
+        System.out.println("Total records: " + total);
+
+        System.out.println("\n===== TEST getById() =====");
+        PurchaseOrder poDetail = dao.getById(1); // đổi ID nếu cần
+        if (poDetail != null) {
+            System.out.println("Order: " + poDetail.getOrderCode());
+            System.out.println("Supplier: " + poDetail.getSupplier().getName());
+            System.out.println("Details:");
+            for (PurchaseOrderDetail d : poDetail.getDetails()) {
+                System.out.println(
+                        " - " + d.getProduct().getName() +
+                                " | Qty: " + d.getQuantity() +
+                                " | SubTotal: " + d.getSubTotal()
+                );
+            }
+        } else {
+            System.out.println("Order not found");
+        }
+
+        System.out.println("\n===== TEST insert() =====");
+        PurchaseOrder newPO = new PurchaseOrder();
+        newPO.setOrderCode("PO_TEST_" + System.currentTimeMillis());
+        newPO.setStatus(1);
+        newPO.setTotalAmount(1000);
+
+        Supplier s = new Supplier();
+        s.setId(1); // phải tồn tại trong DB
+        newPO.setSupplier(s);
+
+        User u = new User();
+        u.setId(1); // nếu CreateBy có
+        newPO.setCreateBy(u);
+
+        int newId = dao.insert(newPO);
+        System.out.println("Inserted PurchaseOrder ID: " + newId);
+
+        if (newId != -1) {
+            System.out.println("\n===== TEST insertDetail() =====");
+
+            PurchaseOrderDetail pod = new PurchaseOrderDetail();
+            pod.setPurchaseOrderId(newId);
+
+            Product p = new Product();
+            p.setId(1); // Product phải tồn tại
+            pod.setProduct(p);
+
+            pod.setQuantity(2);
+            pod.setPrice(500);
+            pod.setSubTotal(1000);
+
+            // Tax (optional)
+            Tax t = new Tax();
+            t.setId(1); // nếu có
+            pod.setTax(t);
+
+            dao.insertDetail(pod);
+            System.out.println("Inserted detail for PO: " + newId);
+
+            System.out.println("\n===== TEST updateStatus() =====");
+            dao.updateStatus(newId, 2);
+            System.out.println("Updated status to 2 for PO: " + newId);
+        }
+
+        System.out.println("\n===== DONE TEST =====");
     }
 }

@@ -102,7 +102,9 @@
                                         <div class="row">
                                             <div class="col-md-4">
                                                 <div class="form-group">
-                                                    <label><i class="fas fa-hashtag mr-1"></i> Mã đơn hàng *</label>
+                                                    <label>
+<%--                                                        <i class="fas fa-hashtag mr-1"></i>--%>
+                                                        Mã đơn hàng *</label>
                                                     <input type="text" name="orderCode" id="orderCode"
                                                         class="form-control" value="${autoCode}"
                                                         placeholder="Mã đơn hàng" required>
@@ -110,7 +112,9 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <div class="form-group">
-                                                    <label><i class="fas fa-truck mr-1"></i> Supplier *</label>
+                                                    <label>
+<%--                                                        <i class="fas fa-truck mr-1"></i> --%>
+                                                        Supplier *</label>
                                                     <div class="input-group">
                                                         <select name="supplierId" id="supplierSelect"
                                                             class="form-control" required>
@@ -126,7 +130,8 @@
                                                             <button type="button" class="btn btn-outline-success"
                                                                 data-toggle="modal" data-target="#modalAddSupplier"
                                                                 title="Tạo supplier mới">
-                                                                <i class="fas fa-plus"></i> Tạo mới
+<%--                                                                <i class="fas fa-plus"></i> --%>
+                                                                Tạo mới
                                                             </button>
                                                         </div>
                                                     </div>
@@ -134,7 +139,7 @@
                                             </div>
                                         </div>
                                         <div id="supplierInfo" class="alert alert-info py-2 d-none">
-                                            <i class="fas fa-info-circle mr-1"></i>
+<%--                                            <i class="fas fa-info-circle mr-1"></i>--%>
                                             Supplier đã chọn. Bạn có thể thêm sản phẩm bên dưới.
                                         </div>
                                     </div>
@@ -150,7 +155,8 @@
                                             <h5 class="mb-0">Danh Sách Sản Phẩm</h5>
                                         </div>
                                         <button type="button" class="btn btn-success" id="btnAddRow" disabled>
-                                            <i class="fas fa-plus mr-1"></i> Thêm Sản Phẩm
+<%--                                            <i class="fas fa-plus mr-1"></i> --%>
+                                            Thêm Sản Phẩm
                                         </button>
                                     </div>
                                     <div class="card-body">
@@ -158,13 +164,15 @@
                                             <!-- Rows inserted by JS -->
                                         </div>
                                         <div id="emptyMsg" class="text-center text-muted py-4">
-                                            <i class="fas fa-arrow-up fa-2x mb-2 d-block"></i>
+<%--                                            <i class="fas fa-arrow-up fa-2x mb-2 d-block"></i>--%>
                                             Chọn Supplier trước, sau đó thêm sản phẩm
                                         </div>
 
                                         <!-- Total -->
                                         <div class="total-bar mt-3 d-flex justify-content-between align-items-center">
-                                            <span><i class="fas fa-calculator mr-2"></i> Tổng Cộng:</span>
+                                            <span>
+<%--                                                <i class="fas fa-calculator mr-2"></i> --%>
+                                                Tổng Cộng:</span>
                                             <span id="grandTotal" class="font-weight-bold">0 đ</span>
                                         </div>
                                     </div>
@@ -174,11 +182,13 @@
                                 <div class="d-flex justify-content-between mb-4">
                                     <a href="${pageContext.request.contextPath}/purchase-orders"
                                         class="btn btn-secondary btn-lg">
-                                        <i class="fas fa-times mr-1"></i> Hủy
+<%--                                        <i class="fas fa-times mr-1"></i>--%>
+                                        Hủy
                                     </a>
                                     <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit"
                                         style="background-color:#17AEDF" disabled>
-                                        <i class="fas fa-save mr-1"></i> Tạo Purchase Order
+<%--                                        <i class="fas fa-save mr-1"></i> --%>
+                                        Tạo Purchase Order
                                     </button>
                                 </div>
 
@@ -192,7 +202,9 @@
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header" style="background:#17AEDF; color:#fff;">
-                                            <h5 class="modal-title"><i class="fas fa-truck mr-2"></i>Tạo Supplier Mới
+                                            <h5 class="modal-title">
+<%--                                                <i class="fas fa-truck mr-2"></i>--%>
+                                                Tạo Supplier Mới
                                             </h5>
                                             <button type="button" class="close text-white"
                                                 data-dismiss="modal">&times;</button>
@@ -331,14 +343,24 @@
                    DATA từ server
                 ============================================================ */
                 const allProducts = [
-                    <c:forEach var="p" items="${productList}" varStatus="st">
-                        {id: ${p.id}, name: "${p.name}", code: "${p.code}", price: ${p.price} }${!st.last ? ',' : ''}
+                    <c:forEach var="p" items="${productList}">
+                    {id: ${p.id}, name: "${p.name}", code: "${p.code}", price: ${p.price} },
                     </c:forEach>
                 ];
+
                 const allTaxes = [
-                    <c:forEach var="t" items="${taxList}" varStatus="st">
-                        {id: ${t.id}, name: "${t.taxName}", rate: ${t.taxRate} }${!st.last ? ',' : ''}
+                    <c:forEach var="t" items="${taxList}">
+                    {id: ${t.id}, name: "${t.taxName}", rate: ${t.taxRate} },
                     </c:forEach>
+                ];
+
+                // Dữ liệu màu sắc
+                const allColors = [
+                    {id: 'Black', name: 'Đen'},
+                    {id: 'White', name: 'Trắng'},
+                    {id: 'Red', name: 'Đỏ'},
+                    {id: 'Blue', name: 'Xanh dương'},
+                    {id: 'Silver', name: 'Bạc'}
                 ];
 
                 const ctx = "${pageContext.request.contextPath}";
@@ -354,13 +376,33 @@
                     selectedSupplierId = this.value;
                     const opt = this.options[this.selectedIndex];
                     selectedSupplierName = opt.text;
-                    selectedSupplierProductId = opt.getAttribute('data-product-id') || null;
+
                     if (selectedSupplierId) {
+                        // Fetch products for this supplier
+                        fetchSupplierProducts(selectedSupplierId);
                         enableProductSection();
                     } else {
                         disableProductSection();
                     }
                 });
+
+                // Fetch products from server for selected supplier
+                function fetchSupplierProducts(supplierId) {
+                    fetch(ctx + '/get-supplier-products?supplierId=' + supplierId)
+                        .then(function(response) { return response.json(); })
+                        .then(function(products) {
+                            // Update global allProducts with only supplier's products
+                            if (Array.isArray(products) && products.length > 0) {
+                                selectedSupplierProductId = products[0].id; // Set first product as default
+                            } else {
+                                selectedSupplierProductId = null;
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error('Error fetching products:', err);
+                            selectedSupplierProductId = null;
+                        });
+                }
 
                 function enableProductSection() {
                     document.getElementById('btnAddRow').disabled = false;
@@ -381,27 +423,41 @@
                 /* ============================================================
                    THÊM HÀNG SẢN PHẨM
                 ============================================================ */
-                document.getElementById('btnAddRow').addEventListener('click', addProductRow);
+                document.getElementById('btnAddRow').addEventListener('click', function() {
+                    addProductRow();
+                });
 
                 function buildTaxOptions() {
-                    let opts = '<option value="">-- Không có thuế --</option>';
+                    let opts = '<option value="">-- Không --</option>';
                     allTaxes.forEach(function (t) {
                         opts += '<option value="' + t.id + '" data-rate="' + t.rate + '">' + t.name + ' (' + t.rate + '%)</option>';
                     });
                     return opts;
                 }
 
+                function buildColorOptions() {
+                    let opts = '<option value="">-- Chọn --</option>';
+                    allColors.forEach(function (c) {
+                        opts += '<option value="' + c.id + '">' + c.name + '</option>';
+                    });
+                    return opts;
+                }
+
                 function buildProductOptions() {
                     let opts = '<option value="">-- Chọn sản phẩm --</option>';
-                    // Nếu supplier chưa gắn productId => không cho chọn sản phẩm có sẵn (bắt buộc tạo mới)
-                    if (!selectedSupplierProductId) {
-                        return opts;
-                    }
+
+                    // Filter products that match the selected supplier's product
                     allProducts.forEach(function (p) {
-                        if (p.id === Number(selectedSupplierProductId)) {
+                        if (selectedSupplierProductId && p.id === Number(selectedSupplierProductId)) {
                             opts += '<option value="' + p.id + '" data-price="' + p.price + '">' + p.name + ' [' + p.code + ']</option>';
                         }
                     });
+
+                    // If no products found in allProducts, build from server data
+                    if (opts === '<option value="">-- Chọn sản phẩm --</option>' && selectedSupplierId) {
+                        opts += '<option value="">Đang tải sản phẩm...</option>';
+                    }
+
                     return opts;
                 }
 
@@ -409,14 +465,14 @@
                     const idx = rowCounter++;
                     document.getElementById('emptyMsg').style.display = 'none';
 
-                    // Build options HTML trước để tránh JSP EL conflict với template literals
                     const prodOpts = buildProductOptions();
                     const taxOpts = buildTaxOptions();
+                    const colorOpts = buildColorOptions();
 
                     const html =
                         '<div class="product-row" id="row_' + idx + '">' +
                         '<div class="row align-items-end">' +
-                        '<div class="col-md-4">' +
+                        '<div class="col-md-3">' +
                         '<label class="small font-weight-bold">Sản phẩm *</label>' +
                         '<div class="input-group">' +
                         '<select name="productId[]" id="prodSel_' + idx + '" class="form-control product-select" data-row="' + idx + '" required>' +
@@ -430,7 +486,13 @@
                         '</div>' +
                         '</div>' +
                         '<div class="col-md-2">' +
-                        '<label class="small font-weight-bold">Số lượng *</label>' +
+                        '<label class="small font-weight-bold">Màu sắc *</label>' +
+                        '<select name="colorId[]" id="color_' + idx + '" class="form-control" required>' +
+                        colorOpts +
+                        '</select>' +
+                        '</div>' +
+                        '<div class="col-md-1">' +
+                        '<label class="small font-weight-bold" title="Số lượng">SL *</label>' +
                         '<input type="number" name="quantity[]" id="qty_' + idx + '" class="form-control qty-input" data-row="' + idx + '" value="1" min="1" required>' +
                         '</div>' +
                         '<div class="col-md-2">' +
@@ -444,8 +506,8 @@
                         '</select>' +
                         '</div>' +
                         '<div class="col-md-1">' +
-                        '<label class="small font-weight-bold">Thành tiền</label>' +
-                        '<input type="number" name="subTotal[]" id="sub_' + idx + '" class="form-control subtotal-field" readonly style="background:#e9ecef;">' +
+                        '<label class="small font-weight-bold" style="font-size: 11px;">Thành tiền</label>' +
+                        '<input type="number" name="subTotal[]" id="sub_' + idx + '" class="form-control subtotal-field" readonly style="background:#e9ecef; padding-left: 5px; padding-right:5px;">' +
                         '</div>' +
                         '<div class="col-md-1 text-center">' +
                         '<button type="button" class="btn btn-danger btn-sm mt-4" onclick="removeRow(' + idx + ')">' +
@@ -457,7 +519,6 @@
 
                     document.getElementById('productRows').insertAdjacentHTML('beforeend', html);
 
-                    // Nếu thêm từ quick-add product
                     if (productToAdd) {
                         const sel = document.getElementById('prodSel_' + idx);
                         const opt = new Option(productToAdd.name + ' [' + productToAdd.code + ']', productToAdd.id, true, true);
@@ -468,7 +529,6 @@
                         calcRow(idx);
                     }
 
-                    // Events cho row mới
                     document.getElementById('prodSel_' + idx).addEventListener('change', function () {
                         const opt = this.options[this.selectedIndex];
                         if (opt && opt.dataset.price) {
@@ -476,12 +536,12 @@
                         }
                         calcRow(idx);
                     });
+
                     ['qty_' + idx, 'price_' + idx, 'tax_' + idx].forEach(function (id) {
                         document.getElementById(id).addEventListener('input', function () { calcRow(idx); });
                         document.getElementById(id).addEventListener('change', function () { calcRow(idx); });
                     });
 
-                    // Nút tạo sản phẩm mới
                     document.querySelectorAll('.btn-new-product').forEach(function (btn) {
                         btn.onclick = function () {
                             openProductModal(this.dataset.row);
@@ -515,7 +575,7 @@
 
                 function calcGrandTotal() {
                     let total = 0;
-                    document.querySelectorAll('.subtotal-field').forEach(el => {
+                    document.querySelectorAll('.subtotal-field').forEach(function(el) {
                         total += parseFloat(el.value) || 0;
                     });
                     document.getElementById('grandTotal').textContent = numberFormat(total) + ' đ';
@@ -548,10 +608,9 @@
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: 'name=' + encodeURIComponent(name) + '&phone=' + encodeURIComponent(phone) + '&email=' + encodeURIComponent(email) + '&address=' + encodeURIComponent(address)
                     })
-                        .then(r => r.json())
-                        .then(data => {
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
                             if (data.success) {
-                                // Thêm vào dropdown và chọn ngay
                                 const sel = document.getElementById('supplierSelect');
                                 const opt = new Option(data.supplierName + (phone ? ' — ' + phone : ''), data.supplierId, true, true);
                                 sel.add(opt);
@@ -560,18 +619,17 @@
                                 selectedSupplierName = data.supplierName;
                                 enableProductSection();
 
-                                // Reset form modal
-                                ['sup_name', 'sup_phone', 'sup_email', 'sup_address'].forEach(id => {
+                                ['sup_name', 'sup_phone', 'sup_email', 'sup_address'].forEach(function(id) {
                                     document.getElementById(id).value = '';
                                 });
                                 showMsg('supplierFormMsg', 'success', 'Supplier "' + data.supplierName + '" đã được tạo!');
-                                setTimeout(() => { $('#modalAddSupplier').modal('hide'); hideMsg('supplierFormMsg'); }, 1200);
+                                setTimeout(function() { $('#modalAddSupplier').modal('hide'); hideMsg('supplierFormMsg'); }, 1200);
                             } else {
                                 showMsg('supplierFormMsg', 'danger', data.message || 'Lỗi không xác định');
                             }
                         })
-                        .catch(() => showMsg('supplierFormMsg', 'danger', 'Lỗi kết nối server'))
-                        .finally(() => {
+                        .catch(function() { showMsg('supplierFormMsg', 'danger', 'Lỗi kết nối server'); })
+                        .finally(function() {
                             btn.disabled = false;
                             btn.innerHTML = '<i class="fas fa-save mr-1"></i> Lưu Supplier';
                         });
@@ -584,7 +642,7 @@
                     document.getElementById('prod_supplierId').value = selectedSupplierId || '';
                     document.getElementById('prod_supplierName').value = selectedSupplierName || '';
                     document.getElementById('prod_targetRowIndex').value = rowIdx;
-                    ['prod_name', 'prod_code', 'prod_price'].forEach(id => document.getElementById(id).value = '');
+                    ['prod_name', 'prod_code', 'prod_price'].forEach(function(id) { document.getElementById(id).value = ''; });
                     document.getElementById('prod_categoryId').selectedIndex = 0;
                     hideMsg('productFormMsg');
                     $('#modalAddProduct').modal('show');
@@ -612,21 +670,18 @@
                         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                         body: 'name=' + encodeURIComponent(name) + '&code=' + encodeURIComponent(code) + '&price=' + encodeURIComponent(price) + '&categoryId=' + encodeURIComponent(categoryId) + '&supplierId=' + encodeURIComponent(supplierId)
                     })
-                        .then(r => r.json())
-                        .then(data => {
+                        .then(function(r) { return r.json(); })
+                        .then(function(data) {
                             if (data.success) {
-                                // Thêm product mới vào dropdown của hàng hiện tại
                                 const newProd = { id: data.productId, name: data.productName, code: data.productCode, price: parseFloat(price) || 0 };
                                 allProducts.push(newProd);
 
-                                // Gắn productId mới cho supplier hiện tại để các hàng sau chỉ thấy sản phẩm này
                                 selectedSupplierProductId = data.productId;
                                 const supSelect = document.getElementById('supplierSelect');
                                 if (supSelect && supSelect.selectedIndex >= 0) {
                                     supSelect.options[supSelect.selectedIndex].setAttribute('data-product-id', data.productId);
                                 }
 
-                                // Cập nhật select trong row hiện tại
                                 const sel = document.getElementById('prodSel_' + rowIdx);
                                 if (sel) {
                                     const opt = new Option(data.productName + ' [' + data.productCode + ']', data.productId, true, true);
@@ -638,13 +693,13 @@
                                 }
 
                                 showMsg('productFormMsg', 'success', 'Sản phẩm "' + data.productName + '" đã được tạo!');
-                                setTimeout(() => { $('#modalAddProduct').modal('hide'); hideMsg('productFormMsg'); }, 1200);
+                                setTimeout(function() { $('#modalAddProduct').modal('hide'); hideMsg('productFormMsg'); }, 1200);
                             } else {
                                 showMsg('productFormMsg', 'danger', data.message || 'Lỗi không xác định');
                             }
                         })
-                        .catch(() => showMsg('productFormMsg', 'danger', 'Lỗi kết nối server'))
-                        .finally(() => {
+                        .catch(function() { showMsg('productFormMsg', 'danger', 'Lỗi kết nối server'); })
+                        .finally(function() {
                             btn.disabled = false;
                             btn.innerHTML = '<i class="fas fa-save mr-1"></i> Lưu Sản Phẩm';
                         });
@@ -661,7 +716,7 @@
                         return;
                     }
                     let valid = true;
-                    rows.forEach(row => {
+                    rows.forEach(function(row) {
                         const sel = row.querySelector('.product-select');
                         if (!sel || !sel.value) valid = false;
                     });
