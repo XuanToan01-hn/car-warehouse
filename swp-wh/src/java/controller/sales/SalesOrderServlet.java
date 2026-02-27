@@ -34,7 +34,6 @@ public class SalesOrderServlet extends HttpServlet {
             case "create":
                 showCreateForm(request, response);
                 break;
-// Trong switch-case của doGet
             case "warehouse-list":
                 List<SalesOrder> warehouseOrders = salesOrderDAO.getAll(); // Hàm getAll của bạn đã có OrderedQty/DeliveredQty
                 request.setAttribute("orders", warehouseOrders);
@@ -42,6 +41,9 @@ public class SalesOrderServlet extends HttpServlet {
                 break;
             case "view":
                 viewOrder(request, response);
+                break;
+            case "close":
+                closeOrder(request, response);
                 break;
             default:
                 listOrders(request, response);
@@ -156,7 +158,24 @@ public class SalesOrderServlet extends HttpServlet {
     private void cancelOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
-        salesOrderDAO.updateStatus(id, 4); // Cancelled
+
+        // 1. Lấy thông tin đơn hàng lên để kiểm tra
+        SalesOrder order = salesOrderDAO.getById(id);
+
+        if (order != null) {
+            // 2. Kiểm tra nếu đã có hàng được giao (DeliveredQty > 0)
+            if (order.getDeliveredQty() > 0) {
+                // Không cho hủy, gửi thông báo lỗi về trang list hoặc view
+                request.getSession().setAttribute("error", "Không thể hủy đơn hàng đã phát sinh giao dịch xuất kho!");
+                response.sendRedirect(request.getContextPath() + "/sales-order?action=view&id=" + id);
+                return;
+            }
+
+            // 3. Nếu chưa giao hàng (DeliveredQty == 0), tiến hành hủy (Status = 4)
+            salesOrderDAO.updateStatus(id, 4);
+            request.getSession().setAttribute("message", "Đã hủy đơn hàng thành công.");
+        }
+
         response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
     }
 
@@ -168,4 +187,12 @@ public class SalesOrderServlet extends HttpServlet {
         // Forward sang trang JSP dành riêng cho Warehouse
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
+    private void closeOrder(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    int id = Integer.parseInt(request.getParameter("id"));
+    // Cập nhật trạng thái thành 5 (Đóng đơn/Hoàn tất sớm)
+    salesOrderDAO.updateStatus(id, 5); 
+    request.getSession().setAttribute("message", "Đơn hàng đã được đóng lại.");
+    response.sendRedirect(request.getContextPath() + "/sales-order?action=view&id=" + id);
+}
 }
