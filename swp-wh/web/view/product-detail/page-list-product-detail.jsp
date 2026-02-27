@@ -13,7 +13,10 @@
             <%@ include file="../sidebar.jsp" %>
             <div class="content-page">
                 <div class="container-fluid">
-                    <h4 class="mb-3">Warehouse Inventory Details</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h4 class="mb-0">Warehouse Inventory Details</h4>
+                        <a href="add-product-detail" class="btn btn-success btn-sm">+ Add New Inventory</a>
+                    </div>
                     
                     <div class="card mb-4">
                         <div class="card-body">
@@ -40,13 +43,16 @@
                         </div>
                     </div>
 
-                    <table class="table">
-                        <thead class="bg-white text-uppercase">
+                    <table class="table table-hover">
+                        <thead class="bg-light text-uppercase">
                             <tr>
                                 <th>Product</th>
-                                <th>Lot</th>
-                                <th>Serial</th>
+                                <th>Lot Number</th>
+                                <th>Serial Number</th>
+                                <th>Color</th>
+                                <th>Quantity</th>
                                 <th>Mfd Date</th>
+                                <th class="text-right">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -55,12 +61,17 @@
                                     <td><strong>${pd.product.name}</strong></td>
                                     <td>${pd.lotNumber}</td>
                                     <td>${pd.serialNumber}</td>
+                                    <td><span class="badge badge-info">${pd.color}</span></td>
+                                    <td>${pd.quantity}</td>
                                     <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
+                                    <td class="text-right">
+                                        <a href="edit-product-detail?id=${pd.id}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                    </td>
                                 </tr>
                             </c:forEach>
                             <c:if test="${empty listDetail}">
                                 <tr>
-                                    <td colspan="4" class="text-center text-muted">No product detail found.</td>
+                                    <td colspan="7" class="text-center text-muted">No product detail found.</td>
                                 </tr>
                             </c:if>
                         </tbody>

@@ -187,12 +187,24 @@ public class SalesOrderServlet extends HttpServlet {
         // Forward sang trang JSP dành riêng cho Warehouse
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
+
     private void closeOrder(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
     int id = Integer.parseInt(request.getParameter("id"));
-    // Cập nhật trạng thái thành 5 (Đóng đơn/Hoàn tất sớm)
-    salesOrderDAO.updateStatus(id, 5); 
-    request.getSession().setAttribute("message", "Đơn hàng đã được đóng lại.");
-    response.sendRedirect(request.getContextPath() + "/sales-order?action=view&id=" + id);
+    
+    SalesOrder order = salesOrderDAO.getById(id);
+    
+    if (order != null) {
+        // 2. Kiểm tra điều kiện: Phải có hàng đã giao và chưa giao đủ mới được Close
+        if (order.getDeliveredQty() > 0 && order.getDeliveredQty() < order.getOrderedQty()) {
+            salesOrderDAO.updateStatus(id, 5); // 5 là Closed
+            request.getSession().setAttribute("message", "Đơn hàng dở dang đã được đóng thành công.");
+        } else {
+            // Thông báo lỗi nếu cố tình đóng đơn chưa giao gì hoặc đã giao đủ
+            request.getSession().setAttribute("error", "Chỉ được phép đóng đơn hàng đang giao dở dang!");
+        }
+    }
+    
+    response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
 }
 }
