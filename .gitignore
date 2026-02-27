@@ -2,3 +2,5 @@
 /swp-wh/dist/
 
 /swp-wh/nbproject/private/
+
+*.iml
