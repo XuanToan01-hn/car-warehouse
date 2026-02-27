@@ -256,6 +256,37 @@
                             </a>
                         </li>
                     </c:if>
+
+                    <c:if test="${user.role.id == 2}">
+                        <li class=" ">
+                            <a href="list-category" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/category.png"
+                                    alt="image">
+                                <span class="ml-4">Category</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="taxes" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/tax.png"
+                                    alt="image">
+                                <span class="ml-4">Tax</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="list-product" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/product.png"
+                                    alt="image">
+                                <span class="ml-4">Product</span>
+                            </a>
+                        </li>
+                        <li class=" ">
+                            <a href="locations" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/location.png"
+                                    alt="image">
+                                <span class="ml-4">Location</span>
+                            </a>
+                        </li>
+                    </c:if>
                 </ul>
             </nav>
         </div>

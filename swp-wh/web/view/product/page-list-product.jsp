@@ -232,53 +232,6 @@
                                     </form>
                                 </div>
 
-<<<<<<< HEAD
-                                <table class="table mb-0">
-                                    <thead class="bg-white text-uppercase">
-                                        <tr class="ligth ligth-data">
-                                            <th>Product</th>
-                                            <th>Price</th>
-                                            <th>Description</th>
-                                            <th>Category</th>
-                                            <th>Unit</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="ligth-body">
-                                        <c:forEach items="${listProduct}" var="p">
-                                            <tr>
-                                                <td>
-                                                    <div class="d-flex align-items-center">
-                                                        <img src="${p.image}" 
-                                                             class="img-fluid rounded avatar-50 mr-3" 
-                                                             alt="image">
-                                                        <div class="data-name">
-                                                            ${p.name}
-                                                            <p class="mb-0" style="justify-self: baseline"><small>${p.code}</small></p>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td><fmt:formatNumber value="${p.price}"/></td>
-                                                <td class="data-des">${p.description}</td>
-                                                <td>${p.category.name}</td>
-                                                <td>${p.unit.name}</td>
-                                                <td>
-                                                    <div class="d-flex align-items-center list-action">
-                                                        <%-- CHỖ NÀY QUAN TRỌNG: Sửa productId thành id, categoryId thành id --%>
-                                                        <a class="badge bg-success mr-2" href="javascript:void(0)" 
-                                                           onclick="openUpdateForm(${p.id}, '${p.name}', '${p.code}', '${p.description}', ${p.price}, '${p.image}', ${p.category.id}, ${p.unit.id})">Edit</a>
-                                                        <a class="badge bg-info mr-2" href="list-product-detail?productId=${p.id}">Detail</a>
-                                                        <a class="badge bg-warning mr-2" href="javascript:void(0)" 
-                                                           onclick="openDeleteForm(${p.id}, '${p.name}')">Delete</a>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        </c:forEach>
-                                    </tbody>
-                                </table>
-                                <%-- Giữ nguyên phần Pagination của bạn --%>
-                                <div class="pagination mt-3 justify-content-end mr-5">
-=======
                                 <div class="card card-main">
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
@@ -345,20 +298,9 @@
                                 <div
                                     class="pagination-container d-flex justify-content-between align-items-center mb-5">
                                     <p class="text-secondary mb-0">Page ${currentPage} of ${totalPages}</p>
->>>>>>> acfcf7831a283d02561be19b5ba919845fad051e
                                     <c:if test="${totalPages > 1}">
                                         <ul class="pagination mb-0">
                                             <c:if test="${hasPrevious}">
-<<<<<<< HEAD
-                                                <li class="page-item"><a class="page-link" href="list-product?page=${currentPage - 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">Previous</a></li>
-                                                </c:if>
-                                                <c:forEach var="i" begin="${startPage}" end="${endPage}">
-                                                <li class="page-item ${i == currentPage ? 'active' : ''}"><a class="page-link" href="list-product?page=${i}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">${i}</a></li>
-                                                </c:forEach>
-                                                <c:if test="${hasNext}">
-                                                <li class="page-item"><a class="page-link" href="list-product?page=${currentPage + 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}&unitId=${param.unitId}&pageSize=${param.pageSize}">Next</a></li>
-                                                </c:if>
-=======
                                                 <li class="page-item"><a class="page-link"
                                                         href="list-product?page=${currentPage - 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}">Previous</a>
                                                 </li>
@@ -374,7 +316,6 @@
                                                         href="list-product?page=${currentPage + 1}&search=${param.search}&sortPrice=${param.sortPrice}&categoryId=${param.categoryId}">Next</a>
                                                 </li>
                                             </c:if>
->>>>>>> acfcf7831a283d02561be19b5ba919845fad051e
                                         </ul>
                                     </c:if>
                                 </div>
@@ -461,17 +402,6 @@
                     </div>
                 </div>
 
-<<<<<<< HEAD
-        <c:if test="${showUpdateModal}">
-            <script>
-                                        document.addEventListener("DOMContentLoaded", function () {
-                                            document.getElementById('updateModal').style.display = 'block';
-                                        });
-            </script>
-        </c:if>
-    </body>
-</html>
-=======
                 <!-- Delete Modal -->
                 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -530,4 +460,3 @@
             </body>
 
             </html>
->>>>>>> acfcf7831a283d02561be19b5ba919845fad051e
