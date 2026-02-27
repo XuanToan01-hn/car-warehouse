@@ -33,7 +33,7 @@ public class UserDAO extends DBContext {
                 user.setId(resultSet.getInt("UserId"));
                 user.setFullName(resultSet.getString("FullName"));
                 user.setFullName(resultSet.getString("UserName"));
-                user.setUserCode(resultSet.getString("UserCode")); // Thêm dòng này
+                user.setUserCode(resultSet.getString("UserCode"));
                 user.setPhone(resultSet.getString("Phone"));
                 user.setImage(resultSet.getString("Image"));
                 user.setEmail(resultSet.getString("Email"));
