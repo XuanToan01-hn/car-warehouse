@@ -20,7 +20,7 @@
             <div id="loading-center"></div>
         </div>
         <div class="wrapper">
-
+            <%@ include file="../sidebar.jsp" %>
 
             <div class="content-page">
                 <div class="container-fluid">
