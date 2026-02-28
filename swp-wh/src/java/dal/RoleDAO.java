@@ -16,6 +16,15 @@ import java.sql.SQLException;
  * @author Asus
  */
 public class RoleDAO extends DBContext{
+    
+    
+    public static void main(String[] args) {
+        RoleDAO r = new RoleDAO();
+        List<Role> lr = r.getAll();
+        for(Role  b : lr ){
+            System.out.println(b.getId() +"/"+b.getRoleName());
+        }
+    }
     public List<Role> getAll() {
         List<Role> list = new ArrayList<>();
         String sql = "SELECT * FROM Role";
@@ -82,14 +91,5 @@ public class RoleDAO extends DBContext{
         }
     }
     
-    public static void main(String[] args) {
-            RoleDAO dao = new RoleDAO();
 
-    // 1. Test getAll
-    System.out.println("=== GET ALL ===");
-    List<Role> list = dao.getAll();
-    for (Role role : list) {
-        System.out.println(role.getId() + " - " + role.getRoleName());
-    }
-    }
 }

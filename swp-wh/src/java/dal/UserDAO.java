@@ -25,7 +25,7 @@ public class UserDAO extends DBContext {
         UserDAO u = new UserDAO();
         List<User> ul = u.getAll();
         for(User v : ul){
-            System.out.println(v.getFullName());
+            System.out.println(v.getFullName() +"/"+v.getRole().getId());
         }
     }
 
@@ -272,29 +272,37 @@ public class UserDAO extends DBContext {
     }
 
     public List<User> getAll() {
-        List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM Users";
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+    List<User> list = new ArrayList<>();
+    String sql = "SELECT * FROM Users";
+    try (PreparedStatement ps = connection.prepareStatement(sql); 
+         ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                User u = new User();
-                u.setId(rs.getInt("UserID"));
-                u.setUserCode(rs.getString("UserCode"));
-                u.setFullName(rs.getString("FullName"));
-                u.setUsername(rs.getString("Username"));
-                u.setPassword(rs.getString("Password"));
-                u.setEmail(rs.getString("Email"));
-                u.setPhone(rs.getString("Phone"));
-                u.setImage(rs.getString("Image"));
-                u.setMale(rs.getInt("Male"));
-                u.setDateOfBirth(rs.getString("DateOfBirth"));
-                list.add(u);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        RoleDAO roleDAO = new RoleDAO(); // Khởi tạo DAO để lấy Role
+
+        while (rs.next()) {
+            User u = new User();
+            u.setId(rs.getInt("UserID"));
+            u.setUserCode(rs.getString("UserCode"));
+            u.setFullName(rs.getString("FullName"));
+            u.setUsername(rs.getString("Username"));
+            u.setPassword(rs.getString("Password"));
+            u.setEmail(rs.getString("Email"));
+            u.setPhone(rs.getString("Phone"));
+            u.setImage(rs.getString("Image"));
+            u.setMale(rs.getInt("Male"));
+            u.setDateOfBirth(rs.getString("DateOfBirth"));
+            
+            // QUAN TRỌNG: Phải set Role nếu không v.getRole() sẽ bị null
+            int roleId = rs.getInt("RoleID");
+            u.setRole(roleDAO.getById(roleId)); 
+
+            list.add(u);
         }
-        return list;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    return list;
+}
 
     public User getById(int id) {
         String sql = "SELECT * FROM Users WHERE UserID=?";
