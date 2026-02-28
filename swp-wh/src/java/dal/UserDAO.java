@@ -20,6 +20,14 @@ import model.Warehouse;
  * @author Asus
  */
 public class UserDAO extends DBContext {
+    
+    public static void main(String[] args) {
+        UserDAO u = new UserDAO();
+        List<User> ul = u.getAll();
+        for(User v : ul){
+            System.out.println(v.getFullName());
+        }
+    }
 
     public User loginAuth(String email, String password) {
         String sql = "select * from Users WHERE Email = ? AND Password = ?";
