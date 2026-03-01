@@ -192,78 +192,76 @@
             <div class="wrapper">
                 <%@ include file="sidebar.jsp" %>
                     <div class="content-page">
-                        <%@ include file="header.jsp" %>
-                            <div class="container-fluid">
-                                <div class="page-header">
-                                    <h1 class="font-weight-bold h2">Location Management</h1>
-                                    <button class="btn btn-add" data-toggle="modal" data-target="#locationModal"
-                                        onclick="prepareAdd()">
-                                        <i class="ri-add-line"></i> Add New Location
-                                    </button>
-                                </div>
+                        <div class="container-fluid">
+                            <div class="page-header">
+                                <h1 class="font-weight-bold h2">Location Management</h1>
+                                <button class="btn btn-add" data-toggle="modal" data-target="#locationModal"
+                                    onclick="prepareAdd()">
+                                    <i class="ri-add-line"></i> Add New Location
+                                </button>
+                            </div>
 
-                                <div class="filter-section">
-                                    <i class="ri-filter-2-line text-primary"></i>
-                                    <span class="font-weight-bold">Warehouse:</span>
-                                    <select id="wh-filter" onchange="filterLocations()">
-                                        <c:forEach var="w" items="${warehouses}">
-                                            <option value="${w.id}">${w.warehouseCode} - ${w.warehouseName}</option>
-                                        </c:forEach>
-                                    </select>
-                                </div>
+                            <div class="filter-section">
+                                <i class="ri-filter-2-line text-primary"></i>
+                                <span class="font-weight-bold">Warehouse:</span>
+                                <select id="wh-filter" onchange="filterLocations()">
+                                    <c:forEach var="w" items="${warehouses}">
+                                        <option value="${w.id}">${w.warehouseCode} - ${w.warehouseName}</option>
+                                    </c:forEach>
+                                </select>
+                            </div>
 
-                                <div class="card card-main">
-                                    <div class="card-body p-0">
-                                        <div class="table-responsive">
-                                            <table class="table mb-0">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Location Code</th>
-                                                        <th>Name</th>
-                                                        <th class="text-center">Max Capacity</th>
-                                                        <th class="text-right">Actions</th>
+                            <div class="card card-main">
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Location Code</th>
+                                                    <th>Name</th>
+                                                    <th class="text-center">Max Capacity</th>
+                                                    <th class="text-right">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="location-table-body">
+                                                <c:forEach var="l" items="${locations}">
+                                                    <tr class="location-row" data-wh="${l.warehouseId}">
+                                                        <td>
+                                                            <a href="javascript:void(0)" onclick="viewDetail('${l.id}')"
+                                                                class="font-weight-bold text-primary">
+                                                                ${l.locationCode}
+                                                            </a>
+                                                        </td>
+                                                        <td><span
+                                                                class="font-weight-bold text-dark">${l.locationName}</span>
+                                                        </td>
+                                                        <td class="text-center">
+                                                            <span
+                                                                class="badge badge-soft-primary px-3 py-2">${l.maxCapacity}</span>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <button class="btn-action btn-view mr-2"
+                                                                onclick="viewDetail('${l.id}')">
+                                                                <i class="ri-eye-line"></i> View
+                                                            </button>
+                                                            <button class="btn-action btn-edit mr-2"
+                                                                onclick="prepareEdit('${l.id}')">
+                                                                <i class="ri-pencil-line"></i> Edit
+                                                            </button>
+                                                            <a href="locations?action=delete&id=${l.id}"
+                                                                class="btn-action btn-delete"
+                                                                onclick="return confirm('Delete this location?')">
+                                                                <i class="ri-delete-bin-line"></i> Delete
+                                                            </a>
+                                                        </td>
                                                     </tr>
-                                                </thead>
-                                                <tbody id="location-table-body">
-                                                    <c:forEach var="l" items="${locations}">
-                                                        <tr class="location-row" data-wh="${l.warehouseId}">
-                                                            <td>
-                                                                <a href="javascript:void(0)"
-                                                                    onclick="viewDetail('${l.id}')"
-                                                                    class="font-weight-bold text-primary">
-                                                                    ${l.locationCode}
-                                                                </a>
-                                                            </td>
-                                                            <td><span
-                                                                    class="font-weight-bold text-dark">${l.locationName}</span>
-                                                            </td>
-                                                            <td class="text-center">
-                                                                <span
-                                                                    class="badge badge-soft-primary px-3 py-2">${l.maxCapacity}</span>
-                                                            </td>
-                                                            <td class="text-right">
-                                                                <button class="btn-action btn-view mr-2"
-                                                                    onclick="viewDetail('${l.id}')">
-                                                                    <i class="ri-eye-line"></i> View
-                                                                </button>
-                                                                <button class="btn-action btn-edit mr-2"
-                                                                    onclick="prepareEdit('${l.id}')">
-                                                                    <i class="ri-pencil-line"></i> Edit
-                                                                </button>
-                                                                <a href="locations?action=delete&id=${l.id}"
-                                                                    class="btn-action btn-delete"
-                                                                    onclick="return confirm('Delete this location?')">
-                                                                    <i class="ri-delete-bin-line"></i> Delete
-                                                                </a>
-                                                            </td>
-                                                        </tr>
-                                                    </c:forEach>
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                </c:forEach>
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
+                        </div>
                     </div>
             </div>
 
