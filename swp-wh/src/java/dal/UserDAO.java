@@ -20,7 +20,34 @@ import model.Warehouse;
  * @author Asus
  */
 public class UserDAO extends DBContext {
+    
+    public static void main(String[] args) {
+    UserDAO dao = new UserDAO();
+    
+    // Tạo user mới để test
+    model.User u = new model.User();
+    u.setUserCode("TEST_NULL_01");
+    u.setFullName("Nguyen Van Null");
+    u.setUsername("test_username_" + System.currentTimeMillis()); // Tạo username duy nhất
+    u.setPassword("123456"); // Trong thực tế nên là pass đã mã hóa
+    u.setEmail("testnull@gmail.com");
+    u.setPhone("0988777666");
+    u.setMale(1);
+//    u.setDateOfBirth("1999-12-31");
+    u.setRole(new model.Role(1)); // Giả sử RoleID 1 đã tồn tại trong bảng Role
+    
+    // GÁN NULL TRỰC TIẾP
+    u.setWarehouse(null); 
 
+    System.out.println("--- Đang thực hiện Insert với Warehouse = NULL ---");
+    boolean success = dao.insert(u);
+    
+    if (success) {
+        System.out.println("Kết quả: INSERT THÀNH CÔNG!");
+    } else {
+        System.out.println("Kết quả: INSERT THẤT BẠI. Xem lỗi ở trên.");
+    }
+}
     public User loginAuth(String email, String password) {
         String sql = "select * from Users WHERE Email = ? AND Password = ?";
         try {
@@ -264,29 +291,37 @@ public class UserDAO extends DBContext {
     }
 
     public List<User> getAll() {
-        List<User> list = new ArrayList<>();
-        String sql = "SELECT * FROM Users";
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+    List<User> list = new ArrayList<>();
+    String sql = "SELECT * FROM Users";
+    try (PreparedStatement ps = connection.prepareStatement(sql); 
+         ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                User u = new User();
-                u.setId(rs.getInt("UserID"));
-                u.setUserCode(rs.getString("UserCode"));
-                u.setFullName(rs.getString("FullName"));
-                u.setUsername(rs.getString("Username"));
-                u.setPassword(rs.getString("Password"));
-                u.setEmail(rs.getString("Email"));
-                u.setPhone(rs.getString("Phone"));
-                u.setImage(rs.getString("Image"));
-                u.setMale(rs.getInt("Male"));
-                u.setDateOfBirth(rs.getString("DateOfBirth"));
-                list.add(u);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        RoleDAO roleDAO = new RoleDAO(); // Khởi tạo DAO để lấy Role
+
+        while (rs.next()) {
+            User u = new User();
+            u.setId(rs.getInt("UserID"));
+            u.setUserCode(rs.getString("UserCode"));
+            u.setFullName(rs.getString("FullName"));
+            u.setUsername(rs.getString("Username"));
+            u.setPassword(rs.getString("Password"));
+            u.setEmail(rs.getString("Email"));
+            u.setPhone(rs.getString("Phone"));
+            u.setImage(rs.getString("Image"));
+            u.setMale(rs.getInt("Male"));
+            u.setDateOfBirth(rs.getString("DateOfBirth"));
+            
+            // QUAN TRỌNG: Phải set Role nếu không v.getRole() sẽ bị null
+            int roleId = rs.getInt("RoleID");
+            u.setRole(roleDAO.getById(roleId)); 
+
+            list.add(u);
         }
-        return list;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+    return list;
+}
 
     public User getById(int id) {
         String sql = "SELECT * FROM Users WHERE UserID=?";
@@ -360,26 +395,39 @@ public class UserDAO extends DBContext {
         }
         return listU;
     }
-    public boolean insert(User u) {
-        String sql = "INSERT INTO Users(UserCode,FullName,Username,Password,Email,Phone,Male,RoleID,WarehouseID) VALUES(?,?,?,?,?,?,?,?,?)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, u.getUserCode());
-            ps.setString(2, u.getFullName());
-            ps.setString(3, u.getUsername());
-            ps.setString(4, u.getPassword());
-            ps.setString(5, u.getEmail());
-            ps.setString(6, u.getPhone());
-            ps.setInt(7, u.getMale());
-            ps.setInt(8, u.getRole().getId());
-            ps.setInt(9, u.getWarehouse().getId());
-            return ps.executeUpdate() >0;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+public boolean insert(User u) {
+    // SQL liệt kê 10 cột chính (không tính UserID tự tăng và Image)
+    String sql = "INSERT INTO Users(UserCode, FullName, Username, Password, Email, Phone, Male, DateOfBirth, RoleID, WarehouseID) "
+               + "VALUES(?,?,?,?,?,?,?,?,?,?)";
+    
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, u.getUserCode());
+        ps.setString(2, u.getFullName());
+        ps.setString(3, u.getUsername());
+        ps.setString(4, u.getPassword());
+        ps.setString(5, u.getEmail());
+        ps.setString(6, u.getPhone());
+        ps.setInt(7, u.getMale());
+        ps.setString(8, u.getDateOfBirth()); // Cột DateOfBirth
+        ps.setInt(9, u.getRole().getId());   // RoleID nằm trước WarehouseID theo ảnh
 
-    public void update(User u) {
+        // Xử lý WarehouseID: Nếu không chọn (ID <= 0) thì set NULL
+        if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
+            ps.setInt(10, u.getWarehouse().getId());
+        } else {
+            ps.setNull(10, java.sql.Types.INTEGER);
+        }
+
+        return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+        // In lỗi ra để "bắt bệnh" chính xác
+        System.err.println("LỖI INSERT THỰC TẾ: " + e.getMessage());
+        e.printStackTrace();
+        return false;
+    }
+}
+
+    public boolean update(User u) {
         String sql = "UPDATE Users SET FullName=?,Email=?,Phone=?,RoleID=?,WarehouseID=? WHERE UserID=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, u.getFullName());
@@ -389,18 +437,22 @@ public class UserDAO extends DBContext {
             ps.setInt(5, u.getWarehouse().getId());
             ps.setInt(6, u.getId());
             ps.executeUpdate();
+            return true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
-    public void delete(int id) {
+    public boolean delete(int id) {
         String sql = "DELETE FROM Users WHERE UserID=?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
             ps.executeUpdate();
+            return  true;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 }

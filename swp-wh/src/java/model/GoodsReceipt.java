@@ -9,6 +9,7 @@ package model;
  * @author Asus
  */
 import java.util.Date;
+import java.util.List;
 
 public class GoodsReceipt {
     private int id;
@@ -19,30 +20,93 @@ public class GoodsReceipt {
     private int status;
     private String note;
     private User createBy;
+    private List<GoodsReceiptDetail> details;
 
-    public GoodsReceipt() {}
+    public GoodsReceipt() {
+    }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getReceiptCode() { return receiptCode; }
-    public void setReceiptCode(String receiptCode) { this.receiptCode = receiptCode; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public PurchaseOrder getPurchaseOrder() { return purchaseOrder; }
-    public void setPurchaseOrder(PurchaseOrder purchaseOrder) { this.purchaseOrder = purchaseOrder; }
+    public String getReceiptCode() {
+        return receiptCode;
+    }
 
-    public Location getLocation() { return location; }
-    public void setLocation(Location location) { this.location = location; }
+    public void setReceiptCode(String receiptCode) {
+        this.receiptCode = receiptCode;
+    }
 
-    public Date getReceiptDate() { return receiptDate; }
-    public void setReceiptDate(Date receiptDate) { this.receiptDate = receiptDate; }
+    public PurchaseOrder getPurchaseOrder() {
+        return purchaseOrder;
+    }
 
-    public int getStatus() { return status; }
-    public void setStatus(int status) { this.status = status; }
+    public void setPurchaseOrder(PurchaseOrder purchaseOrder) {
+        this.purchaseOrder = purchaseOrder;
+    }
 
-    public String getNote() { return note; }
-    public void setNote(String note) { this.note = note; }
+    public Location getLocation() {
+        return location;
+    }
 
-    public User getCreateBy() { return createBy; }
-    public void setCreateBy(User createBy) { this.createBy = createBy; }
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    public Date getReceiptDate() {
+        return receiptDate;
+    }
+
+    public void setReceiptDate(Date receiptDate) {
+        this.receiptDate = receiptDate;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
+    public User getCreateBy() {
+        return createBy;
+    }
+
+    public void setCreateBy(User createBy) {
+        this.createBy = createBy;
+    }
+
+    public List<GoodsReceiptDetail> getDetails() {
+        return details;
+    }
+
+    public void setDetails(List<GoodsReceiptDetail> details) {
+        this.details = details;
+    }
+
+    public String getStatusLabel() {
+        switch (status) {
+            case 1:
+                return "Draft";
+            case 2:
+                return "Completed";
+            case 3:
+                return "Cancelled";
+            default:
+                return "Unknown";
+        }
+    }
 }
