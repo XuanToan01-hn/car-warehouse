@@ -231,8 +231,7 @@
                 document.getElementById("editKeyword").value = kw;
                 document.getElementById("editWarehouseId").value = whId;
                 
-                // Logic ẩn hiện kho nếu cần (Ví dụ role 2 hoặc 4)
-                document.getElementById("editWarehouseGroup").style.display = (id == "1" || roleId == "4") ? "block" : "none";
+                document.getElementById("editWarehouseGroup").style.display = (id == "2" ||id == "3" || roleId == "4" || roleId == "5") ? "block" : "none";
                 document.getElementById("customEditUserModal").style.display = "flex";
             }
             function closeEditUserModal() { document.getElementById("customEditUserModal").style.display = "none"; }

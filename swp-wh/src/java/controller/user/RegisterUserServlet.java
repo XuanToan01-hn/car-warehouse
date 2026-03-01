@@ -106,7 +106,7 @@ public class RegisterUserServlet extends HttpServlet {
         // 1. Khởi tạo các DAO cần thiết
         UserDAO userService = new UserDAO();
         RoleDAO roleService = new RoleDAO();
-        WarehouseDAO warehouseDAO = new WarehouseDAO(); // Dùng thống nhất WarehouseDAO
+        WarehouseDAO warehouseDAO = new WarehouseDAO(); 
 
         HttpSession session = request.getSession();
         boolean hasError = false;
@@ -139,6 +139,23 @@ public class RegisterUserServlet extends HttpServlet {
         }
         if (!password.equals(confirmPassword)) {
             request.setAttribute("error_confirmPassword", "Passwords do not match!");
+            hasError = true;
+        }
+        if (utils.InputValidator.isEmpty(name)) {
+            request.setAttribute("error_name", "Họ tên không được để trống!");
+            hasError = true;
+        }
+        if (userService.isUserCodeExist(userCode)) {
+            request.setAttribute("error_userCode", "Mã nhân viên đã tồn tại!");
+            hasError = true;
+        }
+
+        if (userService.isEmailExist(email)) { // Thêm cái này
+            request.setAttribute("error_email", "Email đã tồn tại!");
+            hasError = true;
+        }
+        if (utils.InputValidator.isEmpty(dateOfBirthStr)) { // Thêm cái này
+            request.setAttribute("error_dateOfBirth", "Ngày sinh không được để trống!");
             hasError = true;
         }
 
