@@ -82,14 +82,14 @@ public class HomeServlet extends HttpServlet {
             response.sendRedirect("userlist");
         } 
 //        else if (u.getRole().getRoleId() == 2) {
-//            response.sendRedirect("list-sales-order");
-//        } else if (u.getRole().getRoleId() == 3) {
-//            response.sendRedirect("purchase-orders");
-//        } else if (u.getRole().getRoleId() == 4) {
-//            response.sendRedirect("inventory-report-staff");
-//        } else if (u.getRole().getRoleId() == 5) {
-//            response.sendRedirect("dash-board");
-//        }
+//            response.sendRedirect("list-sales-order");} 
+        else if (u.getRole().getId()== 3) {
+            response.sendRedirect("goods-issue");
+        } else if (u.getRole().getId() == 4) {
+            response.sendRedirect("sales-order");
+        } else if (u.getRole().getId() == 5) {
+            response.sendRedirect("purchase-orders");
+        }
     }
 
     /**

@@ -231,9 +231,12 @@
                 document.getElementById("editKeyword").value = kw;
                 document.getElementById("editWarehouseId").value = whId;
                 
-                document.getElementById("editWarehouseGroup").style.display = (id == "2" ||id == "3" || roleId == "4" || roleId == "5") ? "block" : "none";
+                // Cập nhật hiển thị nhà kho dựa trên roleId (3, 4, 5)
+                toggleWarehouseVisibility(roleId);
+                
                 document.getElementById("customEditUserModal").style.display = "flex";
             }
+            
             function closeEditUserModal() { document.getElementById("customEditUserModal").style.display = "none"; }
 
             function confirmDelete(id, name, page, kw) {
@@ -244,6 +247,23 @@
                 document.getElementById("customDeleteUserModal").style.display = "flex";
             }
             function closeDeleteUserModal() { document.getElementById("customDeleteUserModal").style.display = "none"; }
+
+            // Hàm dùng chung để ẩn/hiện nhà kho
+            function toggleWarehouseVisibility(roleId) {
+                const warehouseGroup = document.getElementById("editWarehouseGroup");
+                // Kiểm tra nếu roleId là 3, 4 hoặc 5
+                if (roleId == "3" || roleId == "4" || roleId == "5") {
+                    warehouseGroup.style.display = "block";
+                } else {
+                    warehouseGroup.style.display = "none";
+                    document.getElementById("editWarehouseId").value = "0"; // Reset giá trị nếu không thuộc role quyền hạn
+                }
+            }
+
+            // Lắng nghe sự kiện thay đổi Role ngay trong Modal Edit
+            document.getElementById("editRoleId").onchange = function() {
+                toggleWarehouseVisibility(this.value);
+            };
         </script>
     </body>
 </html>
