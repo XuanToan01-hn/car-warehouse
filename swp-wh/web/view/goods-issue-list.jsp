@@ -49,20 +49,21 @@
                     }
 
                     .table thead th {
-                        background: #e2e8f0;
+                        background: #f1f5f9;
                         font-weight: 800;
-                        color: #0f172a;
+                        color: #475569;
                         text-transform: uppercase;
-                        font-size: 0.82rem;
+                        font-size: 0.75rem;
+                        letter-spacing: 0.05em;
                         padding: 1.25rem 1.5rem;
-                        border: none;
+                        border-bottom: 1px solid #e2e8f0;
                     }
 
                     .table tbody td {
                         padding: 1.25rem 1.5rem;
                         vertical-align: middle;
                         font-weight: 500;
-                        border-top: 1px solid #f1f5f9;
+                        border-bottom: 1px solid #f1f5f9;
                     }
 
                     .btn-process {

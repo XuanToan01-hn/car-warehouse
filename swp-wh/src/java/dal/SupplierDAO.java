@@ -110,7 +110,7 @@ public class SupplierDAO extends DBContext {
     // ===============================
     public List<Supplier> searchByName(String keyword) {
         List<Supplier> list = new ArrayList<>();
-        String sql = "SELECT SupplierID, Name, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY Name LIMIT 20";
+        String sql = "SELECT TOP 20 SupplierID, Name, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY Name";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, "%" + keyword + "%");
@@ -138,7 +138,8 @@ public class SupplierDAO extends DBContext {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, "%" + keyword + "%");
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next())
+                return rs.getInt(1);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -150,7 +151,7 @@ public class SupplierDAO extends DBContext {
     // ===============================
     public List<Supplier> searchAndPaginate(String keyword, int offset, int limit) {
         List<Supplier> list = new ArrayList<>();
-        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY SupplierID LIMIT ?, ?";
+        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY SupplierID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, "%" + keyword + "%");

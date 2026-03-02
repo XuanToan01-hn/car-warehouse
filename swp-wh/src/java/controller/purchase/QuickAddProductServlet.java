@@ -60,6 +60,11 @@ public class QuickAddProductServlet extends HttpServlet {
                     /* bỏ qua */ }
             }
 
+            if (productDAO.getByCode(code.trim()) != null) {
+                out.print("{\"success\":false,\"message\":\"Mã sản phẩm đã tồn tại\"}");
+                return;
+            }
+
             int newProductId = productDAO.insertAndGetId(p);
             if (newProductId > 0) {
                 // Link supplier → product nếu có supplierId

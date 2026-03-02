@@ -16,35 +16,34 @@ public class ProductDAO extends DBContext {
     CategoryDAO categoryDAO = new CategoryDAO();
     UnitDAO unitDAO = new UnitDAO();
 
-
-    
-    public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId, int page, int pageSize) {
+    public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId,
+            int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         CategoryDAO categoryDAO = new CategoryDAO();
         UnitDAO unitDAO = new UnitDAO();
-        
+
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-        
+
         // Search filter
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-        
+
         // Category filter
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-        
+
         // Unit filter
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
         }
-        
+
         // Sort by price and required ORDER BY for pagination
         sql.append(" ORDER BY ");
         if (sortPrice != null && !sortPrice.isEmpty()) {
@@ -52,7 +51,7 @@ public class ProductDAO extends DBContext {
         } else {
             sql.append("ProductID ASC"); // Default sorting if no price sort specified
         }
-        
+
         // Pagination for SQL Server
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
@@ -66,38 +65,36 @@ public class ProductDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 list.add(new Product(
-                    rs.getInt("ProductID"),
-                    rs.getString("Code"),
-                    rs.getString("Name"),
-                    rs.getDouble("Price"),
-                    rs.getString("Description"),
-                    rs.getString("Image"),
-                    unitDAO.getUnitById(rs.getInt("UnitID")),
-                    categoryDAO.getByID(rs.getInt("CategoryID"))
-                ));
+                        rs.getInt("ProductID"),
+                        rs.getString("Code"),
+                        rs.getString("Name"),
+                        rs.getDouble("Price"),
+                        rs.getString("Description"),
+                        rs.getString("Image"),
+                        unitDAO.getUnitById(rs.getInt("UnitID")),
+                        categoryDAO.getByID(rs.getInt("CategoryID"))));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
-    
-    
-        public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
+
+    public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-        
+
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-        
+
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-        
+
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
@@ -117,6 +114,7 @@ public class ProductDAO extends DBContext {
         }
         return 0;
     }
+
     public List<Product> getAll() {
 
         List<Product> list = new ArrayList<>();
@@ -141,10 +139,10 @@ public class ProductDAO extends DBContext {
                 p.setMinStock(rs.getInt("MinStock"));
 
                 Category c = categoryDAO.getByID(rs.getInt("CategoryID"));
-//                Unit u = unitDAO.getUnitById(rs.getInt("UnitID"));
+                // Unit u = unitDAO.getUnitById(rs.getInt("UnitID"));
 
                 p.setCategory(c);
-//                p.setUnit(u);
+                // p.setUnit(u);
 
                 list.add(p);
             }
@@ -201,10 +199,10 @@ public class ProductDAO extends DBContext {
     public int insertAndGetId(Product p) {
 
         String sql = """
-                     INSERT INTO Product
-                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                     """;
+                INSERT INTO Product
+                (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
         try {
             PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
@@ -243,13 +241,39 @@ public class ProductDAO extends DBContext {
 
         return -1;
     }
+
+    public Product getByCode(String code) {
+        String sql = "SELECT * FROM Product WHERE Code = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                Product p = new Product();
+                p.setId(rs.getInt("ProductID"));
+                p.setCode(rs.getString("Code"));
+                p.setName(rs.getString("Name"));
+                p.setPrice(rs.getDouble("Price"));
+                p.setDescription(rs.getString("Description"));
+                p.setImage(rs.getString("Image"));
+                p.setMinStock(rs.getInt("MinStock"));
+                p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
+                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+                return p;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public void insert(Product p) {
 
         String sql = """
-                     INSERT INTO Product
-                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                     """;
+                INSERT INTO Product
+                (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
 
         try {
 
@@ -277,17 +301,17 @@ public class ProductDAO extends DBContext {
     public void update(Product p) {
 
         String sql = """
-                     UPDATE Product
-                     SET Code = ?,
-                         Name = ?,
-                         Price = ?,
-                         Description = ?,
-                         Image = ?,
-                         CategoryID = ?,
-                         UnitID = ?,
-                         MinStock = ?
-                     WHERE ProductID = ?
-                     """;
+                UPDATE Product
+                SET Code = ?,
+                    Name = ?,
+                    Price = ?,
+                    Description = ?,
+                    Image = ?,
+                    CategoryID = ?,
+                    UnitID = ?,
+                    MinStock = ?
+                WHERE ProductID = ?
+                """;
 
         try {
 
@@ -342,13 +366,13 @@ public class ProductDAO extends DBContext {
         List<Product> list = new ArrayList<>();
 
         String sql = """
-            SELECT * FROM Product
-            WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
-            AND (? = 0 OR CategoryID = ?)
-            AND (? = 0 OR UnitID = ?)
-            ORDER BY ProductID
-            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-        """;
+                    SELECT * FROM Product
+                    WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
+                    AND (? = 0 OR CategoryID = ?)
+                    AND (? = 0 OR UnitID = ?)
+                    ORDER BY ProductID
+                    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+                """;
 
         try {
 
@@ -384,7 +408,7 @@ public class ProductDAO extends DBContext {
                 p.setMinStock(rs.getInt("MinStock"));
 
                 p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-//                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+                // p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
 
                 list.add(p);
             }
@@ -432,5 +456,3 @@ public class ProductDAO extends DBContext {
     }
 
 }
-
-

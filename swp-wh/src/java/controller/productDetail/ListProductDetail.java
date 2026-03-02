@@ -37,7 +37,7 @@ public class ListProductDetail extends HttpServlet {
 
         // Gửi dữ liệu sang JSP
         request.setAttribute("listDetail", list);
-        request.setAttribute("listProduct", productDAO.getAll()); // Danh sách cho dropdown lọc
+        request.setAttribute("listProduct", productDAO.getAll());
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("startPage", Math.max(1, page - 2));

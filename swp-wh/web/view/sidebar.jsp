@@ -264,7 +264,7 @@
                                 </li>
                                 <li class="">
                                     <a href="add-purchase-order">
-                                        <i>&bull;</i><span>Tạo PO Mới</span>
+                                        <i>&bull;</i><span>Add New Purchase Order</span>
                                     </a>
                                 </li>
                             </ul>

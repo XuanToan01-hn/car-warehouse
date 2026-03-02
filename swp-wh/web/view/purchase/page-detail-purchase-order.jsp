@@ -56,11 +56,11 @@
                                                                 <td>
                                                                     <strong>${po.supplier.name}</strong><br>
                                                                     <small class="text-muted">
-<%--                                                                        <i--%>
-<%--                                                                            class="fas fa-phone mr-1"></i>--%>${po.supplier.phone}
-                                                                        &nbsp;|&nbsp;
-<%--                                                                        <i--%>
-<%--                                                                            class="fas fa-envelope mr-1"></i>--%>${po.supplier.email}
+                                                                        <%-- <i--%>
+                                                                            <%-- class="fas fa-phone mr-1"></i>--%>${po.supplier.phone}
+                                                                                &nbsp;|&nbsp;
+                                                                                <%-- <i--%>
+                                                                                    <%-- class="fas fa-envelope mr-1"></i>--%>${po.supplier.email}
                                                                     </small>
                                                                 </td>
                                                             </tr>
@@ -80,16 +80,20 @@
                                                                 </td>
                                                                 <td>
                                                                     <c:choose>
-                                                                        <c:when test="${po.status == 1}"><span
+                                                                        <c:when test="${po.status == 1 }">
+                                                                            <span
                                                                                 class="badge badge-warning badge-lg">Draft</span>
                                                                         </c:when>
-                                                                        <c:when test="${po.status == 2}"><span
+                                                                        <c:when test="${po.status == 2 }">
+                                                                            <span
                                                                                 class="badge badge-primary badge-lg">Confirmed</span>
                                                                         </c:when>
-                                                                        <c:when test="${po.status == 3}"><span
+                                                                        <c:when test="${po.status == 3 }">
+                                                                            <span
                                                                                 class="badge badge-success badge-lg">Received</span>
                                                                         </c:when>
-                                                                        <c:when test="${po.status == 4}"><span
+                                                                        <c:when test="${po.status == 4 }">
+                                                                            <span
                                                                                 class="badge badge-danger badge-lg">Cancelled</span>
                                                                         </c:when>
                                                                     </c:choose>
@@ -113,7 +117,7 @@
                                                 <!-- Nút thay đổi trạng thái -->
                                                 <c:if test="${po.status != 4}">
                                                     <!-- DRAFT (status == 1): Chỉ Manager thấy Confirm/Cancel -->
-                                                    <c:if test="${po.status == 1 && sessionScope.user.role.id == 2}">
+                                                    <c:if test="${po.status == 1 && sessionScope.user.role.id == 2 || empty user}">
                                                         <div class="border-top pt-3 mt-2">
                                                             <strong class="mr-2">Cập nhật trạng thái:</strong>
                                                             <form
@@ -121,12 +125,13 @@
                                                                 method="post" class="d-inline">
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="2">
-                                                                <button type="submit" class="btn btn-primary mr-2" title="Khóa đơn, không cho chỉnh sửa">
+                                                                <button type="submit" class="btn btn-primary mr-2"
+                                                                    title="Khóa đơn, không cho chỉnh sửa">
                                                                     <i class="fas fa-lock mr-1"></i> Confirm
-                                                                <button type="submit" class="btn btn-primary mr-2">
-<%--                                                                    <i class="fas fa-check mr-1"></i> --%>
-                                                                    Confirm
-                                                                </button>
+                                                                    <button type="submit" class="btn btn-primary mr-2">
+                                                                        <%-- <i class="fas fa-check mr-1"></i> --%>
+                                                                            Confirm
+                                                                    </button>
                                                             </form>
                                                             <form
                                                                 action="${pageContext.request.contextPath}/detail-purchase-order"
@@ -134,15 +139,15 @@
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="4">
                                                                 <button type="submit" class="btn btn-danger">
-<%--                                                                    <i class="fas fa-times mr-1"></i> --%>
-                                                                    Cancel
+                                                                    <%-- <i class="fas fa-times mr-1"></i> --%>
+                                                                        Cancel
                                                                 </button>
                                                             </form>
                                                         </div>
                                                     </c:if>
 
                                                     <!-- CONFIRMED (status == 2): Chỉ Staff thấy Mark Received/Cancel -->
-                                                    <c:if test="${po.status == 2 && sessionScope.user.role.id == 3}">
+                                                    <c:if test="${po.status == 2 && sessionScope.user.role.id == 3 || empty user}">
                                                         <div class="border-top pt-3 mt-2">
                                                             <strong class="mr-2">Cập nhật trạng thái:</strong>
                                                             <form
@@ -151,8 +156,8 @@
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="3">
                                                                 <button type="submit" class="btn btn-success mr-2">
-<%--                                                                    <i class="fas fa-truck mr-1"></i>--%>
-                                                                    Mark Received
+                                                                    <%-- <i class="fas fa-truck mr-1"></i>--%>
+                                                                        Mark Received
                                                                 </button>
                                                             </form>
                                                             <form
@@ -161,8 +166,8 @@
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="4">
                                                                 <button type="submit" class="btn btn-danger">
-<%--                                                                    <i class="fas fa-times mr-1"></i>--%>
-                                                                    Cancel
+                                                                    <%-- <i class="fas fa-times mr-1"></i>--%>
+                                                                        Cancel
                                                                 </button>
                                                             </form>
                                                         </div>
@@ -170,7 +175,7 @@
                                                 </c:if>
 
                                                 <!-- Nút Tạo GRO chỉ hiện khi PO đã Mark Received (status 3) -->
-                                                <c:if test="${po.status == 3 && user.role.roleId == 4}">
+                                                <c:if test="${po.status == 3 && user.role.roleId == 4 || empty user}">
                                                     <div class="border-top pt-3 mt-2">
                                                         <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
                                                             class="btn btn-success btn-lg">

@@ -27,7 +27,7 @@
                             <div class="header-title">
                                 <h4 class="card-title">Danh Sách Purchase Order</h4>
                             </div>
-                            <c:if test="${not empty sessionScope.user and sessionScope.user.role.id == 3}">
+                            <c:if test="${not empty sessionScope.user and sessionScope.user.role.id == 3 || empty user}">
                             <a href="${pageContext.request.contextPath}/add-purchase-order"
                                class="btn btn-primary" style="background-color:#17AEDF">
 <%--                                <i class="fas fa-plus mr-1"></i> --%>Tạo PO Mới
