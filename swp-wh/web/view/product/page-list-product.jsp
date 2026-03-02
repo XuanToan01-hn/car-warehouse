@@ -277,10 +277,9 @@
                                                                         class="btn-action btn-detail mr-2">
                                                                         <i class="ri-eye-line"></i> Detail
                                                                     </a>
-                                                                    <button class="btn-action btn-edit mr-2"
-                                                                        onclick="prepareEdit('${p.id}')">
-                                                                        <i class="ri-pencil-line"></i> Edit
-                                                                    </button>
+                                                                    <a href="update-product?id=${p.id}" class="btn-action btn-edit mr-2">
+    <i class="ri-pencil-line"></i> Edit
+</a>
                                                                     <button class="btn-action btn-delete"
                                                                         onclick="prepareDelete('${p.id}', '${p.name}')">
                                                                         <i class="ri-delete-bin-line"></i> Delete
@@ -323,85 +322,7 @@
                         </div>
                 </div>
 
-                <!-- Edit Modal -->
-                <div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title font-weight-bold">Update Product</h5>
-                                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                            </div>
-                            <div class="modal-body">
-                                <form action="update-product" method="post" enctype="multipart/form-data">
-                                    <input type="hidden" name="id" id="product-id">
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Product Name</label>
-                                            <input type="text" name="name" id="product-name" class="form-control"
-                                                required>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Product Code</label>
-                                            <input type="text" name="code" id="product-code" class="form-control"
-                                                required>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label">Price</label>
-                                            <input type="number" name="price" id="product-price" class="form-control"
-                                                required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label">Category</label>
-                                            <select name="category" id="category-select" class="form-control" required>
-                                                <c:forEach items="${listCategory}" var="cat">
-                                                    <option value="${cat.id}">${cat.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label">Unit</label>
-                                            <select name="unit" id="unit-select" class="form-control" required>
-                                                <c:forEach items="${listUnit}" var="unit">
-                                                    <option value="${unit.id}">${unit.name}</option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12 mb-3">
-                                            <label class="form-label">Product Image</label>
-                                            <div class="custom-file">
-                                                <input type="hidden" name="oldimage" id="product-image-old">
-                                                <input type="file" name="image" class="custom-file-input"
-                                                    id="product-image">
-                                                <label class="custom-file-label" id="file-image-label">Choose
-                                                    file</label>
-                                            </div>
-                                            <small class="text-secondary">Leave blank to keep current image</small>
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-12 mb-3">
-                                            <label class="form-label">Description</label>
-                                            <textarea name="description" id="product-des" class="form-control"
-                                                rows="3"></textarea>
-                                        </div>
-                                    </div>
-                                    <div class="text-right mt-4">
-                                        <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                                            style="border-radius:10px;">Cancel</button>
-                                        <button type="submit" class="btn btn-primary"
-                                            style="padding: 0.75rem 2rem; border-radius: 12px; font-weight: 700;">Update
-                                            Product</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+               
                 <!-- Delete Modal -->
                 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered" role="document">
