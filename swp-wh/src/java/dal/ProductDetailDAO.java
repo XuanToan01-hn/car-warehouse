@@ -110,6 +110,8 @@ public class ProductDetailDAO extends DBContext {
                 pd.setLotNumber(rs.getString("LotNumber"));
                 pd.setSerialNumber(rs.getString("SerialNumber"));
                 pd.setManufactureDate(rs.getDate("ManufactureDate"));
+                pd.setColor(rs.getString("Color")); 
+    pd.setQuantity(rs.getInt("Quantity"));
                 pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
                 list.add(pd);
             }
