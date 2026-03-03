@@ -16,7 +16,7 @@ public class SupplierDAO extends DBContext {
     // ===============================
     public List<Supplier> getAll() {
         List<Supplier> list = new ArrayList<>();
-        String sql = "SELECT SupplierID, Name, Address, Phone, Email, ProductID FROM Supplier ORDER BY Name";
+        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier ORDER BY Name";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -27,10 +27,6 @@ public class SupplierDAO extends DBContext {
                 s.setAddress(rs.getString("Address"));
                 s.setPhone(rs.getString("Phone"));
                 s.setEmail(rs.getString("Email"));
-                int pid = rs.getInt("ProductID");
-                if (!rs.wasNull()) {
-                    s.setProductId(pid);
-                }
                 list.add(s);
             }
         } catch (SQLException e) {
@@ -43,7 +39,7 @@ public class SupplierDAO extends DBContext {
     // GET BY ID
     // ===============================
     public Supplier getById(int id) {
-        String sql = "SELECT SupplierID, Name, Address, Phone, Email, ProductID FROM Supplier WHERE SupplierID = ?";
+        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier WHERE SupplierID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
@@ -55,10 +51,6 @@ public class SupplierDAO extends DBContext {
                 s.setAddress(rs.getString("Address"));
                 s.setPhone(rs.getString("Phone"));
                 s.setEmail(rs.getString("Email"));
-                int pid = rs.getInt("ProductID");
-                if (!rs.wasNull()) {
-                    s.setProductId(pid);
-                }
                 return s;
             }
         } catch (SQLException e) {
@@ -71,8 +63,7 @@ public class SupplierDAO extends DBContext {
     // INSERT — trả về SupplierID mới
     // ===============================
     public int insert(Supplier s) {
-        // ProductID để NULL vì supplier có thể chưa có product khi mới tạo
-        String sql = "INSERT INTO Supplier (Name, Address, Phone, Email, ProductID) VALUES (?, ?, ?, ?, NULL)";
+        String sql = "INSERT INTO Supplier (Name, Address, Phone, Email) VALUES (?, ?, ?, ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, s.getName());
@@ -82,7 +73,7 @@ public class SupplierDAO extends DBContext {
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) {
-                return rs.getInt(1);
+                return rs.getInt(1); // Trả về ID tự tăng
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -91,14 +82,16 @@ public class SupplierDAO extends DBContext {
     }
 
     // ===============================
-    // UPDATE ProductID sau khi tạo Product mới
     // ===============================
-    public void updateProductId(int supplierId, int productId) {
-        String sql = "UPDATE Supplier SET ProductID = ? WHERE SupplierID = ?";
+    public void update(Supplier s) {
+        String sql = "UPDATE Supplier SET Name = ?, Address = ?, Phone = ?, Email = ? WHERE SupplierID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, productId);
-            ps.setInt(2, supplierId);
+            ps.setString(1, s.getName());
+            ps.setString(2, s.getAddress());
+            ps.setString(3, s.getPhone());
+            ps.setString(4, s.getEmail());
+            ps.setInt(5, s.getId());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -138,8 +131,7 @@ public class SupplierDAO extends DBContext {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, "%" + keyword + "%");
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
-                return rs.getInt(1);
+            if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -151,7 +143,7 @@ public class SupplierDAO extends DBContext {
     // ===============================
     public List<Supplier> searchAndPaginate(String keyword, int offset, int limit) {
         List<Supplier> list = new ArrayList<>();
-        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY SupplierID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+       String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY SupplierID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, "%" + keyword + "%");

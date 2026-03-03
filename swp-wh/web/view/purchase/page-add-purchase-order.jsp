@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
     <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
         <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
@@ -245,7 +246,7 @@
                                                         required>
                                                         <option value="">-- Choose a Supplier --</option>
                                                         <c:forEach var="s" items="${supplierList}">
-                                                            <option value="${s.id}" data-product-id="${s.productId}">
+                                                            <option value="${s.id}">
                                                                 ${s.name} <c:if test="${not empty s.phone}"> —
                                                                     ${s.phone}</c:if>
                                                             </option>
@@ -429,7 +430,7 @@
                     ============================================================ */
                     const allProducts = [
                         <c:forEach var="p" items="${productList}">
-                            {id: ${p.id}, name: "${p.name}", code: "${p.code}", price: ${p.price} },
+                        {id: ${p.id}, name: "${fn:escapeXml(p.name)}", code: "${fn:escapeXml(p.code)}", price: ${p.price}, color: "${fn:escapeXml(p.color)}" },
                         </c:forEach>
                     ];
 
@@ -439,31 +440,43 @@
                         </c:forEach>
                     ];
 
-                    // Dữ liệu màu sắc
-                    const allColors = [
-                        { id: 'Black', name: 'Đen' },
-                        { id: 'White', name: 'Trắng' },
-                        { id: 'Red', name: 'Đỏ' },
-                        { id: 'Blue', name: 'Xanh dương' },
-                        { id: 'Silver', name: 'Bạc' }
-                    ];
-
                     const ctx = "${pageContext.request.contextPath}";
                     let rowCounter = 0;
                     let selectedSupplierId = null;
                     let selectedSupplierName = null;
-                    let selectedSupplierProductId = null;
+                    let currentSupplierProducts = [];
 
                     /* ============================================================
                        SUPPLIER SELECT — kích hoạt bước 2
                     ============================================================ */
                     document.getElementById('supplierSelect').addEventListener('change', function () {
+                        // Kiểm tra xem đã có dòng sản phẩm nào được add chưa
+                        const hasRows = document.querySelectorAll('.product-row').length > 0;
+
+                        // Nếu đã có sản phẩm và đang cố đổi sang Supplier khác
+                        if (hasRows && selectedSupplierId) {
+                            const confirmChange = confirm('Thay đổi Nhà cung cấp sẽ xoá toàn bộ sản phẩm đang chọn bên dưới. Bạn có chắc muốn đổi?');
+
+                            if (!confirmChange) {
+                                // Nếu người dùng ấn Cancel, trả dropdown về lại giá trị cũ
+                                this.value = selectedSupplierId;
+                                return;
+                            } else {
+                                // Nếu người dùng ấn OK, xoá sạch các dòng sản phẩm hiện tại
+                                document.getElementById('productRows').innerHTML = '';
+                                document.getElementById('emptyMsg').style.display = ''; // Hiện lại icon xe tải mờ
+                                rowCounter = 0;
+                                calcGrandTotal();
+                            }
+                        }
+
+                        // Cập nhật Supplier ID và Name mới
                         selectedSupplierId = this.value;
                         const opt = this.options[this.selectedIndex];
                         selectedSupplierName = opt.text;
 
                         if (selectedSupplierId) {
-                            // Fetch products for this supplier
+                            // Tải sản phẩm của Supplier mới
                             fetchSupplierProducts(selectedSupplierId);
                             enableProductSection();
                         } else {
@@ -471,24 +484,27 @@
                         }
                     });
 
-                    // Fetch products from server for selected supplier
                     function fetchSupplierProducts(supplierId) {
+                        currentSupplierProducts = []; // Reset danh sách
+
                         fetch(ctx + '/get-supplier-products?supplierId=' + supplierId)
                             .then(function (response) { return response.json(); })
                             .then(function (products) {
-                                // Update global allProducts with only supplier's products
                                 if (Array.isArray(products) && products.length > 0) {
-                                    selectedSupplierProductId = products[0].id; // Set first product as default
-                                } else {
-                                    selectedSupplierProductId = null;
+                                    currentSupplierProducts = products;
                                 }
+
+                                // Tự động cập nhật lại option cho các dropdown "Product Selection" đang hiển thị trên giao diện
+                                document.querySelectorAll('.product-select').forEach(function(select) {
+                                    const currentVal = select.value; // Giữ lại id sản phẩm đang chọn (nếu có)
+                                    select.innerHTML = buildProductOptions();
+                                    if(currentVal) select.value = currentVal;
+                                });
                             })
                             .catch(function (err) {
-                                console.error('Error fetching products:', err);
-                                selectedSupplierProductId = null;
+                                console.error('Lỗi khi tải sản phẩm:', err);
                             });
                     }
-
                     function enableProductSection() {
                         document.getElementById('btnAddRow').disabled = false;
                         document.getElementById('btnSubmit').disabled = false;
@@ -520,29 +536,23 @@
                         return opts;
                     }
 
-                    function buildColorOptions() {
-                        let opts = '<option value="">-- Chọn --</option>';
-                        allColors.forEach(function (c) {
-                            opts += '<option value="' + c.id + '">' + c.name + '</option>';
-                        });
-                        return opts;
-                    }
+
 
                     function buildProductOptions() {
                         let opts = '<option value="">-- Chọn sản phẩm --</option>';
-
-                        // Filter products that match the selected supplier's product
-                        allProducts.forEach(function (p) {
-                            if (selectedSupplierProductId && p.id === Number(selectedSupplierProductId)) {
-                                opts += '<option value="' + p.id + '" data-price="' + p.price + '">' + p.name + ' [' + p.code + ']</option>';
+                        if (currentSupplierProducts && currentSupplierProducts.length > 0) {
+                            currentSupplierProducts.forEach(function (p) {
+                                // Thêm data-color vào option
+                                let prodColor = p.color ? p.color : 'Chưa có màu';
+                                opts += '<option value="' + p.id + '" data-price="' + p.price + '" data-color="' + prodColor + '">' + p.name + ' [' + p.code + ']</option>';
+                            });
+                        } else {
+                            if (selectedSupplierId) {
+                                opts += '<option value="" disabled>-- Nhà cung cấp này chưa có sản phẩm --</option>';
+                            } else {
+                                opts += '<option value="">Đang tải sản phẩm...</option>';
                             }
-                        });
-
-                        // If no products found in allProducts, build from server data
-                        if (opts === '<option value="">-- Chọn sản phẩm --</option>' && selectedSupplierId) {
-                            opts += '<option value="">Đang tải sản phẩm...</option>';
                         }
-
                         return opts;
                     }
 
@@ -552,61 +562,61 @@
 
                         const prodOpts = buildProductOptions();
                         const taxOpts = buildTaxOptions();
-                        const colorOpts = buildColorOptions();
+                        // const colorOpts = buildColorOptions();
 
                         const html = `
-                            <div class="product-row" id="row_${idx}">
-                                <div class="row">
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label">Product Selection *</label>
-                                        <div class="input-group">
-                                            <select name="productId[]" id="prodSel_${idx}" class="form-control product-select" data-row="${idx}" required>
-                                                ${prodOpts}
-                                            </select>
-                                            <div class="input-group-append">
-                                                <button type="button" class="btn btn-outline-primary btn-new-product px-2" data-row="${idx}" 
-                                                        style="border-radius: 0 10px 10px 0; border: 2px solid #e2e8f0; border-left: none;">
-                                                    <i class="ri-add-line"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label class="form-label">Color *</label>
-                                        <select name="colorId[]" id="color_${idx}" class="form-control" required>
-                                            ${colorOpts}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label class="form-label">Quantity *</label>
-                                        <input type="number" name="quantity[]" id="qty_${idx}" class="form-control qty-input" data-row="${idx}" value="1" min="1" required>
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label class="form-label">Unit Price (đ) *</label>
-                                        <input type="number" name="price[]" id="price_${idx}" class="form-control price-input" data-row="${idx}" value="0" min="0" step="1000" required>
-                                    </div>
-                                    <div class="col-md-2 mb-3">
-                                        <label class="form-label">Tax</label>
-                                        <select name="taxId[]" id="tax_${idx}" class="form-control tax-select" data-row="${idx}">
-                                            ${taxOpts}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row align-items-center mt-2">
-                                    <div class="col-md-9">
-                                        <div class="text-secondary small font-weight-bold text-uppercase" style="letter-spacing: 0.05em;">
-                                            <i class="ri-money-dollar-circle-line mr-1 text-primary"></i> Row Subtotal: 
-                                            <span id="sub_text_${idx}" class="text-dark ml-1" style="font-size: 1rem; font-weight: 800;">0 đ</span>
-                                            <input type="hidden" name="subTotal[]" id="sub_${idx}" class="subtotal-field">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-3 text-right">
-                                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(${idx})" style="border-radius: 8px; font-weight: 700; padding: 0.4rem 1rem;">
-                                            <i class="ri-delete-bin-line mr-1"></i> Remove
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>`;
+    <div class="product-row" id="row_\${idx}">
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Product Selection *</label>
+                <div class="input-group">
+                    <select name="productId[]" id="prodSel_\${idx}" class="form-control product-select" data-row="\${idx}" required>
+                        \${prodOpts}
+                    </select>
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-primary btn-new-product px-2" data-row="\${idx}"
+                                style="border-radius: 0 10px 10px 0; border: 2px solid #e2e8f0; border-left: none;">
+                            <i class="ri-add-line"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Color *</label>
+                <input type="text" name="colorName[]" id="color_\${idx}" class="form-control bg-light" readonly placeholder="Tự động hiện màu">
+            </div>
+
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Quantity *</label>
+                <input type="number" name="quantity[]" id="qty_\${idx}" class="form-control qty-input" data-row="\${idx}" value="1" min="1" required>
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Unit Price (đ) *</label>
+                <input type="number" name="price[]" id="price_\${idx}" class="form-control price-input" data-row="\${idx}" value="0" min="0" step="1000" required>
+            </div>
+            <div class="col-md-2 mb-3">
+                <label class="form-label">Tax</label>
+                <select name="taxId[]" id="tax_\${idx}" class="form-control tax-select" data-row="\${idx}">
+                    \${taxOpts}
+                </select>
+            </div>
+        </div>
+        <div class="row align-items-center mt-2">
+            <div class="col-md-9">
+                <div class="text-secondary small font-weight-bold text-uppercase" style="letter-spacing: 0.05em;">
+                    <i class="ri-money-dollar-circle-line mr-1 text-primary"></i> Row Subtotal:
+                    <span id="sub_text_\${idx}" class="text-dark ml-1" style="font-size: 1rem; font-weight: 800;">0 đ</span>
+                    <input type="hidden" name="subTotal[]" id="sub_\${idx}" class="subtotal-field">
+                </div>
+            </div>
+            <div class="col-md-3 text-right">
+                <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeRow(\${idx})" style="border-radius: 8px; font-weight: 700; padding: 0.4rem 1rem;">
+                    <i class="ri-delete-bin-line mr-1"></i> Remove
+                </button>
+            </div>
+        </div>
+    </div>`;
 
                         document.getElementById('productRows').insertAdjacentHTML('beforeend', html);
 
@@ -614,16 +624,27 @@
                             const sel = document.getElementById('prodSel_' + idx);
                             const opt = new Option(productToAdd.name + ' [' + productToAdd.code + ']', productToAdd.id, true, true);
                             opt.dataset.price = productToAdd.price || 0;
+                            opt.dataset.color = productToAdd.color || ''; // Thêm dòng này
                             sel.add(opt);
                             sel.value = productToAdd.id;
                             document.getElementById('price_' + idx).value = productToAdd.price || 0;
+                            document.getElementById('color_' + idx).value = productToAdd.color || ''; // Thêm dòng này
                             calcRow(idx);
                         }
 
                         document.getElementById('prodSel_' + idx).addEventListener('change', function () {
                             const opt = this.options[this.selectedIndex];
-                            if (opt && opt.dataset.price) {
-                                document.getElementById('price_' + idx).value = opt.dataset.price;
+                            if (opt) {
+                                // Tự động set giá tiền
+                                if (opt.dataset.price) {
+                                    document.getElementById('price_' + idx).value = opt.dataset.price;
+                                }
+                                // Tự động set màu sắc (Phần mới thêm)
+                                if (opt.dataset.color) {
+                                    document.getElementById('color_' + idx).value = opt.dataset.color;
+                                } else {
+                                    document.getElementById('color_' + idx).value = '';
+                                }
                             }
                             calcRow(idx);
                         });
@@ -765,9 +786,9 @@
                             .then(function (r) { return r.json(); })
                             .then(function (data) {
                                 if (data.success) {
-                                    const newProd = { id: data.productId, name: data.productName, code: data.productCode, price: parseFloat(price) || 0 };
+                                    const newProd = { id: data.productId, name: data.productName, code: data.productCode, price: parseFloat(price) || 0, color: 'Chưa có màu' };
                                     allProducts.push(newProd);
-
+                                    currentSupplierProducts.push(newProd);
                                     selectedSupplierProductId = data.productId;
                                     const supSelect = document.getElementById('supplierSelect');
                                     if (supSelect && supSelect.selectedIndex >= 0) {

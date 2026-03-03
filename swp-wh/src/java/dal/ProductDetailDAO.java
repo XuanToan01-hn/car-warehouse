@@ -9,73 +9,74 @@ import java.util.List;
 import model.ProductDetail;
 import model.Product;
 import java.sql.SQLException;
-
 public class ProductDetailDAO extends DBContext {
 
     // Cần ProductDAO để lấy thông tin Product cha cho ProductDetail
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
 
-    /**
-     * Lấy toàn bộ danh sách ProductDetail
-     */
-    public List<ProductDetail> getAll() {
-        List<ProductDetail> list = new ArrayList<>();
-        String sql = "SELECT * FROM Product_Detail ORDER BY ProductDetailID ASC";
+/**
+ * Lấy toàn bộ danh sách ProductDetail
+ */
+public List<ProductDetail> getAll() {
+    List<ProductDetail> list = new ArrayList<>();
+    String sql = "SELECT * FROM Product_Detail ORDER BY ProductDetailID ASC";
 
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+    try (PreparedStatement ps = connection.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                ProductDetail pd = new ProductDetail();
-                pd.setId(rs.getInt("ProductDetailID"));
-                pd.setLotNumber(rs.getString("LotNumber"));
-                pd.setSerialNumber(rs.getString("SerialNumber"));
-                pd.setManufactureDate(rs.getTimestamp("ManufactureDate"));
+        while (rs.next()) {
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setLotNumber(rs.getString("LotNumber"));
+            pd.setSerialNumber(rs.getString("SerialNumber"));
+            pd.setManufactureDate(rs.getTimestamp("ManufactureDate"));
 
-                // nếu bảng có các field này
+            // nếu bảng có các field này
+            pd.setColor(rs.getString("Color"));
+            pd.setQuantity(rs.getInt("Quantity"));
+
+            // lấy Product cha
+            pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
+
+            list.add(pd);
+        }
+
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+
+    return list;
+}
+public ProductDetail getById(int id) {
+    String sql = "SELECT * FROM Product_Detail WHERE ProductDetailID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setLotNumber(rs.getString("LotNumber"));
+            pd.setSerialNumber(rs.getString("SerialNumber"));
+            pd.setManufactureDate(rs.getDate("ManufactureDate"));
+
+            // Các field mở rộng nếu có
+            try {
                 pd.setColor(rs.getString("Color"));
                 pd.setQuantity(rs.getInt("Quantity"));
-
-                // lấy Product cha
-                pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
-
-                list.add(pd);
+            } catch (SQLException ignored) {
             }
 
-        } catch (SQLException e) {
-            e.printStackTrace();
+            pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
+            return pd;
         }
-
-        return list;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return null;
+}
 
-    public ProductDetail getById(int id) {
-        String sql = "SELECT * FROM Product_Detail WHERE ProductDetailID = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                ProductDetail pd = new ProductDetail();
-                pd.setId(rs.getInt("ProductDetailID"));
-                pd.setLotNumber(rs.getString("LotNumber"));
-                pd.setSerialNumber(rs.getString("SerialNumber"));
-                pd.setManufactureDate(rs.getDate("ManufactureDate"));
 
-                // Các field mở rộng nếu có
-                try {
-                    pd.setColor(rs.getString("Color"));
-                    pd.setQuantity(rs.getInt("Quantity"));
-                } catch (SQLException ignored) {
-                }
-
-                pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
-                return pd;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
     // Lọc danh sách ProductDetail theo ProductID và Tìm kiếm (Lot/Serial)
     public List<ProductDetail> getFiltered(String search, String productId, int page, int pageSize) {
@@ -110,8 +111,6 @@ public class ProductDetailDAO extends DBContext {
                 pd.setLotNumber(rs.getString("LotNumber"));
                 pd.setSerialNumber(rs.getString("SerialNumber"));
                 pd.setManufactureDate(rs.getDate("ManufactureDate"));
-                pd.setColor(rs.getString("Color")); 
-    pd.setQuantity(rs.getInt("Quantity"));
                 pd.setProduct(productDAO.getById(rs.getInt("ProductID")));
                 list.add(pd);
             }
