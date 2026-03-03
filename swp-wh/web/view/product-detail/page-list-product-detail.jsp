@@ -20,6 +20,12 @@
                     
                     <div class="card mb-4">
                         <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <a href="add-product-detail" class="btn btn-primary">
+                                    <i class="ri-add-line"></i> Add New Detail
+                                </a>
+                            </div>
+                            
                             <form method="get" action="list-product-detail">
                                 <div class="row align-items-end">
                                     <div class="col-md-3">
@@ -43,47 +49,62 @@
                         </div>
                     </div>
 
-                    <table class="table table-hover">
-                        <thead class="bg-light text-uppercase">
-                            <tr>
-                                <th>Product</th>
-                                <th>Lot Number</th>
-                                <th>Serial Number</th>
-                                <th>Color</th>
-                                <th>Quantity</th>
-                                <th>Mfd Date</th>
-                                <th class="text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <c:forEach items="${listDetail}" var="pd">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="bg-light text-uppercase">
                                 <tr>
-                                    <td><strong>${pd.product.name}</strong></td>
-                                    <td>${pd.lotNumber}</td>
-                                    <td>${pd.serialNumber}</td>
-                                    <td><span class="badge badge-info">${pd.color}</span></td>
-                                    <td>${pd.quantity}</td>
-                                    <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
-                                    <td class="text-right">
-                                        <a href="edit-product-detail?id=${pd.id}" class="btn btn-sm btn-outline-primary">Edit</a>
-                                    </td>
+                                    <th>Product</th>
+                                    <th>Lot Number</th>
+                                    <th>Serial Number</th>
+                                    <th>Color</th>
+                                    <th>Quantity</th>
+                                    <th>Mfd Date</th>
+                                    <th class="text-right">Action</th>
                                 </tr>
-                            </c:forEach>
-                            <c:if test="${empty listDetail}">
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted">No product detail found.</td>
-                                </tr>
-                            </c:if>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <c:forEach items="${listDetail}" var="pd">
+                                    <tr>
+                                        <td><strong>${pd.product.name}</strong></td>
+                                        <td>${pd.lotNumber}</td>
+                                        <td>${pd.serialNumber}</td>
+                                        <td><span class="badge badge-info">${pd.color}</span></td>
+                                        <td><strong>${pd.quantity}</strong></td>
+                                        <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
+                                        <td class="text-right">
+                                            <a href="edit-product-detail?id=${pd.id}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                        </td>
+                                    </tr>
+                                </c:forEach>
+                                
+                                <c:if test="${empty listDetail}">
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">No product detail found.</td>
+                                    </tr>
+                                </c:if>
+                            </tbody>
+                        </table>
+                    </div>
 
                     <nav class="mt-3">
                         <ul class="pagination justify-content-end">
+                            <c:if test="${currentPage > 1}">
+                                <li class="page-item">
+                                    <a class="page-link" href="list-product-detail?page=${currentPage - 1}&productId=${param.productId}&search=${param.search}">Previous</a>
+                                </li>
+                            </c:if>
+                            
                             <c:forEach begin="${startPage}" end="${endPage}" var="i">
                                 <li class="page-item ${i == currentPage ? 'active' : ''}">
                                     <a class="page-link" href="list-product-detail?page=${i}&productId=${param.productId}&search=${param.search}">${i}</a>
                                 </li>
                             </c:forEach>
+                            
+                            <c:if test="${currentPage < totalPages}">
+                                <li class="page-item">
+                                    <a class="page-link" href="list-product-detail?page=${currentPage + 1}&productId=${param.productId}&search=${param.search}">Next</a>
+                                </li>
+                            </c:if>
                         </ul>
                     </nav>
                 </div>

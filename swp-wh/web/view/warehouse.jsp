@@ -20,14 +20,15 @@
             <style>
                 :root {
                     --primary: #0EA5E9;
-                    --success: #15803d;
+                    --success: #10b981;
                     --danger: #ef4444;
+                    --warning: #f59e0b;
                     --gray-dark: #0f172a;
                 }
 
                 body {
                     font-family: 'Be Vietnam Pro', sans-serif;
-                    background-color: #f1f5f9;
+                    background-color: #f8fafc;
                     color: #1e293b;
                 }
 
@@ -65,27 +66,33 @@
                 }
 
                 .table thead th {
-                    background: #e2e8f0;
+                    background: #f1f5f9;
                     font-weight: 800;
-                    color: #0f172a;
+                    color: #475569;
                     text-transform: uppercase;
-                    font-size: 0.85rem;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.05em;
                     padding: 1.25rem 1.5rem;
+                    border-bottom: 1px solid #e2e8f0;
                 }
 
                 .table tbody td {
                     padding: 1.25rem 1.5rem;
                     vertical-align: middle;
                     font-weight: 500;
+                    border-bottom: 1px solid #f1f5f9;
                 }
 
                 .btn-action {
-                    padding: 0.4rem 0.8rem;
+                    padding: 0.5rem 1rem;
                     border-radius: 8px;
                     font-weight: 600;
                     font-size: 0.85rem;
                     border: 1px solid transparent;
                     transition: all 0.2s;
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.5rem;
                 }
 
                 .btn-edit {
@@ -94,10 +101,18 @@
                     border-color: #bae6fd;
                 }
 
+                .btn-edit:hover {
+                    background: #e0f2fe;
+                }
+
                 .btn-delete {
                     background: #fff1f2;
                     color: #be123c;
                     border-color: #fecdd3;
+                }
+
+                .btn-delete:hover {
+                    background: #ffe4e6;
                 }
 
                 /* Modal Style */
@@ -120,7 +135,9 @@
                     font-weight: 700;
                     color: var(--gray-dark);
                     text-transform: uppercase;
-                    font-size: 0.8rem;
+                    font-size: 0.75rem;
+                    margin-bottom: 0.5rem;
+                    display: block;
                 }
 
                 .form-control {
@@ -128,6 +145,7 @@
                     border: 2px solid #e2e8f0;
                     font-weight: 600;
                     padding: 0.6rem 1rem;
+                    transition: border-color 0.2s;
                 }
 
                 .form-control:focus {
@@ -139,58 +157,62 @@
 
         <body>
             <div class="wrapper">
-                <div class="content-page">
-                    <div class="container-fluid">
-                        <div class="page-header">
-                            <h1 class="font-weight-bold">Warehouse Management</h1>
-                            <button class="btn btn-add" data-toggle="modal" data-target="#warehouseModal"
-                                onclick="prepareAdd()">
-                                <i class="ri-add-line"></i> Add New Warehouse
-                            </button>
-                        </div>
+                <%@ include file="sidebar.jsp" %>
+                    <div class="content-page">
+                        <div class="container-fluid">
+                            <div class="page-header">
+                                <h1 class="font-weight-bold h2">Warehouse Management</h1>
+                                <button class="btn btn-add" data-toggle="modal" data-target="#warehouseModal"
+                                    onclick="prepareAdd()">
+                                    <i class="ri-add-line"></i> Add New Warehouse
+                                </button>
+                            </div>
 
-                        <div class="card card-main">
-                            <div class="card-body p-0">
-                                <div class="table-responsive">
-                                    <table class="table mb-0">
-                                        <thead>
-                                            <tr>
-                                                <th>Warehouse Code</th>
-                                                <th>Name</th>
-                                                <th>Address</th>
-                                                <th>Description</th>
-                                                <th class="text-right">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <c:forEach var="w" items="${warehouses}">
+                            <div class="card card-main">
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table mb-0">
+                                            <thead>
                                                 <tr>
-                                                    <td><span
-                                                            class="font-weight-bold text-primary">${w.warehouseCode}</span>
-                                                    </td>
-                                                    <td><span class="font-weight-bold">${w.warehouseName}</span></td>
-                                                    <td>${w.address}</td>
-                                                    <td>${w.description}</td>
-                                                    <td class="text-right">
-                                                        <button class="btn-action btn-edit mr-2"
-                                                            onclick="prepareEdit('${w.id}')">
-                                                            <i class="ri-pencil-line"></i> Edit
-                                                        </button>
-                                                        <a href="warehouses?action=delete&id=${w.id}"
-                                                            class="btn-action btn-delete"
-                                                            onclick="return confirm('Are you sure you want to delete this warehouse?')">
-                                                            <i class="ri-delete-bin-line"></i> Delete
-                                                        </a>
-                                                    </td>
+                                                    <th>Warehouse Code</th>
+                                                    <th>Name</th>
+                                                    <th>Address</th>
+                                                    <th>Description</th>
+                                                    <th class="text-right">Actions</th>
                                                 </tr>
-                                            </c:forEach>
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                <c:forEach var="w" items="${warehouses}">
+                                                    <tr>
+                                                        <td><span
+                                                                class="font-weight-bold text-primary">${w.warehouseCode}</span>
+                                                        </td>
+                                                        <td><span
+                                                                class="font-weight-bold text-dark">${w.warehouseName}</span>
+                                                        </td>
+                                                        <td><span class="text-secondary">${w.address}</span></td>
+                                                        <td><span class="text-secondary">${w.description}</span>
+                                                        </td>
+                                                        <td class="text-right">
+                                                            <button class="btn-action btn-edit mr-2"
+                                                                onclick="prepareEdit('${w.id}')">
+                                                                <i class="ri-pencil-line"></i> Edit
+                                                            </button>
+                                                            <a href="warehouses?action=delete&id=${w.id}"
+                                                                class="btn-action btn-delete"
+                                                                onclick="return confirm('Delete this warehouse?')">
+                                                                <i class="ri-delete-bin-line"></i> Delete
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
             </div>
 
             <!-- Modal -->
@@ -236,9 +258,9 @@
                                 </div>
 
                                 <div class="text-right mt-4">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal"
-                                        style="border-radius:10px;">Cancel</button>
-                                    <button type="submit" class="btn btn-add ml-2">Save Warehouse</button>
+                                    <button type="button" class="btn btn-secondary px-4 py-2" data-dismiss="modal"
+                                        style="border-radius:10px; font-weight: 600;">Cancel</button>
+                                    <button type="submit" class="btn btn-add ml-2 px-4 py-2">Save Warehouse</button>
                                 </div>
                             </form>
                         </div>
@@ -267,6 +289,10 @@
                             document.getElementById('f-address').value = data.address || '';
                             document.getElementById('f-description').value = data.description || '';
                             $('#warehouseModal').modal('show');
+                        })
+                        .catch(err => {
+                            console.error('Error loading warehouse:', err);
+                            alert('Error loading warehouse data');
                         });
                 }
             </script>

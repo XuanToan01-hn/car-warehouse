@@ -78,99 +78,204 @@ public List<Object[]> getDetailsForUI(int soId, int locationId) {
     return uiDetails;
 }
 
+//    public boolean confirmIssue(GoodsIssue gi, List<GoodsIssueDetail> details) {
+//        String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, Note, CreateBy) VALUES (?, ?, ?, GETDATE(), ?, ?, ?)";
+//        String sqlGID = "INSERT INTO Goods_Issue_Detail (IssueID, ProductDetailID, QuantityExpected, QuantityActual) VALUES (?, ?, ?, ?)";
+//        String sqlUpdateStock = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ? AND ProductID = ?";
+//        String sqlTrans = "INSERT INTO Inventory_Transaction (ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) VALUES (?, ?, ?, 'ISSUE', ?, ?, GETDATE())";
+//        String sqlUpdateSO = "UPDATE Sales_Order SET Status = ? WHERE SalesOrderID = ?";
+//
+//        try {
+//            connection.setAutoCommit(false);
+//            int issueId;
+//            try (PreparedStatement psGI = connection.prepareStatement(sqlGI, Statement.RETURN_GENERATED_KEYS)) {
+//                psGI.setString(1, gi.getIssueCode());
+//                psGI.setInt(2, gi.getSalesOrder().getId());
+//                psGI.setInt(3, gi.getLocation().getId());
+//                psGI.setInt(4, gi.getStatus());
+//                psGI.setString(5, gi.getNote());
+//                psGI.setInt(6, gi.getCreateBy().getId());
+//                psGI.executeUpdate();
+//                ResultSet rs = psGI.getGeneratedKeys();
+//                if (!rs.next()) throw new SQLException("Failed to create Goods Issue header");
+//                issueId = rs.getInt(1);
+//            }
+//
+//            try (PreparedStatement psGID = connection.prepareStatement(sqlGID);
+//                 PreparedStatement psStock = connection.prepareStatement(sqlUpdateStock);
+//                 PreparedStatement psTrans = connection.prepareStatement(sqlTrans)) {
+//                
+//                for (GoodsIssueDetail detail : details) {
+//                    // 1. Insert Detail
+//                    psGID.setInt(1, issueId);
+//                    psGID.setInt(2, detail.getProductDetail().getId());
+//                    psGID.setInt(3, detail.getQuantityExpected());
+//                    psGID.setInt(4, detail.getQuantityActual());
+//                    psGID.addBatch();
+//
+//                    // 2. Update Stock
+//                    System.out.println("[DEBUG] Updating Stock - Loc: " + gi.getLocation().getId() + 
+//                                       ", PD: " + detail.getProductDetail().getId() + 
+//                                       ", P: " + detail.getProductDetail().getProduct().getId() + 
+//                                       ", Qty: " + detail.getQuantityActual());
+//                    psStock.setInt(1, detail.getQuantityActual());
+//                    psStock.setInt(2, gi.getLocation().getId());
+//                    psStock.setInt(3, detail.getProductDetail().getId());
+//                    psStock.setInt(4, detail.getProductDetail().getProduct().getId());
+//                    int affected = psStock.executeUpdate();
+//                    System.out.println("[DEBUG] Stock update affected rows: " + affected);
+//                    
+//                    if (affected == 0) {
+//                        throw new SQLException("Could not update stock for ProductID: " + 
+//                            detail.getProductDetail().getProduct().getId() + " at LocationID: " + gi.getLocation().getId());
+//                    }
+//
+//                    // 3. Inventory Transaction
+//                    psTrans.setInt(1, detail.getProductDetail().getProduct().getId());
+//                    psTrans.setInt(2, detail.getProductDetail().getId());
+//                    psTrans.setInt(3, gi.getLocation().getId());
+//                    psTrans.setInt(4, detail.getQuantityActual());
+//                    psTrans.setString(5, gi.getIssueCode());
+//                    psTrans.addBatch();
+//                }
+//                psGID.executeBatch();
+//                psTrans.executeBatch();
+//            }
+//
+//            // 4. Update Sales Order Status
+//            String sqlCheck = "SELECT " +
+//                              "(SELECT SUM(quantity) FROM Sales_Order_Detail WHERE SalesOrderID = ?) as Total, " +
+//                              "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = ?) as Shipped";
+//            int total = 0, shipped = 0;
+//            try (PreparedStatement psCheck = connection.prepareStatement(sqlCheck)) {
+//                psCheck.setInt(1, gi.getSalesOrder().getId());
+//                psCheck.setInt(2, gi.getSalesOrder().getId());
+//                ResultSet rs = psCheck.executeQuery();
+//                if (rs.next()) {
+//                    total = rs.getInt("Total");
+//                    shipped = rs.getInt("Shipped");
+//                }
+//            }
+//            int newStatus = (shipped >= total) ? 3 : 2; // 3: Completed, 2: Partially
+//            try (PreparedStatement psUpdateSO = connection.prepareStatement(sqlUpdateSO)) {
+//                psUpdateSO.setInt(1, newStatus);
+//                psUpdateSO.setInt(2, gi.getSalesOrder().getId());
+//                psUpdateSO.executeUpdate();
+//            }
+//
+//            connection.commit();
+//            return true;
+//        } catch (SQLException e) {
+//            try { connection.rollback(); } catch (SQLException re) { re.printStackTrace(); }
+//            e.printStackTrace();
+//            return false;
+//        } finally {
+//            try { connection.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+//        }
+//    }
     public boolean confirmIssue(GoodsIssue gi, List<GoodsIssueDetail> details) {
-        String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, Note, CreateBy) VALUES (?, ?, ?, GETDATE(), ?, ?, ?)";
-        String sqlGID = "INSERT INTO Goods_Issue_Detail (IssueID, ProductDetailID, QuantityExpected, QuantityActual) VALUES (?, ?, ?, ?)";
-        String sqlUpdateStock = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ? AND ProductID = ?";
-        String sqlTrans = "INSERT INTO Inventory_Transaction (ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) VALUES (?, ?, ?, 'ISSUE', ?, ?, GETDATE())";
-        String sqlUpdateSO = "UPDATE Sales_Order SET Status = ? WHERE SalesOrderID = ?";
+    String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, Note, CreateBy) VALUES (?, ?, ?, GETDATE(), ?, ?, ?)";
+    String sqlGID = "INSERT INTO Goods_Issue_Detail (IssueID, ProductDetailID, QuantityExpected, QuantityActual) VALUES (?, ?, ?, ?)";
+    String sqlUpdateStock = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
+    
+    // ĐOẠN LOG TRANSACTION Ở ĐÂY
+    String sqlTrans = "INSERT INTO Inventory_Transaction (ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) " +
+                      "VALUES (?, ?, ?, 'ISSUE', ?, ?, GETDATE())";
+    
+    String sqlUpdateSO = "UPDATE Sales_Order SET Status = ? WHERE SalesOrderID = ?";
 
-        try {
-            connection.setAutoCommit(false);
-            int issueId;
-            try (PreparedStatement psGI = connection.prepareStatement(sqlGI, Statement.RETURN_GENERATED_KEYS)) {
-                psGI.setString(1, gi.getIssueCode());
-                psGI.setInt(2, gi.getSalesOrder().getId());
-                psGI.setInt(3, gi.getLocation().getId());
-                psGI.setInt(4, gi.getStatus());
-                psGI.setString(5, gi.getNote());
-                psGI.setInt(6, gi.getCreateBy().getId());
-                psGI.executeUpdate();
-                ResultSet rs = psGI.getGeneratedKeys();
-                if (!rs.next()) throw new SQLException("Failed to create Goods Issue header");
-                issueId = rs.getInt(1);
+    try {
+        connection.setAutoCommit(false); // Bắt đầu giao dịch
+        
+        int issueId;
+        // 1. Lưu Header của Goods Issue
+        try (PreparedStatement psGI = connection.prepareStatement(sqlGI, Statement.RETURN_GENERATED_KEYS)) {
+            psGI.setString(1, gi.getIssueCode());
+            psGI.setInt(2, gi.getSalesOrder().getId());
+            psGI.setInt(3, gi.getLocation().getId());
+            psGI.setInt(4, gi.getStatus());
+            psGI.setString(5, gi.getNote());
+            psGI.setInt(6, gi.getCreateBy().getId());
+            psGI.executeUpdate();
+            
+            ResultSet rs = psGI.getGeneratedKeys();
+            if (!rs.next()) throw new SQLException("Failed to create Goods Issue header");
+            issueId = rs.getInt(1);
+        }
+
+        try (PreparedStatement psGID = connection.prepareStatement(sqlGID);
+             PreparedStatement psStock = connection.prepareStatement(sqlUpdateStock);
+             PreparedStatement psTrans = connection.prepareStatement(sqlTrans)) {
+            
+            for (GoodsIssueDetail detail : details) {
+                int pdId = detail.getProductDetail().getId();
+                int pId = detail.getProductDetail().getProduct().getId(); // Lấy ProductID từ đối tượng Product
+                int qty = detail.getQuantityActual();
+
+                // 2. Lưu chi tiết Goods Issue
+                psGID.setInt(1, issueId);
+                psGID.setInt(2, pdId);
+                psGID.setInt(3, detail.getQuantityExpected());
+                psGID.setInt(4, qty);
+                psGID.addBatch();
+
+                // 3. Cập nhật tồn kho (Trừ số lượng)
+                psStock.setInt(1, qty);
+                psStock.setInt(2, gi.getLocation().getId());
+                psStock.setInt(3, pdId);
+                int affected = psStock.executeUpdate();
+                if (affected == 0) throw new SQLException("Stock not found for ProductDetailID: " + pdId);
+
+                // 4. LƯU LOG GIAO DỊCH KHO (Inventory Transaction)
+                psTrans.setInt(1, pId);                // ProductID
+                psTrans.setInt(2, pdId);               // ProductDetailID
+                psTrans.setInt(3, gi.getLocation().getId()); // LocationID
+                psTrans.setInt(4, qty);                // Quantity
+                psTrans.setString(5, gi.getIssueCode()); // Dùng mã xuất kho làm ReferenceCode
+                psTrans.addBatch();
             }
+            
+            psGID.executeBatch();
+            psTrans.executeBatch(); // Thực thi lưu tất cả log giao dịch
+        }
 
-            try (PreparedStatement psGID = connection.prepareStatement(sqlGID);
-                 PreparedStatement psStock = connection.prepareStatement(sqlUpdateStock);
-                 PreparedStatement psTrans = connection.prepareStatement(sqlTrans)) {
-                
-                for (GoodsIssueDetail detail : details) {
-                    // 1. Insert Detail
-                    psGID.setInt(1, issueId);
-                    psGID.setInt(2, detail.getProductDetail().getId());
-                    psGID.setInt(3, detail.getQuantityExpected());
-                    psGID.setInt(4, detail.getQuantityActual());
-                    psGID.addBatch();
+        // 5. Cập nhật trạng thái Sales Order (Hoàn thành hoặc Giao một phần)
+        updateSalesOrderStatus(gi.getSalesOrder().getId());
 
-                    // 2. Update Stock
-                    System.out.println("[DEBUG] Updating Stock - Loc: " + gi.getLocation().getId() + 
-                                       ", PD: " + detail.getProductDetail().getId() + 
-                                       ", P: " + detail.getProductDetail().getProduct().getId() + 
-                                       ", Qty: " + detail.getQuantityActual());
-                    psStock.setInt(1, detail.getQuantityActual());
-                    psStock.setInt(2, gi.getLocation().getId());
-                    psStock.setInt(3, detail.getProductDetail().getId());
-                    psStock.setInt(4, detail.getProductDetail().getProduct().getId());
-                    int affected = psStock.executeUpdate();
-                    System.out.println("[DEBUG] Stock update affected rows: " + affected);
-                    
-                    if (affected == 0) {
-                        throw new SQLException("Could not update stock for ProductID: " + 
-                            detail.getProductDetail().getProduct().getId() + " at LocationID: " + gi.getLocation().getId());
-                    }
+        connection.commit(); // Hoàn tất giao dịch
+        return true;
+    } catch (SQLException e) {
+        try { connection.rollback(); } catch (SQLException re) { re.printStackTrace(); }
+        e.printStackTrace();
+        return false;
+    } finally {
+        try { connection.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+    }
+}
 
-                    // 3. Inventory Transaction
-                    psTrans.setInt(1, detail.getProductDetail().getProduct().getId());
-                    psTrans.setInt(2, detail.getProductDetail().getId());
-                    psTrans.setInt(3, gi.getLocation().getId());
-                    psTrans.setInt(4, detail.getQuantityActual());
-                    psTrans.setString(5, gi.getIssueCode());
-                    psTrans.addBatch();
-                }
-                psGID.executeBatch();
-                psTrans.executeBatch();
-            }
-
-            // 4. Update Sales Order Status
-            String sqlCheck = "SELECT " +
-                              "(SELECT SUM(quantity) FROM Sales_Order_Detail WHERE SalesOrderID = ?) as Total, " +
-                              "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = ?) as Shipped";
-            int total = 0, shipped = 0;
-            try (PreparedStatement psCheck = connection.prepareStatement(sqlCheck)) {
-                psCheck.setInt(1, gi.getSalesOrder().getId());
-                psCheck.setInt(2, gi.getSalesOrder().getId());
-                ResultSet rs = psCheck.executeQuery();
-                if (rs.next()) {
-                    total = rs.getInt("Total");
-                    shipped = rs.getInt("Shipped");
-                }
-            }
-            int newStatus = (shipped >= total) ? 3 : 2; // 3: Completed, 2: Partially
-            try (PreparedStatement psUpdateSO = connection.prepareStatement(sqlUpdateSO)) {
-                psUpdateSO.setInt(1, newStatus);
-                psUpdateSO.setInt(2, gi.getSalesOrder().getId());
-                psUpdateSO.executeUpdate();
-            }
-
-            connection.commit();
-            return true;
-        } catch (SQLException e) {
-            try { connection.rollback(); } catch (SQLException re) { re.printStackTrace(); }
-            e.printStackTrace();
-            return false;
-        } finally {
-            try { connection.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+// Hàm bổ trợ để check và update status SO
+private void updateSalesOrderStatus(int soId) throws SQLException {
+    String sqlCheck = "SELECT " +
+                      "(SELECT SUM(quantity) FROM Sales_Order_Detail WHERE SalesOrderID = ?) as Total, " +
+                      "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = ?) as Shipped";
+    
+    int total = 0, shipped = 0;
+    try (PreparedStatement ps = connection.prepareStatement(sqlCheck)) {
+        ps.setInt(1, soId);
+        ps.setInt(2, soId);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            total = rs.getInt("Total");
+            shipped = rs.getInt("Shipped");
         }
     }
+    
+    int newStatus = (shipped >= total) ? 3 : 2; // 3: Completed, 2: Partially Delivered
+    String sqlUpdate = "UPDATE Sales_Order SET Status = ? WHERE SalesOrderID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sqlUpdate)) {
+        ps.setInt(1, newStatus);
+        ps.setInt(2, soId);
+        ps.executeUpdate();
+    }
+}
 }
