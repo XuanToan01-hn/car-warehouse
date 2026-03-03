@@ -1,0 +1,194 @@
+/*Delete*/
+.delete-container {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.delete-content {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 450px;
+    width: 100%;
+    padding: 20px;
+    text-align: center;
+    margin-left: 875px;
+    margin-top: 395px;
+}
+.confirmation-message {
+    margin-bottom: 20px;
+}
+
+.button-container {
+    display: flex;
+    justify-content: space-around;
+}
+
+.button-d {
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background-color: #ccc;
+    color: #535353;
+}
+
+.delete-button {
+    background-color: #e74c3c;
+    color: #fff;
+}
+
+.searchbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-input {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-button {
+    background-color: #0e5699;
+    color: white;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-button i {
+    margin-right: 4px;
+}
+
+/*Alert*/
+.toast-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    min-width: 280px;
+    max-width: 400px;
+    border-radius: 8px;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: white;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    animation: slideFadeIn 0.4s ease-out;
+    opacity: 0.95;
+    line-height: 1.4;
+}
+
+#errorToast {
+    background-color: #e74c3c; /* đỏ tươi */
+}
+
+#successToast {
+    background-color: #2ecc71; /* xanh tươi */
+}
+
+@keyframes slideFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 0.95;
+        transform: translateY(0);
+    }
+}
+
+
+
+/*Sales order*/
+
+/*choose customer start*/
+.custom-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding-top: 95px;
+}
+.custom-modal-content {
+    background-color: #fefefe;
+    margin: auto; /* Căn giữa theo chiều ngang (cách cũ, flexbox đã xử lý) */
+    padding: 25px;
+    border: 1px solid #888;
+    width: 70%; /* Chiều rộng của modal */
+    max-width: 800px; /* Chiều rộng tối đa */
+    border-radius: 10px; /* Bo tròn các góc */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Tạo hiệu ứng đổ bóng */
+    position: relative;
+    /* Hiệu ứng trượt xuống khi xuất hiện */
+    animation-name: slideDown;
+    animation-duration: 0.4s;
+}
+.custom-modal-body {
+    margin-top: 50px;
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 15px;
+}
+.content-title{
+    font-size: 25px;
+}
+@keyframes slideDown {
+    from {
+        top: -100px;
+        opacity: 0;
+    }
+    to {
+        top: 0;
+        opacity: 1;
+    }
+}
+.custom-modal-header button{
+    float: right;
+}
+
+.close-btn {
+    color: #aaa;
+    font-size: 30px;
+    font-weight: bold;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 10px;
+}
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+/*choose customer end*/
