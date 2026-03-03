@@ -17,12 +17,6 @@
                     
                     <div class="card mb-4">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <a href="add-product-detail" class="btn btn-primary">
-                                    <i class="ri-add-line"></i> Add New Detail
-                                </a>
-                            </div>
-                            
                             <form method="get" action="list-product-detail">
                                 <div class="row align-items-end">
                                     <div class="col-md-3">
@@ -46,58 +40,39 @@
                         </div>
                     </div>
 
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead class="bg-white text-uppercase">
+                    <table class="table">
+                        <thead class="bg-white text-uppercase">
+                            <tr>
+                                <th>Product</th>
+                                <th>Lot</th>
+                                <th>Serial</th>
+                                <th>Mfd Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach items="${listDetail}" var="pd">
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Color</th>
-                                    <th>Quantity</th>
-                                    <th>Lot Number</th>
-                                    <th>Serial Number</th>
-                                    <th>Mfd Date</th>
+                                    <td><strong>${pd.product.name}</strong></td>
+                                    <td>${pd.lotNumber}</td>
+                                    <td>${pd.serialNumber}</td>
+                                    <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                <c:forEach items="${listDetail}" var="pd">
-                                    <tr>
-                                        <td><strong>${pd.product.name}</strong></td>
-                                        <td><span class="badge badge-info">${pd.color}</span></td>
-                                        <td><strong>${pd.quantity}</strong></td>
-                                        <td>${pd.lotNumber}</td>
-                                        <td>${pd.serialNumber}</td>
-                                        <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
-                                    </tr>
-                                </c:forEach>
-                                
-                                <c:if test="${empty listDetail}">
-                                    <tr>
-                                        <td colspan="6" class="text-center text-muted">No product detail found.</td>
-                                    </tr>
-                                </c:if>
-                            </tbody>
-                        </table>
-                    </div>
+                            </c:forEach>
+                            <c:if test="${empty listDetail}">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">No product detail found.</td>
+                                </tr>
+                            </c:if>
+                        </tbody>
+                    </table>
 
                     <nav class="mt-3">
                         <ul class="pagination justify-content-end">
-                            <c:if test="${currentPage > 1}">
-                                <li class="page-item">
-                                    <a class="page-link" href="list-product-detail?page=${currentPage - 1}&productId=${param.productId}&search=${param.search}">Previous</a>
-                                </li>
-                            </c:if>
-                            
                             <c:forEach begin="${startPage}" end="${endPage}" var="i">
                                 <li class="page-item ${i == currentPage ? 'active' : ''}">
                                     <a class="page-link" href="list-product-detail?page=${i}&productId=${param.productId}&search=${param.search}">${i}</a>
                                 </li>
                             </c:forEach>
-                            
-                            <c:if test="${currentPage < totalPages}">
-                                <li class="page-item">
-                                    <a class="page-link" href="list-product-detail?page=${currentPage + 1}&productId=${param.productId}&search=${param.search}">Next</a>
-                                </li>
-                            </c:if>
                         </ul>
                     </nav>
                 </div>

@@ -27,8 +27,9 @@ public class PurchaseOrderDAO extends DBContext {
         po.setStatus(rs.getInt("Status"));
         po.setTotalAmount(rs.getDouble("TotalAmount"));
         Timestamp ts = rs.getTimestamp("CreatedDate");
-        if (ts != null)
+        if (ts != null) {
             po.setCreatedDate(new java.util.Date(ts.getTime()));
+        }
 
         // Supplier
         Supplier s = new Supplier();
@@ -63,8 +64,9 @@ public class PurchaseOrderDAO extends DBContext {
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
-            while (rs.next())
+            while (rs.next()) {
                 list.add(mapRow(rs));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -76,17 +78,19 @@ public class PurchaseOrderDAO extends DBContext {
     // ===============================
     public List<PurchaseOrder> searchAndPaginate(String keyword, int status, int offset, int limit) {
         List<PurchaseOrder> list = new ArrayList<>();
+        // Đã cập nhật cú pháp phân trang sang LIMIT cho MySQL
         String sql = """
-            SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
-                   po.CreatedDate, po.CreateBy,
-                   po.SupplierID, s.Name AS SupplierName
-            FROM Purchase_Order po
-            LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
-            WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
-              AND (? = 0 OR po.Status = ?)
-            ORDER BY po.CreatedDate DESC
-            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-            """;
+    SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
+           po.CreatedDate, po.CreateBy,
+           po.SupplierID, s.Name AS SupplierName
+    FROM Purchase_Order po
+    LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
+    WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
+      AND (? = 0 OR po.Status = ?)
+    ORDER BY po.CreatedDate DESC
+    OFFSET ? ROWS 
+    FETCH NEXT ? ROWS ONLY
+    """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             String kw = "%" + keyword + "%";
@@ -98,8 +102,9 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setInt(6, limit);
 
             ResultSet rs = ps.executeQuery();
-            while (rs.next())
+            while (rs.next()) {
                 list.add(mapRow(rs));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -124,8 +129,9 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setInt(3, status);
             ps.setInt(4, status);
             ResultSet rs = ps.executeQuery();
-            if (rs.next())
+            if (rs.next()) {
                 return rs.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -204,7 +210,7 @@ public class PurchaseOrderDAO extends DBContext {
                     t.setId(taxId);
                     t.setTaxName(rs.getString("TaxName"));
                     t.setTaxRate(rs.getDouble("TaxRate"));
-                    pod.setTax(t);
+                    pod.setTax(t); // Yêu cầu PurchaseOrderDetail có method setTax(Tax t)
                 }
 
                 list.add(pod);
@@ -236,8 +242,9 @@ public class PurchaseOrderDAO extends DBContext {
             }
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next())
+            if (rs.next()) {
                 return rs.getInt(1);
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -298,17 +305,17 @@ public class PurchaseOrderDAO extends DBContext {
             );
         }
 
-        System.out.println("\n===== TEST searchAndPaginate() =====");
+        System.out.println("\\n===== TEST searchAndPaginate() =====");
         List<PurchaseOrder> searchList = dao.searchAndPaginate("", 0, 0, 5);
         for (PurchaseOrder po : searchList) {
             System.out.println(po.getOrderCode());
         }
 
-        System.out.println("\n===== TEST count() =====");
+        System.out.println("\\n===== TEST count() =====");
         int total = dao.count("", 0);
         System.out.println("Total records: " + total);
 
-        System.out.println("\n===== TEST getById() =====");
+        System.out.println("\\n===== TEST getById() =====");
         PurchaseOrder poDetail = dao.getById(1); // đổi ID nếu cần
         if (poDetail != null) {
             System.out.println("Order: " + poDetail.getOrderCode());
@@ -325,7 +332,7 @@ public class PurchaseOrderDAO extends DBContext {
             System.out.println("Order not found");
         }
 
-        System.out.println("\n===== TEST insert() =====");
+        System.out.println("\\n===== TEST insert() =====");
         PurchaseOrder newPO = new PurchaseOrder();
         newPO.setOrderCode("PO_TEST_" + System.currentTimeMillis());
         newPO.setStatus(1);
@@ -343,7 +350,7 @@ public class PurchaseOrderDAO extends DBContext {
         System.out.println("Inserted PurchaseOrder ID: " + newId);
 
         if (newId != -1) {
-            System.out.println("\n===== TEST insertDetail() =====");
+            System.out.println("\\n===== TEST insertDetail() =====");
 
             PurchaseOrderDetail pod = new PurchaseOrderDetail();
             pod.setPurchaseOrderId(newId);
@@ -364,11 +371,11 @@ public class PurchaseOrderDAO extends DBContext {
             dao.insertDetail(pod);
             System.out.println("Inserted detail for PO: " + newId);
 
-            System.out.println("\n===== TEST updateStatus() =====");
+            System.out.println("\\n===== TEST updateStatus() =====");
             dao.updateStatus(newId, 2);
             System.out.println("Updated status to 2 for PO: " + newId);
         }
 
-        System.out.println("\n===== DONE TEST =====");
+        System.out.println("\\n===== DONE TEST =====");
     }
 }

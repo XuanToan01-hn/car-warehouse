@@ -6,29 +6,67 @@ public class PurchaseOrderDetail {
     private Product product;
     private int quantity;
     private double price;
-    private Tax tax;
+
+     private Tax tax;
     private double subTotal;
 
     public PurchaseOrderDetail() {}
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    // Getter và Setter tương ứng các cột: ProductID, Quantity, Price, SubTotal...
 
-    public int getPurchaseOrderId() { return purchaseOrderId; }
-    public void setPurchaseOrderId(int purchaseOrderId) { this.purchaseOrderId = purchaseOrderId; }
+    public int getId() {
+        return id;
+    }
 
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public int getPurchaseOrderId() {
+        return purchaseOrderId;
+    }
 
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
+    public void setPurchaseOrderId(int purchaseOrderId) {
+        this.purchaseOrderId = purchaseOrderId;
+    }
 
-    public Tax getTax() { return tax; }
-    public void setTax(Tax tax) { this.tax = tax; }
+    public Product getProduct() {
+        return product;
+    }
 
-    public double getSubTotal() { return subTotal; }
-    public void setSubTotal(double subTotal) { this.subTotal = subTotal; }
+    public void setProduct(Product product) {
+        this.product = product;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+     public Tax getTax() {
+        return tax;
+    }
+
+    public void setTax(Tax tax) {
+        this.tax = tax;
+    }
+    public double getSubTotal() {
+        return subTotal;
+    }
+
+    public void setSubTotal(double subTotal) {
+        this.subTotal = subTotal;
+    }
+
 }
