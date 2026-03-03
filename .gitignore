@@ -1,21 +1,21 @@
 swp-wh/build/
-swp-wh/nbproject
 
 .idea/
 out/
 
 swp-wh/src/java/context/DBContext.java
-/swp-wh/nbproject/private/
-
-
 
 swp-wh/.idea/
-swp-wh/nbproject/
 
 swp-wh/swp-wh.iml
 
-
-nbproject/private/private.xml
-
 *.iml
+
 /swp-wh/dist/
+
+# Allow nbproject except private
+!swp-wh/nbproject/
+!swp-wh/nbproject/**
+
+swp-wh/nbproject/private/
+nbproject/private/private.xml
