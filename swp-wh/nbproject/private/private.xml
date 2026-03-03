@@ -3,17 +3,51 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/goodsreceipt/ListGoodsReceiptServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/ProductDetailDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/transfer-list.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/goodissue/GoodsIssueServlet.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/purchase/page-list-purchase-order.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Product.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/ProductDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/GoodsReceiptDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/product/ListProduct.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product/page-list-product.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/transferInternal/TransferController.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/GoodsIssueDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/LocationDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/InventoryTransactionDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/productDetail/ListProductDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/access/LoginServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product/page-update-product.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product-detail/page-add-product-detail.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/purchase/ListPurchaseOrderServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/productDetail/AddProductDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/inventory-transaction/log-list.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/product/DeleteProduct.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/TransferOrder.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/UnitDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/goodsreceipt/ListGoodsReceiptServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product-detail/page-list-product-detail.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/UserDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/location/LocationServlet.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/purchase/AddPurchaseOrderServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/LocationProductDAO.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/goodsreceipt/ConfirmGoodsReceiptServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/TransferOrderDetail.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/transferInternal/CreateTransferServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/InventoryTransaction.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/inventoryTransaction/InventoryTransactionServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/purchase/DetailPurchaseOrderServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/TransferDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/sales/SalesOrderServlet.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/product/page-add-product.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/ProductDAO.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/purchase/page-add-purchase-order.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/sidebar.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/RoleDAO.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/purchase/DetailPurchaseOrderServlet.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/sales/SalesOrderServlet.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/purchase/ListPurchaseOrderServlet.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/ProductDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/product/UpdateProduct.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/User.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/product/AddProduct.java</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/home/HomeServlet.java</file>
         </group>
     </open-files>
