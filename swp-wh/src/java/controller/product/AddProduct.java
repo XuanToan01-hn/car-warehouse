@@ -76,17 +76,18 @@ public class AddProduct extends HttpServlet {
             request.setAttribute("uDes", description);
             request.setAttribute("unitS", unitId);
         } else {
-            // Mapping vào Model và Insert
-            Product product = new Product(
-                0, // ID auto-increment
-                code,
-                name,
-                (double) price,
-                description,
-                image, // Link ảnh
-                unitDAO.getUnitById(unitId),
-                categoryDAO.getByID(categoryId)
-            );
+            // FIX: Sử dụng setter thay vì constructor để tránh lỗi khi Model thay đổi
+            Product product = new Product();
+            product.setCode(code);
+            product.setName(name);
+            product.setPrice((double) price);
+            product.setDescription(description);
+            product.setImage(image);
+            product.setUnit(unitDAO.getUnitById(unitId));
+            product.setCategory(categoryDAO.getByID(categoryId));
+            product.setMinStock(0); // Set mặc định
+            // Nếu có Supplier thì thêm: product.setSupplier(supplierDAO.getById(supplierId));
+
             productDAO.insert(product);
         }
 

@@ -8,13 +8,12 @@ public class PurchaseOrder {
     private String orderCode;
     private Supplier supplier;
     private Date createdDate;
-    private int status;
+    private int status; // 1=Draft, 2=Confirmed, 3=Received, 4=Cancelled
     private double totalAmount;
     private User createBy;
     private List<PurchaseOrderDetail> details;
 
-    public PurchaseOrder() {
-    }
+    public PurchaseOrder() {}
 
     public int getId() {
         return id;
@@ -82,16 +81,11 @@ public class PurchaseOrder {
 
     public String getStatusLabel() {
         switch (status) {
-            case 1:
-                return "Draft";
-            case 2:
-                return "Confirmed";
-            case 3:
-                return "Received";
-            case 4:
-                return "Cancelled";
-            default:
-                return "Unknown";
+            case 1: return "Draft";
+            case 2: return "Confirmed";
+            case 3: return "Received";
+            case 4: return "Cancelled";
+            default: return "Unknown";
         }
     }
 }

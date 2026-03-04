@@ -11,7 +11,6 @@ import model.Product;
 import java.sql.SQLException;
 public class ProductDetailDAO extends DBContext {
 
-
     // Cần ProductDAO để lấy thông tin Product cha cho ProductDetail
     private final ProductDAO productDAO = new ProductDAO();
     private final CategoryDAO categoryDAO = new CategoryDAO();
@@ -149,6 +148,47 @@ public ProductDetail getById(int id) {
             e.printStackTrace();
         }
         return 0;
+    }
+
+    public void insert(ProductDetail pd) {
+        String sql = "INSERT INTO Product_Detail (LotNumber, SerialNumber, ManufactureDate, ProductID, Color, Quantity) VALUES (?, ?, ?, ?, ?, ?)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, pd.getLotNumber());
+            ps.setString(2, pd.getSerialNumber());
+            ps.setDate(3, new java.sql.Date(pd.getManufactureDate().getTime()));
+            ps.setInt(4, pd.getProduct().getId());
+            ps.setString(5, pd.getColor());
+            ps.setInt(6, pd.getQuantity());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void update(ProductDetail pd) {
+        String sql = "UPDATE Product_Detail SET LotNumber = ?, SerialNumber = ?, ManufactureDate = ?, ProductID = ?, Color = ?, Quantity = ? WHERE ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, pd.getLotNumber());
+            ps.setString(2, pd.getSerialNumber());
+            ps.setDate(3, new java.sql.Date(pd.getManufactureDate().getTime()));
+            ps.setInt(4, pd.getProduct().getId());
+            ps.setString(5, pd.getColor());
+            ps.setInt(6, pd.getQuantity());
+            ps.setInt(7, pd.getId());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void delete(int id) {
+        String sql = "DELETE FROM Product_Detail WHERE ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {

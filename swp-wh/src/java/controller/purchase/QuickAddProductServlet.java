@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Category;
 import model.Product;
+import model.Supplier;
 
 @WebServlet(name = "QuickAddProductServlet", urlPatterns = { "/quick-add-product" })
 public class QuickAddProductServlet extends HttpServlet {
@@ -22,7 +23,6 @@ public class QuickAddProductServlet extends HttpServlet {
         response.setContentType("application/json;charset=UTF-8");
 
         ProductDAO productDAO = new ProductDAO();
-        SupplierDAO supplierDAO = new SupplierDAO();
 
         try (PrintWriter out = response.getWriter()) {
             String name = request.getParameter("name");
@@ -57,21 +57,29 @@ public class QuickAddProductServlet extends HttpServlet {
                     cat.setId(Integer.parseInt(catIdStr));
                     p.setCategory(cat);
                 } catch (Exception e) {
-                    /* bỏ qua */ }
+                    /* bỏ qua */
+                }
             }
 
-            int newProductId = productDAO.insertAndGetId(p);
-            if (newProductId > 0) {
-                // Link supplier → product nếu có supplierId
-                if (supIdStr != null && !supIdStr.isEmpty()) {
-                    try {
-                        supplierDAO.updateProductId(Integer.parseInt(supIdStr), newProductId);
-                    } catch (Exception e) {
-                        /* không bắt buộc */ }
+            // Set Supplier (Theo Model và DB mới)
+            if (supIdStr != null && !supIdStr.isEmpty()) {
+                try {
+                    Supplier sup = new Supplier();
+                    sup.setId(Integer.parseInt(supIdStr));
+                    p.setSupplier(sup);
+                } catch (Exception e) {
+                    /* bỏ qua */
                 }
+            }
+
+            // Insert Product (ProductDAO lúc này đã tự động lưu SupplierID vào DB)
+            int newProductId = productDAO.insertAndGetId(p);
+
+            if (newProductId > 0) {
                 out.print("{\"success\":true,\"productId\":" + newProductId
                         + ",\"productName\":\"" + escapeJson(name.trim())
-                        + "\",\"productCode\":\"" + escapeJson(code.trim()) + "\"}");
+                        + "\",\"productCode\":\"" + escapeJson(code.trim())
+                        + "\",\"color\":\"Chưa có màu\"}"); // Thêm trường color ở đây
             } else {
                 out.print("{\"success\":false,\"message\":\"Lỗi khi lưu sản phẩm\"}");
             }
