@@ -232,7 +232,7 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Warehouse Code</label>
                                         <input type="text" name="warehouseCode" id="f-code" class="form-control"
-                                            placeholder="e.g. WH-001" required>
+                                            placeholder="Auto-generated" readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Warehouse Name</label>
@@ -275,6 +275,9 @@
                     document.getElementById('form-action').value = "add";
                     document.getElementById('warehouseForm').reset();
                     document.getElementById('wh-id').value = "";
+                    document.getElementById('f-code').readOnly = true;
+                    document.getElementById('f-code').placeholder = "Auto-generated";
+                    document.getElementById('f-code').value = "";
                 }
 
                 function prepareEdit(id) {
@@ -285,6 +288,7 @@
                             document.getElementById('form-action').value = "update";
                             document.getElementById('wh-id').value = data.id;
                             document.getElementById('f-code').value = data.code;
+                            document.getElementById('f-code').readOnly = true;
                             document.getElementById('f-name').value = data.name;
                             document.getElementById('f-address').value = data.address || '';
                             document.getElementById('f-description').value = data.description || '';

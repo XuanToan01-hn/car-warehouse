@@ -356,7 +356,7 @@
                             document.getElementById('form-action').value = "update";
                             document.getElementById('c-id').value = data.id;
                             document.getElementById('f-code').value = data.customerCode || '';
-                            document.getElementById('f-code').readOnly = false; // Allow editing code in edit mode if needed, or keep it readOnly
+                            document.getElementById('f-code').readOnly = true;
                             document.getElementById('f-name').value = data.name || '';
                             document.getElementById('f-phone').value = data.phone || '';
                             document.getElementById('f-email').value = data.email || '';
