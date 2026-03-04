@@ -10,6 +10,20 @@ import java.util.List;
 
 public class CustomerDAO extends DBContext {
 
+    public String getNextCustomerCode() {
+        String sql = "SELECT MAX(CustomerID) FROM Customer";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("CUS-%04d", nextId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "CUS-0001";
+    }
+
     public Customer getById(int id) {
         String sql = "SELECT * FROM Customer WHERE CustomerID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

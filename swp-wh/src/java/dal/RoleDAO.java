@@ -11,27 +11,25 @@ import model.Role;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 /**
  *
  * @author Asus
  */
-public class RoleDAO extends DBContext {
-
+public class RoleDAO extends DBContext{
+    
+    
     public static void main(String[] args) {
         RoleDAO r = new RoleDAO();
-//        Role rl = new Role("Purchasing Staff");
-//        r.insert(rl);
         List<Role> lr = r.getAll();
-        for (Role b : lr) {
-            System.out.println(b.getId() + "/" + b.getRoleName());
+        for(Role  b : lr ){
+            System.out.println(b.getId() +"/"+b.getRoleName());
         }
     }
-
     public List<Role> getAll() {
         List<Role> list = new ArrayList<>();
         String sql = "SELECT * FROM Role";
-        try (PreparedStatement ps = connection.prepareStatement(sql); ResultSet rs = ps.executeQuery()) {
+        try (PreparedStatement ps = connection.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Role r = new Role();
@@ -92,5 +90,6 @@ public class RoleDAO extends DBContext {
             e.printStackTrace();
         }
     }
+    
 
 }

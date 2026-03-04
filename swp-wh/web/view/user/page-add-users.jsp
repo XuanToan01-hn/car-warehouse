@@ -239,7 +239,7 @@
 
             function toggleWarehouseField() {
                 const selectedText = roleSelect.options[roleSelect.selectedIndex].text;
-                if (selectedText === 'Inventory Staff' || selectedText === 'Sale Staff' || selectedText === 'Purchasing Staff') {
+                if (selectedText === 'Inventory Staff' || selectedText === 'Sales Staff') {
                     warehouseDropdown.style.display = 'block';
                 } else {
                     warehouseDropdown.style.display = 'none';

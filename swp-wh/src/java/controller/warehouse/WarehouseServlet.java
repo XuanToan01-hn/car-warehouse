@@ -83,8 +83,10 @@ public class WarehouseServlet extends HttpServlet {
 
         WarehouseDAO warehouseDAO = new WarehouseDAO();
         if ("update".equals(action)) {
+            w.setWarehouseCode(code);
             warehouseDAO.update(w);
         } else {
+            w.setWarehouseCode(warehouseDAO.getNextWarehouseCode()); // Auto-generate code
             warehouseDAO.insert(w);
         }
 

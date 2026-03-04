@@ -194,6 +194,25 @@
                                 </button>
                             </div>
 
+                            <c:if test="${not empty sessionScope.error}">
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="error" scope="session" />
+                            </c:if>
+                            <c:if test="${not empty sessionScope.success}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-checkbox-circle-line mr-2"></i> ${sessionScope.success}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="success" scope="session" />
+                            </c:if>
+
                             <div class="search-section">
                                 <i class="ri-search-line"></i>
                                 <input type="text" id="searchInput" placeholder="Search by code, name or phone...">
@@ -273,12 +292,14 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Customer Code</label>
                                         <input type="text" name="customerCode" id="f-code" class="form-control"
-                                            placeholder="e.g. CUST-001" required>
+                                            placeholder="Auto-generated" readonly>
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Customer Name</label>
                                         <input type="text" name="name" id="f-name" class="form-control"
-                                            placeholder="Enter full name" required>
+                                            placeholder="Enter full name" required
+                                            pattern="^[A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝàáâãèéêìíòóôõùúýĂăĐđĨĩŨũƠơƯưẠ-ỹ\s]+$"
+                                            title="Tên chỉ được chứa chữ cái và khoảng trắng">
                                     </div>
                                 </div>
 
@@ -286,7 +307,8 @@
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Phone Number</label>
                                         <input type="text" name="phone" id="f-phone" class="form-control"
-                                            placeholder="e.g. 0123456789">
+                                            placeholder="e.g. 0123456789" pattern="^0\d{9}$"
+                                            title="Số điện thoại phải có 10 số và bắt đầu bằng số 0">
                                     </div>
                                     <div class="col-md-6 mb-3">
                                         <label class="form-label">Email Address</label>
@@ -321,6 +343,9 @@
                     document.getElementById('form-action').value = "add";
                     document.getElementById('customerForm').reset();
                     document.getElementById('c-id').value = "";
+                    document.getElementById('f-code').readOnly = true;
+                    document.getElementById('f-code').placeholder = "Auto-generated";
+                    document.getElementById('f-code').value = "";
                 }
 
                 function prepareEdit(id) {
@@ -331,6 +356,7 @@
                             document.getElementById('form-action').value = "update";
                             document.getElementById('c-id').value = data.id;
                             document.getElementById('f-code').value = data.customerCode || '';
+                            document.getElementById('f-code').readOnly = true;
                             document.getElementById('f-name').value = data.name || '';
                             document.getElementById('f-phone').value = data.phone || '';
                             document.getElementById('f-email').value = data.email || '';
@@ -342,6 +368,28 @@
                             alert('Error loading customer data');
                         });
                 }
+
+                // Client-side validation before submit
+                document.getElementById('customerForm').addEventListener('submit', function (e) {
+                    const name = document.getElementById('f-name').value.trim();
+                    const phone = document.getElementById('f-phone').value.trim();
+
+                    const nameRegex = /^[A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝàáâãèéêìíòóôõùúýĂăĐđĨĩŨũƠơƯưẠ-ỹ\s]+$/;
+                    if (!nameRegex.test(name)) {
+                        alert('Tên phải là định dạng chữ!');
+                        e.preventDefault();
+                        return;
+                    }
+
+                    if (phone !== "") {
+                        const phoneRegex = /^0\d{9}$/;
+                        if (!phoneRegex.test(phone)) {
+                            alert('Số điện thoại phải là 10 số và bắt đầu bằng số 0!');
+                            e.preventDefault();
+                            return;
+                        }
+                    }
+                });
 
                 // Search logic
                 const searchInput = document.getElementById('searchInput');

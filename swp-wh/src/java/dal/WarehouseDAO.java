@@ -8,6 +8,20 @@ import java.util.ArrayList;
 import java.util.List;
 import model.Warehouse;
 public class WarehouseDAO extends DBContext {
+
+    public String getNextWarehouseCode() {
+        String sql = "SELECT MAX(WarehouseID) FROM Warehouse";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("WH-CAR-%04d", nextId);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "WH-CAR-0001";
+    }
     
     public Warehouse getById(int id) {
         String sql = "SELECT * FROM Warehouse WHERE WarehouseID = ?";
