@@ -5,8 +5,6 @@
 
 package controller.productDetail;
 
-import dal.ProductDAO;
-import dal.ProductDetailDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -14,8 +12,6 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Product;
-import model.ProductDetail;
 
 /**
  *
@@ -56,10 +52,11 @@ public class AddProductDetail extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        request.setAttribute("listProduct", new ProductDAO().getAll());
-        request.getRequestDispatcher("view/product-detail/page-add-product-detail.jsp").forward(request, response);
-    }
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        processRequest(request, response);
+    } 
 
     /** 
      * Handles the HTTP <code>POST</code> method.
@@ -69,24 +66,9 @@ public class AddProductDetail extends HttpServlet {
      * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            ProductDetail pd = new ProductDetail();
-            pd.setLotNumber(request.getParameter("lotNumber"));
-            pd.setSerialNumber(request.getParameter("serialNumber"));
-            pd.setManufactureDate(java.sql.Date.valueOf(request.getParameter("mfdDate")));
-            pd.setColor(request.getParameter("color"));
-            pd.setQuantity(Integer.parseInt(request.getParameter("quantity")));
-            
-            Product p = new Product();
-            p.setId(Integer.parseInt(request.getParameter("productId")));
-            pd.setProduct(p);
-
-            new ProductDetailDAO().insert(pd);
-            response.sendRedirect("list-product-detail?status=success");
-        } catch (Exception e) {
-            response.sendRedirect("add-product-detail?status=error");
-        }
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+    throws ServletException, IOException {
+        processRequest(request, response);
     }
 
     /** 

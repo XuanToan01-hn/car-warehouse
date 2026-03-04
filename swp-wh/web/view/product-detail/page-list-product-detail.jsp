@@ -20,12 +20,6 @@
                     
                     <div class="card mb-4">
                         <div class="card-body">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <a href="add-product-detail" class="btn btn-primary">
-                                    <i class="ri-add-line"></i> Add New Detail
-                                </a>
-                            </div>
-                            
                             <form method="get" action="list-product-detail">
                                 <div class="row align-items-end">
                                     <div class="col-md-3">
@@ -88,23 +82,11 @@
 
                     <nav class="mt-3">
                         <ul class="pagination justify-content-end">
-                            <c:if test="${currentPage > 1}">
-                                <li class="page-item">
-                                    <a class="page-link" href="list-product-detail?page=${currentPage - 1}&productId=${param.productId}&search=${param.search}">Previous</a>
-                                </li>
-                            </c:if>
-                            
                             <c:forEach begin="${startPage}" end="${endPage}" var="i">
                                 <li class="page-item ${i == currentPage ? 'active' : ''}">
                                     <a class="page-link" href="list-product-detail?page=${i}&productId=${param.productId}&search=${param.search}">${i}</a>
                                 </li>
                             </c:forEach>
-                            
-                            <c:if test="${currentPage < totalPages}">
-                                <li class="page-item">
-                                    <a class="page-link" href="list-product-detail?page=${currentPage + 1}&productId=${param.productId}&search=${param.search}">Next</a>
-                                </li>
-                            </c:if>
                         </ul>
                     </nav>
                 </div>
