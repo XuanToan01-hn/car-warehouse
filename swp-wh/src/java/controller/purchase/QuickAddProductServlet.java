@@ -27,7 +27,6 @@ public class QuickAddProductServlet extends HttpServlet {
         try (PrintWriter out = response.getWriter()) {
             String name = request.getParameter("name");
             String code = request.getParameter("code");
-            String priceStr = request.getParameter("price");
             String catIdStr = request.getParameter("categoryId");
             String supIdStr = request.getParameter("supplierId");
 
@@ -36,17 +35,9 @@ public class QuickAddProductServlet extends HttpServlet {
                 return;
             }
 
-            double price = 0;
-            try {
-                price = Double.parseDouble(priceStr);
-            } catch (Exception e) {
-                price = 0;
-            }
-
             Product p = new Product();
             p.setName(name.trim());
             p.setCode(code.trim());
-            p.setPrice(price);
             p.setDescription("");
             p.setImage("");
             p.setMinStock(0);

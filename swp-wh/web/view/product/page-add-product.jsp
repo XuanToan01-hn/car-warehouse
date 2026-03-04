@@ -27,8 +27,13 @@
                                         <input type="text" name="code" value="${uCode}" class="form-control" required>
                                     </div>
                                     <div class="col-md-6 form-group">
-                                        <label>Price * <span style="color:red">${ePrice}</span></label>
-                                        <input type="number" name="price" value="${uPrice}" class="form-control" required>
+                                        <label>Supplier *</label>
+                                        <select name="supplier" class="form-control" required>
+                                            <option value="">-- Choose a Supplier --</option>
+                                            <c:forEach items="${listSupplier}" var="s">
+                                                <option ${uSupplier == s.id ? 'selected' : ''} value="${s.id}">${s.name}</option>
+                                            </c:forEach>
+                                        </select>
                                     </div>
                                     <div class="col-md-6 form-group">
                                         <label>Category</label>

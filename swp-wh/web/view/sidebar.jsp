@@ -16,7 +16,7 @@
         <div class="data-scrollbar" data-scroll="1">
             <nav class="iq-sidebar-menu">
                 <ul id="iq-sidebar-toggle" class="iq-menu">
-                    <c:if test="${user.role.roleId == 5}">
+                    <c:if test="${user.role.id == 5}">
                         <li class=" ">
                             <a href="dash-board" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/dashboard.png"
@@ -144,7 +144,7 @@
                         </li>
                     </c:if>
 
-                    <c:if test="${user.role.roleId == 1}">
+                    <c:if test="${user.role.id == 1}">
                         <li class=" ">
                             <a href="permissions" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/permissions.png"
@@ -172,7 +172,7 @@
                         </li>
                     </c:if>
 
-                    <c:if test="${user.role.roleId == 4 || empty user}">
+                    <c:if test="${user.role.id == 4 || empty user}">
                         <li class=" ">
                             <a href="inventory-report-staff" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png"
@@ -232,7 +232,7 @@
                         </li>
                     </c:if>
 
-                    <c:if test="${user.role.roleId == 2}">
+                    <c:if test="${user.role.id == 2}">
                         <li class=" ">
                             <a href="sales-order?action=list" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/sale.png" alt="image">
@@ -249,7 +249,7 @@
                     </c:if>
 
 
-                    <c:if test="${user.role.roleId == 3}">
+                    <c:if test="${user.role.id == 3}">
                         <li class=" ">
                             <a href="#purchase-order" class="collapsed" data-toggle="collapse" aria-expanded="false">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png"

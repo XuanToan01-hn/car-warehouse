@@ -4,7 +4,6 @@ public class Product {
     private int id;
     private String code;
     private String name;
-    private double price;
     private String description;
     private String image;
     private Unit unit;
@@ -21,47 +20,89 @@ public class Product {
     public void setColor(String color) {
         this.color = color;
     }
-    public Product() {}
 
-    public Product(int id, String code, String name, double price, String description, String image, Unit unit, Category category) {
+    public Product() {
+    }
+
+    public Product(int id, String code, String name, String description, String image, Unit unit, Category category) {
         this.id = id;
         this.code = code;
         this.name = name;
-        this.price = price;
         this.description = description;
         this.image = image;
         this.unit = unit;
         this.category = category;
     }
 
+    public int getId() {
+        return id;
+    }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
+    public String getCode() {
+        return code;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setCode(String code) {
+        this.code = code;
+    }
 
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
+    public String getName() {
+        return name;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getImage() { return image; }
-    public void setImage(String image) { this.image = image; }
+    public String getDescription() {
+        return description;
+    }
 
-    public Unit getUnit() { return unit; }
-    public void setUnit(Unit unit) { this.unit = unit; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
+    public String getImage() {
+        return image;
+    }
 
-    public Supplier getSupplier() { return supplier; }
-    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
+    public void setImage(String image) {
+        this.image = image;
+    }
 
-    public int getMinStock() { return minStock; }
-    public void setMinStock(int minStock) { this.minStock = minStock; }
+    public Unit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
+
+    public Supplier getSupplier() {
+        return supplier;
+    }
+
+    public void setSupplier(Supplier supplier) {
+        this.supplier = supplier;
+    }
+
+    public int getMinStock() {
+        return minStock;
+    }
+
+    public void setMinStock(int minStock) {
+        this.minStock = minStock;
+    }
 }

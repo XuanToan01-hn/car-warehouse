@@ -11,19 +11,32 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.ProductDetail;
 
-@WebServlet(name = "ListProductDetail", urlPatterns = {"/list-product-detail"})
+@WebServlet(name = "ListProductDetail", urlPatterns = { "/list-product-detail" })
 public class ListProductDetail extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+        String action = request.getParameter("action");
+        if ("delete".equals(action)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null) {
+                try {
+                    int id = Integer.parseInt(idStr);
+                    new ProductDetailDAO().delete(id);
+                    response.sendRedirect("list-product-detail?status=deleteSuccess");
+                    return;
+                } catch (NumberFormatException e) {
+                }
+            }
+        }
+
         ProductDetailDAO detailDAO = new ProductDetailDAO();
         ProductDAO productDAO = new ProductDAO();
 
         String search = request.getParameter("search");
         String productId = request.getParameter("productId");
-        
+
         int page = 1;
         String pageParam = request.getParameter("page");
         if (pageParam != null && !pageParam.isEmpty()) {
@@ -42,7 +55,7 @@ public class ListProductDetail extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("startPage", Math.max(1, page - 2));
         request.setAttribute("endPage", Math.min(totalPages, page + 2));
-        
+
         request.getRequestDispatcher("view/product-detail/page-list-product-detail.jsp").forward(request, response);
     }
 }

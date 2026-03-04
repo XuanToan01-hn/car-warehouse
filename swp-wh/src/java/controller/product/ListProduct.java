@@ -7,6 +7,7 @@ package controller.product;
 import dal.CategoryDAO;
 import dal.ProductDAO;
 import dal.UnitDAO;
+import dal.SupplierDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -21,7 +22,7 @@ import model.Product;
  *
  * @author Nhat
  */
-@WebServlet(name = "ListProduct", urlPatterns = {"/list-product"})
+@WebServlet(name = "ListProduct", urlPatterns = { "/list-product" })
 public class ListProduct extends HttpServlet {
 
     private static final int DEFAULT_PAGE_SIZE = 10;
@@ -30,10 +31,10 @@ public class ListProduct extends HttpServlet {
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -52,14 +53,15 @@ public class ListProduct extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the
+    // + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -85,18 +87,21 @@ public class ListProduct extends HttpServlet {
                     if (p != null) {
                         response.setContentType("application/json");
                         response.setCharacterEncoding("UTF-8");
-                        
+
                         String nameJson = p.getName() != null ? p.getName().replace("\"", "\\\"") : "";
                         String codeJson = p.getCode() != null ? p.getCode().replace("\"", "\\\"") : "";
-                        String descJson = p.getDescription() != null ? p.getDescription().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "") : "";
+                        String descJson = p.getDescription() != null
+                                ? p.getDescription().replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "")
+                                : "";
                         String imageJson = p.getImage() != null ? p.getImage() : "";
                         int catId = p.getCategory() != null ? p.getCategory().getId() : 0;
                         int unitIdVal = p.getUnit() != null ? p.getUnit().getId() : 0;
+                        int supId = p.getSupplier() != null ? p.getSupplier().getId() : 0;
+                        String colorJson = p.getColor() != null ? p.getColor() : "";
 
                         String json = String.format(
-                            "{\"id\": %d, \"name\": \"%s\", \"code\": \"%s\", \"price\": %.2f, \"description\": \"%s\", \"image\": \"%s\", \"categoryId\": %d, \"unitId\": %d}",
-                            p.getId(), nameJson, codeJson, p.getPrice(), descJson, imageJson, catId, unitIdVal
-                        );
+                                "{\"id\": %d, \"name\": \"%s\", \"code\": \"%s\", \"description\": \"%s\", \"image\": \"%s\", \"categoryId\": %d, \"unitId\": %d, \"supplierId\": %d, \"color\": \"%s\"}",
+                                p.getId(), nameJson, codeJson, descJson, imageJson, catId, unitIdVal, supId, colorJson);
                         response.getWriter().write(json);
                         return;
                     }
@@ -111,7 +116,8 @@ public class ListProduct extends HttpServlet {
         if (pageParam != null && !pageParam.trim().isEmpty()) {
             try {
                 page = Integer.parseInt(pageParam);
-                if (page < 1) page = 1; // Ensure page is positive
+                if (page < 1)
+                    page = 1; // Ensure page is positive
             } catch (NumberFormatException e) {
                 page = 1; // Fallback to page 1 if parsing fails
             }
@@ -130,8 +136,11 @@ public class ListProduct extends HttpServlet {
         }
 
         // Get filtered and paginated products
-        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, page, pageSize);
-        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId);
+        String supplierId = request.getParameter("supplierId");
+        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, supplierId,
+                page,
+                pageSize);
+        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId, supplierId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         // Calculate pagination
@@ -141,6 +150,8 @@ public class ListProduct extends HttpServlet {
         boolean hasNext = page < totalPages;
 
         // Set attributes
+        SupplierDAO supplierDAO = new SupplierDAO();
+        request.setAttribute("listSupplier", supplierDAO.getAll());
         request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
         request.setAttribute("listProduct", productList);
@@ -154,30 +165,48 @@ public class ListProduct extends HttpServlet {
 
         request.getRequestDispatcher("view/product/page-list-product.jsp").forward(request, response);
 
-
     }
 
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        String action = request.getParameter("action");
+        ProductDAO productDAO = new ProductDAO();
+
+        if ("delete".equals(action)) {
+            try {
+                int id = Integer.parseInt(request.getParameter("id"));
+                boolean success = productDAO.delete(id);
+                if (success) {
+                    response.sendRedirect("list-product?status=deleteSuccess");
+                } else {
+                    response.sendRedirect("list-product?status=deleteError&errorDetail=constraint");
+                }
+                return;
+            } catch (Exception e) {
+                response.sendRedirect("list-product?status=deleteError");
+                return;
+            }
+        }
+
         request.setAttribute("showUpdateModal", true);
         request.setAttribute("ePrice", request.getAttribute("errorPrice"));
         request.setAttribute("eName", request.getAttribute("errorName"));
         request.setAttribute("eCode", request.getAttribute("errorCode"));
         request.setAttribute("eDesc", request.getAttribute("errorDesc"));
-        
-        ProductDAO productDAO = new ProductDAO();
+
+        productDAO = new ProductDAO();
         UnitDAO unitDAO = new UnitDAO();
         CategoryDAO categoryDAO = new CategoryDAO();
-        
+
         String search = request.getParameter("search");
         String sortPrice = request.getParameter("sortPrice");
         String categoryId = request.getParameter("categoryId");
@@ -189,7 +218,8 @@ public class ListProduct extends HttpServlet {
         if (pageParam != null && !pageParam.trim().isEmpty()) {
             try {
                 page = Integer.parseInt(pageParam);
-                if (page < 1) page = 1; // Ensure page is positive
+                if (page < 1)
+                    page = 1; // Ensure page is positive
             } catch (NumberFormatException e) {
                 page = 1; // Fallback to page 1 if parsing fails
             }
@@ -206,12 +236,14 @@ public class ListProduct extends HttpServlet {
                 pageSize = DEFAULT_PAGE_SIZE; // Fallback to default if parsing fails
             }
         }
-   
-        
-        //s
+
+        // s
         // Get filtered and paginated products
-        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, page, pageSize);
-        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId);
+        String supplierId = request.getParameter("supplierId");
+        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, supplierId,
+                page,
+                pageSize);
+        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId, supplierId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         // Calculate pagination
@@ -221,6 +253,8 @@ public class ListProduct extends HttpServlet {
         boolean hasNext = page < totalPages;
 
         // Set attributes
+        SupplierDAO supDAO = new SupplierDAO();
+        request.setAttribute("listSupplier", supDAO.getAll());
         request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
         request.setAttribute("listProduct", productList);
@@ -231,12 +265,10 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("hasPrevious", hasPrevious);
         request.setAttribute("hasNext", hasNext);
         request.setAttribute("pageSize", pageSize);
-        
-        request.setAttribute("listUnit", unitDAO.getAll());
+
         request.setAttribute("uId", request.getAttribute("updateid"));
         request.setAttribute("uName", request.getAttribute("updateName"));
         request.setAttribute("uCode", request.getAttribute("updateCode"));
-        request.setAttribute("uPrice", request.getAttribute("updatePrice"));
         request.setAttribute("uImage", request.getAttribute("updateImage"));
         request.setAttribute("uCategory", request.getAttribute("updateCategory"));
         request.setAttribute("uDes", request.getAttribute("updateDes"));
@@ -255,7 +287,7 @@ public class ListProduct extends HttpServlet {
     }// </editor-fold>
 
     private int validatePageSize(int pageSize) {
-        int[] validSizes = {10, 20, 50, 100};
+        int[] validSizes = { 10, 20, 50, 100 };
         for (int size : validSizes) {
             if (pageSize == size) {
                 return pageSize;

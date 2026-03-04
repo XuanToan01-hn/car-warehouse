@@ -175,6 +175,28 @@
                     <%@ include file="../sidebar.jsp" %>
                         <div class="content-page">
                             <div class="container-fluid">
+                                <c:if test="${param.status == 'deleteSuccess'}">
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        Product deleted successfully!
+                                        <button type="button" class="close"
+                                            data-dismiss="alert"><span>&times;</span></button>
+                                    </div>
+                                </c:if>
+                                <c:if test="${param.status == 'deleteError'}">
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <c:choose>
+                                            <c:when test="${param.errorDetail == 'constraint'}">
+                                                Cannot delete product: It is currently used in transactions (Goods
+                                                Receipt/Detail).
+                                            </c:when>
+                                            <c:otherwise>
+                                                An error occurred while deleting the product.
+                                            </c:otherwise>
+                                        </c:choose>
+                                        <button type="button" class="close"
+                                            data-dismiss="alert"><span>&times;</span></button>
+                                    </div>
+                                </c:if>
                                 <div class="page-header">
                                     <div>
                                         <h1 class="font-weight-bold mb-1">Product List</h1>
@@ -206,14 +228,14 @@
                                                 </select>
                                             </div>
                                             <div class="col-md-2 mb-3 mb-md-0">
-                                                <label class="form-label">Price Sort</label>
-                                                <select name="sortPrice" class="form-control form-control-modern"
+                                                <label class="form-label">Supplier</label>
+                                                <select name="supplierId" class="form-control form-control-modern"
                                                     onchange="this.form.submit()">
-                                                    <option value="">No Sorting</option>
-                                                    <option value="asc" ${param.sortPrice=='asc' ? 'selected' : '' }>Low
-                                                        to High</option>
-                                                    <option value="desc" ${param.sortPrice=='desc' ? 'selected' : '' }>
-                                                        High to Low</option>
+                                                    <option value="">All Suppliers</option>
+                                                    <c:forEach items="${listSupplier}" var="sup">
+                                                        <option value="${sup.id}" ${param.supplierId==sup.id
+                                                            ? 'selected' : '' }>${sup.name}</option>
+                                                    </c:forEach>
                                                 </select>
                                             </div>
                                             <div class="col-md-2">
@@ -239,8 +261,8 @@
                                                 <thead>
                                                     <tr>
                                                         <th>Product Info</th>
-                                                        <th>Price</th>
                                                         <th>Category</th>
+                                                        <th>Supplier</th>
                                                         <th>Unit</th>
                                                         <th class="text-right">Actions</th>
                                                     </tr>
@@ -260,16 +282,10 @@
                                                                             class="text-primary font-weight-bold">${p.code}</small>
                                                                     </div>
                                                                 </div>
-                                                            </td>
-                                                            <td>
-                                                                <span class="font-weight-bold">
-                                                                    <fmt:formatNumber value="${p.price}"
-                                                                        pattern="#,##0" />
-                                                                </span>
-                                                            </td>
                                                             <td><span
                                                                     class="badge badge-light p-2">${p.category.name}</span>
                                                             </td>
+                                                            <td>${p.supplier.name}</td>
                                                             <td>${p.unit.name}</td>
                                                             <td class="text-right">
                                                                 <div class="d-flex justify-content-end">
@@ -332,7 +348,7 @@
                                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                             </div>
                             <div class="modal-body">
-                                <form action="update-product" method="post" enctype="multipart/form-data">
+                                <form action="update-product" method="post">
                                     <input type="hidden" name="id" id="product-id">
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
@@ -348,15 +364,18 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-md-4 mb-3">
-                                            <label class="form-label">Price</label>
-                                            <input type="number" name="price" id="product-price" class="form-control"
-                                                required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
                                             <label class="form-label">Category</label>
                                             <select name="category" id="category-select" class="form-control" required>
                                                 <c:forEach items="${listCategory}" var="cat">
                                                     <option value="${cat.id}">${cat.name}</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Supplier</label>
+                                            <select name="supplier" id="supplier-select" class="form-control" required>
+                                                <c:forEach items="${listSupplier}" var="sup">
+                                                    <option value="${sup.id}">${sup.name}</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
@@ -371,15 +390,10 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
-                                            <label class="form-label">Product Image</label>
-                                            <div class="custom-file">
-                                                <input type="hidden" name="oldimage" id="product-image-old">
-                                                <input type="file" name="image" class="custom-file-input"
-                                                    id="product-image">
-                                                <label class="custom-file-label" id="file-image-label">Choose
-                                                    file</label>
-                                            </div>
-                                            <small class="text-secondary">Leave blank to keep current image</small>
+                                            <label class="form-label">Image URL</label>
+                                            <input type="text" name="image" id="product-image" class="form-control"
+                                                placeholder="Link ảnh">
+                                            <small class="text-secondary">Dán link ảnh vào đây</small>
                                         </div>
                                     </div>
                                     <div class="row">
@@ -414,7 +428,7 @@
                                 <i class="ri-error-warning-line display-3 text-warning mb-3 d-block"></i>
                                 <p class="h5">Are you sure you want to delete this product?</p>
                                 <p class="text-danger font-weight-bold" id="deleteProductName"></p>
-                                <form action="delete-product" method="post" class="mt-4">
+                                <form action="list-product?action=delete" method="post" class="mt-4">
                                     <input type="hidden" name="id" id="deleteProductId">
                                     <button type="button" class="btn btn-secondary mr-2"
                                         data-dismiss="modal">Cancel</button>
@@ -435,12 +449,11 @@
                                 document.getElementById('product-id').value = data.id;
                                 document.getElementById('product-name').value = data.name;
                                 document.getElementById('product-code').value = data.code;
-                                document.getElementById('product-price').value = data.price;
                                 document.getElementById('category-select').value = data.categoryId;
+                                document.getElementById('supplier-select').value = data.supplierId;
                                 document.getElementById('unit-select').value = data.unitId;
                                 document.getElementById('product-des').value = data.description || '';
-                                document.getElementById('product-image-old').value = data.image || '';
-                                document.getElementById('file-image-label').innerText = data.image || 'Choose file';
+                                document.getElementById('product-image').value = data.image || '';
                                 $('#updateModal').modal('show');
                             });
                     }
@@ -451,11 +464,6 @@
                         $('#deleteModal').modal('show');
                     }
 
-                    // File input label update
-                    document.getElementById('product-image').addEventListener('change', function (e) {
-                        var fileName = e.target.files[0].name;
-                        document.getElementById('file-image-label').innerText = fileName;
-                    });
                 </script>
             </body>
 

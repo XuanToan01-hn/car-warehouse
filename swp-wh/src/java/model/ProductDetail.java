@@ -16,11 +16,11 @@ public class ProductDetail {
     private String lotNumber;
     private String serialNumber;
     private Date manufactureDate;
-    private String color;      // Thêm mới
-    private int quantity;
-    public ProductDetail() {}
-    
-    
+    private String color; // Thêm mới
+    private double price;
+
+    public ProductDetail() {
+    }
 
     public String getColor() {
         return color;
@@ -30,28 +30,51 @@ public class ProductDetail {
         this.color = color;
     }
 
-    public int getQuantity() {
-        return quantity;
+    public double getPrice() {
+        return price;
     }
 
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+    public void setPrice(double price) {
+        this.price = price;
     }
 
-    
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public Product getProduct() { return product; }
-    public void setProduct(Product product) { this.product = product; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getLotNumber() { return lotNumber; }
-    public void setLotNumber(String lotNumber) { this.lotNumber = lotNumber; }
+    public Product getProduct() {
+        return product;
+    }
 
-    public String getSerialNumber() { return serialNumber; }
-    public void setSerialNumber(String serialNumber) { this.serialNumber = serialNumber; }
+    public void setProduct(Product product) {
+        this.product = product;
+    }
 
-    public Date getManufactureDate() { return manufactureDate; }
-    public void setManufactureDate(Date manufactureDate) { this.manufactureDate = manufactureDate; }
+    public String getLotNumber() {
+        return lotNumber;
+    }
+
+    public void setLotNumber(String lotNumber) {
+        this.lotNumber = lotNumber;
+    }
+
+    public String getSerialNumber() {
+        return serialNumber;
+    }
+
+    public void setSerialNumber(String serialNumber) {
+        this.serialNumber = serialNumber;
+    }
+
+    public Date getManufactureDate() {
+        return manufactureDate;
+    }
+
+    public void setManufactureDate(Date manufactureDate) {
+        this.manufactureDate = manufactureDate;
+    }
 }
-
