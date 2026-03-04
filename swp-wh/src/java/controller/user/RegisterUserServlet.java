@@ -204,7 +204,7 @@ public class RegisterUserServlet extends HttpServlet {
 
             if (success) {
                 session.setAttribute("success", "User added successfully!");
-                response.sendRedirect("registeruser"); // Thành công thì Redirect để tránh trùng lặp dữ liệu khi F5
+                response.sendRedirect("registeruser");
             } else {
                 throw new Exception("Database insert returned false.");
             }

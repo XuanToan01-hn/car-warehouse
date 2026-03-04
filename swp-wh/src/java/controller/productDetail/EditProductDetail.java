@@ -17,23 +17,26 @@ import jakarta.servlet.http.HttpServletResponse;
  *
  * @author Asus
  */
-@WebServlet(name="AddProductDetail", urlPatterns={"/add-product-detail"})
-public class AddProductDetail extends HttpServlet {
+@WebServlet(name="EditProductDetail", urlPatterns={"/edit-product-detail"})
+public class EditProductDetail extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        // Lấy danh sách sản phẩm để người dùng chọn trong dropdown (Select Box)
+        int id = Integer.parseInt(request.getParameter("id"));
+        dal.ProductDetailDAO dao = new dal.ProductDetailDAO();
         dal.ProductDAO pDao = new dal.ProductDAO();
-        request.setAttribute("products", pDao.getAll()); 
-        request.getRequestDispatcher("view/product-detail/add.jsp").forward(request, response);
+        
+        request.setAttribute("pd", dao.getById(id));
+        request.setAttribute("products", pDao.getAll());
+        request.getRequestDispatcher("view/product-detail/edit.jsp").forward(request, response);
     } 
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
         try {
-            // 1. Lấy dữ liệu từ form
+            int id = Integer.parseInt(request.getParameter("id"));
             int productId = Integer.parseInt(request.getParameter("productId"));
             String lotNumber = request.getParameter("lotNumber");
             String serialNumber = request.getParameter("serialNumber");
@@ -42,8 +45,8 @@ public class AddProductDetail extends HttpServlet {
             int quantity = Integer.parseInt(request.getParameter("quantity"));
             String color = request.getParameter("color");
 
-            // 2. Tạo đối tượng Model
             model.ProductDetail pd = new model.ProductDetail();
+            pd.setId(id);
             model.Product p = new model.Product();
             p.setId(productId);
             pd.setProduct(p);
@@ -52,18 +55,12 @@ public class AddProductDetail extends HttpServlet {
             pd.setPrice(price);
             pd.setQuantity(quantity);
             pd.setColor(color);
-            // Parse ngày tháng
             pd.setManufactureDate(java.sql.Date.valueOf(manufactureDateStr));
 
-            // 3. Lưu vào DB
-            dal.ProductDetailDAO db = new dal.ProductDetailDAO();
-            db.insert(pd);
-
-            // 4. Thành công thì quay về trang danh sách
+            new dal.ProductDetailDAO().update(pd);
             response.sendRedirect("list-product-detail");
         } catch (Exception e) {
-            e.printStackTrace();
-            response.sendRedirect("add-product-detail?error=1");
+            response.sendRedirect("list-product-detail?error=update_failed");
         }
     }
 }

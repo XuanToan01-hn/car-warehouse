@@ -17,7 +17,7 @@
                         <h4 class="mb-0">Warehouse Inventory Details</h4>
                         <a href="add-product-detail" class="btn btn-success btn-sm">+ Add New Inventory</a>
                     </div>
-                    
+
                     <div class="card mb-4">
                         <div class="card-body">
                             <form method="get" action="list-product-detail">
@@ -67,10 +67,13 @@
                                         <td><fmt:formatDate value="${pd.manufactureDate}" pattern="dd/MM/yyyy"/></td>
                                         <td class="text-right">
                                             <a href="edit-product-detail?id=${pd.id}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                            <a href="#" onclick="if (confirm('Are you sure?'))
+                window.location.href = 'delete-product-detail?id=${pd.id}'" 
+                                               class="btn btn-sm btn-outline-danger">Delete</a>
                                         </td>
                                     </tr>
                                 </c:forEach>
-                                
+
                                 <c:if test="${empty listDetail}">
                                     <tr>
                                         <td colspan="7" class="text-center text-muted">No product detail found.</td>

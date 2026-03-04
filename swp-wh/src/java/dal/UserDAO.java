@@ -323,23 +323,23 @@ public class UserDAO extends DBContext {
     return list;
 }
 
-    public User getById(int id) {
-        String sql = "SELECT * FROM Users WHERE UserID=?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                User u = new User();
-                u.setId(rs.getInt("UserID"));
-                u.setFullName(rs.getString("FullName"));
-                u.setUsername(rs.getString("Username"));
-                return u;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+//    public User getById(int id) {
+//        String sql = "SELECT * FROM Users WHERE UserID=?";
+//        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+//            ps.setInt(1, id);
+//            ResultSet rs = ps.executeQuery();
+//            if (rs.next()) {
+//                User u = new User();
+//                u.setId(rs.getInt("UserID"));
+//                u.setFullName(rs.getString("FullName"));
+//                u.setUsername(rs.getString("Username"));
+//                return u;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
     public int countSearchUsersWithRole(String keyword, int roleId) {
         String sql = "SELECT COUNT(*) FROM Users "
@@ -395,8 +395,35 @@ public class UserDAO extends DBContext {
         }
         return listU;
     }
+    
+    public User getById(int id) {
+    String sql = "SELECT * FROM Users WHERE UserID=?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            User u = new User();
+            u.setId(rs.getInt("UserID"));
+            u.setUserCode(rs.getString("UserCode")); // Quan trọng để so sánh trùng lặp
+            u.setFullName(rs.getString("FullName"));
+            u.setUsername(rs.getString("Username"));
+            u.setEmail(rs.getString("Email"));      // Quan trọng
+            u.setPhone(rs.getString("Phone"));      // Quan trọng
+            u.setMale(rs.getInt("Male"));
+            u.setDateOfBirth(rs.getString("DateOfBirth"));
+            
+            // Khởi tạo Role và Warehouse cơ bản để tránh NullPointerException
+            u.setRole(new Role(rs.getInt("RoleID")));
+            u.setWarehouse(new Warehouse(rs.getInt("WarehouseID")));
+            return u;
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return null;
+}
+    
 public boolean insert(User u) {
-    // SQL liệt kê 10 cột chính (không tính UserID tự tăng và Image)
     String sql = "INSERT INTO Users(UserCode, FullName, Username, Password, Email, Phone, Male, DateOfBirth, RoleID, WarehouseID) "
                + "VALUES(?,?,?,?,?,?,?,?,?,?)";
     
@@ -408,10 +435,9 @@ public boolean insert(User u) {
         ps.setString(5, u.getEmail());
         ps.setString(6, u.getPhone());
         ps.setInt(7, u.getMale());
-        ps.setString(8, u.getDateOfBirth()); // Cột DateOfBirth
-        ps.setInt(9, u.getRole().getId());   // RoleID nằm trước WarehouseID theo ảnh
+        ps.setString(8, u.getDateOfBirth());
+        ps.setInt(9, u.getRole().getId());
 
-        // Xử lý WarehouseID: Nếu không chọn (ID <= 0) thì set NULL
         if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
             ps.setInt(10, u.getWarehouse().getId());
         } else {
@@ -420,29 +446,43 @@ public boolean insert(User u) {
 
         return ps.executeUpdate() > 0;
     } catch (Exception e) {
-        // In lỗi ra để "bắt bệnh" chính xác
-        System.err.println("LỖI INSERT THỰC TẾ: " + e.getMessage());
-        e.printStackTrace();
+        System.err.println("LỖI INSERT: " + e.getMessage());
         return false;
     }
 }
 
-    public boolean update(User u) {
-        String sql = "UPDATE Users SET FullName=?,Email=?,Phone=?,RoleID=?,WarehouseID=? WHERE UserID=?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, u.getFullName());
-            ps.setString(2, u.getEmail());
-            ps.setString(3, u.getPhone());
-            ps.setInt(4, u.getRole().getId());
-            ps.setInt(5, u.getWarehouse().getId());
-            ps.setInt(6, u.getId());
-            ps.executeUpdate();
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+public boolean update(User u) {
+    // 1. Câu lệnh SQL đầy đủ các trường bạn đã set trong Servlet
+    String sql = "UPDATE Users SET UserCode=?, FullName=?, Username=?, Male=?, "
+               + "DateOfBirth=?, Email=?, Phone=?, RoleID=?, WarehouseID=? "
+               + "WHERE UserID=?";
+    
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setString(1, u.getUserCode());
+        ps.setString(2, u.getFullName());
+        ps.setString(3, u.getUsername());
+        ps.setInt(4, u.getMale());
+        ps.setString(5, u.getDateOfBirth());
+        ps.setString(6, u.getEmail());
+        ps.setString(7, u.getPhone());
+        ps.setInt(8, u.getRole().getId());
+
+        // 2. Xử lý WarehouseID (Quan trọng: Tránh lỗi khóa ngoại nếu ID = 0 hoặc null)
+        if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
+            ps.setInt(9, u.getWarehouse().getId());
+        } else {
+            ps.setNull(9, java.sql.Types.INTEGER);
         }
+        ps.setInt(10, u.getId());
+
+        int rowsAffected = ps.executeUpdate();
+        return rowsAffected > 0;
+    } catch (Exception e) {
+        System.err.println("LỖI UPDATE THỰC TẾ: " + e.getMessage());
+        e.printStackTrace();
+        return false;
     }
+}
 
     public boolean delete(int id) {
         String sql = "DELETE FROM Users WHERE UserID=?";

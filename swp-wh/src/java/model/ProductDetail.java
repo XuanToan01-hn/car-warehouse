@@ -16,8 +16,9 @@ public class ProductDetail {
     private String lotNumber;
     private String serialNumber;
     private Date manufactureDate;
-    private String color;      // Thêm mới
+    private String color;
     private int quantity;
+    private double price;
     public ProductDetail() {}
     
     
@@ -29,6 +30,15 @@ public class ProductDetail {
     public void setColor(String color) {
         this.color = color;
     }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+    
 
     public int getQuantity() {
         return quantity;

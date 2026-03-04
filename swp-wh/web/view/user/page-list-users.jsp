@@ -229,7 +229,7 @@
                 document.getElementById("editRoleId").value = roleId;
                 document.getElementById("editPage").value = page;
                 document.getElementById("editKeyword").value = kw;
-                document.getElementById("editWarehouseId").value = whId;
+                document.getElementById("editWarehouseId").value = (whId && whId !== 'null') ? whId : "0";
                 
                 document.getElementById("editWarehouseGroup").style.display = (id == "2" ||id == "3" || roleId == "4" || roleId == "5") ? "block" : "none";
                 document.getElementById("customEditUserModal").style.display = "flex";
