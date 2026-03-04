@@ -1,9 +1,3 @@
-<%-- 
-    Document   : page-update-product
-    Created on : Mar 2, 2026, 10:33:26 PM
-    Author     : Asus
---%>
-
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!doctype html>
@@ -22,7 +16,6 @@
                         <div class="card-header"><h4>Update Product: ${p.name}</h4></div>
                         <div class="card-body">
                             <form action="update-product" method="post">
-                                <%-- INPUT HIDDEN ĐỂ GIỮ ID --%>
                                 <input type="hidden" name="id" value="${p.id}">
                                 
                                 <div class="row">
@@ -35,8 +28,12 @@
                                         <input type="text" name="code" value="${p.code}" class="form-control" required>
                                     </div>
                                     <div class="col-md-6 form-group">
-                                        <label>Price * <span style="color:red">${ePrice}</span></label>
-                                        <input type="number" step="0.01" name="price" value="${p.price}" class="form-control" required>
+                                        <label>Supplier</label>
+                                        <select name="supplier" class="form-control">
+                                            <c:forEach items="${listSupplier}" var="s">
+                                                <option ${p.supplier.id == s.id ? 'selected' : ''} value="${s.id}">${s.name}</option>
+                                            </c:forEach>
+                                        </select>
                                     </div>
                                     <div class="col-md-6 form-group">
                                         <label>Category</label>

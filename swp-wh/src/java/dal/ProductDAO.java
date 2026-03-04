@@ -9,51 +9,66 @@ import model.Product;
 import model.Category;
 import model.Unit;
 import model.Supplier;
-import dal.UnitDAO;
 
 public class ProductDAO extends DBContext {
 
+    // Khởi tạo các DAO để dùng chung, tránh tạo mới liên tục trong vòng lặp
     CategoryDAO categoryDAO = new CategoryDAO();
     UnitDAO unitDAO = new UnitDAO();
-
-
+    SupplierDAO supplierDAO = new SupplierDAO(); 
     
-    public List<Product> getFilteredProducts(String search, String sortPrice, String categoryId, String unitId, int page, int pageSize) {
+    
+     public static void main(String[] args) {
+
+        ProductDAO dao = new ProductDAO();
+
+        // Test case 1: Không filter gì, lấy trang 1, 5 sản phẩm
+        List<Product> list1 = dao.getFilteredProducts(null, null, null, 1, 5);
+        System.out.println("=== Test 1: No filter ===");
+        for (Product p : list1) {
+            System.out.println("ID: " + p.getId()
+                    + " | Name: " + p.getName()
+                    + " | Code: " + p.getCode());
+        }
+
+        // Test case 2: Search theo tên
+        List<Product> list2 = dao.getFilteredProducts("milk", null, null, 1, 5);
+        System.out.println("\n=== Test 2: Search 'milk' ===");
+        for (Product p : list2) {
+            System.out.println("ID: " + p.getId()
+                    + " | Name: " + p.getName()
+                    + " | Code: " + p.getCode());
+        }
+
+
+    }
+
+    // ===============================
+    // 1. GET FILTERED PRODUCTS
+    // ===============================
+    public List<Product> getFilteredProducts(String search, String categoryId, String unitId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
-        CategoryDAO categoryDAO = new CategoryDAO();
-        UnitDAO unitDAO = new UnitDAO();
-        
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
         
-        // Search filter
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
         
-        // Category filter
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
         
-        // Unit filter
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
         }
         
-        // Sort by price and required ORDER BY for pagination
-        sql.append(" ORDER BY ");
-        if (sortPrice != null && !sortPrice.isEmpty()) {
-            sql.append("Price ").append(sortPrice.equals("asc") ? "ASC" : "DESC");
-        } else {
-            sql.append("ProductID ASC"); // Default sorting if no price sort specified
-        }
-        
-        // Pagination for SQL Server
+        // Mặc định sắp xếp theo ID vì đã bỏ Price
+        sql.append(" ORDER BY ProductID DESC");
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
         params.add(pageSize);
@@ -65,25 +80,18 @@ public class ProductDAO extends DBContext {
             }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                list.add(new Product(
-                    rs.getInt("ProductID"),
-                    rs.getString("Code"),
-                    rs.getString("Name"),
-                    rs.getDouble("Price"),
-                    rs.getString("Description"),
-                    rs.getString("Image"),
-                    unitDAO.getUnitById(rs.getInt("UnitID")),
-                    categoryDAO.getByID(rs.getInt("CategoryID"))
-                ));
+                list.add(mapResultSetToProduct(rs));
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return list;
     }
-    
-    
-        public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
+
+    // ===============================
+    // 2. GET TOTAL FILTERED
+    // ===============================
+    public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
         
@@ -117,230 +125,109 @@ public class ProductDAO extends DBContext {
         }
         return 0;
     }
-    public List<Product> getAll() {
-
-        List<Product> list = new ArrayList<>();
-
-        String sql = "SELECT * FROM Product";
-
-        try {
-
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
-
-            while (rs.next()) {
-
-                Product p = new Product();
-
-                p.setId(rs.getInt("ProductID"));
-                p.setCode(rs.getString("Code"));
-                p.setName(rs.getString("Name"));
-                p.setPrice(rs.getDouble("Price"));
-                p.setDescription(rs.getString("Description"));
-                p.setImage(rs.getString("Image"));
-                p.setMinStock(rs.getInt("MinStock"));
-
-                Category c = categoryDAO.getByID(rs.getInt("CategoryID"));
-//                Unit u = unitDAO.getUnitById(rs.getInt("UnitID"));
-
-                p.setCategory(c);
-//                p.setUnit(u);
-
-                list.add(p);
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return list;
-    }
 
     // ===============================
-    // GET BY ID
+    // 3. GET BY ID
     // ===============================
     public Product getById(int id) {
-
         String sql = "SELECT * FROM Product WHERE ProductID = ?";
-
         try {
-
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
-
             ResultSet rs = ps.executeQuery();
-
             if (rs.next()) {
-
-                Product p = new Product();
-
-                p.setId(rs.getInt("ProductID"));
-                p.setCode(rs.getString("Code"));
-                p.setName(rs.getString("Name"));
-                p.setPrice(rs.getDouble("Price"));
-                p.setDescription(rs.getString("Description"));
-                p.setImage(rs.getString("Image"));
-                p.setMinStock(rs.getInt("MinStock"));
-
-                p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
-
-                return p;
+                return mapResultSetToProduct(rs);
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return null;
     }
 
     // ===============================
-    // INSERT
+    // 4. INSERT AND GET ID
     // ===============================
     public int insertAndGetId(Product p) {
-
-        String sql = """
-                     INSERT INTO Product
-                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                     """;
-
+        String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
             PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
-
             ps.setString(1, p.getCode());
             ps.setString(2, p.getName());
-            ps.setDouble(3, p.getPrice());
-            ps.setString(4, p.getDescription());
-            ps.setString(5, p.getImage());
-
-            // Category có thể null trong quick-add
-            if (p.getCategory() != null) {
-                ps.setInt(6, p.getCategory().getId());
-            } else {
-                ps.setNull(6, java.sql.Types.INTEGER);
-            }
-
-            // Unit hiện không chọn trong quick-add -> cho phép null
-            if (p.getUnit() != null) {
-                ps.setInt(7, p.getUnit().getId());
-            } else {
-                ps.setNull(7, java.sql.Types.INTEGER);
-            }
-
-            ps.setInt(8, p.getMinStock());
+            ps.setString(3, p.getDescription());
+            ps.setString(4, p.getImage());
+            ps.setObject(5, p.getCategory() != null ? p.getCategory().getId() : null);
+            ps.setObject(6, p.getUnit() != null ? p.getUnit().getId() : null);
+            ps.setObject(7, p.getSupplier() != null ? p.getSupplier().getId() : null);
 
             ps.executeUpdate();
-
             ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
+            if (rs.next()) return rs.getInt(1);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return -1;
     }
+
+    // ===============================
+    // 5. INSERT (NORMAL)
+    // ===============================
     public void insert(Product p) {
-
-        String sql = """
-                     INSERT INTO Product
-                     (Code, Name, Price, Description, Image, CategoryID, UnitID, MinStock)
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                     """;
-
+        String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
-
             PreparedStatement ps = connection.prepareStatement(sql);
-
             ps.setString(1, p.getCode());
             ps.setString(2, p.getName());
-            ps.setDouble(3, p.getPrice());
-            ps.setString(4, p.getDescription());
-            ps.setString(5, p.getImage());
-            ps.setInt(6, p.getCategory().getId());
-            ps.setInt(7, p.getUnit().getId());
-            ps.setInt(8, p.getMinStock());
-
+            ps.setString(3, p.getDescription());
+            ps.setString(4, p.getImage());
+            ps.setObject(5, p.getCategory() != null ? p.getCategory().getId() : null);
+            ps.setObject(6, p.getUnit() != null ? p.getUnit().getId() : null);
+            ps.setObject(7, p.getSupplier() != null ? p.getSupplier().getId() : null);
             ps.executeUpdate();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     // ===============================
-    // UPDATE
+    // 6. UPDATE
     // ===============================
     public void update(Product p) {
-
-        String sql = """
-                     UPDATE Product
-                     SET Code = ?,
-                         Name = ?,
-                         Price = ?,
-                         Description = ?,
-                         Image = ?,
-                         CategoryID = ?,
-                         UnitID = ?,
-                         MinStock = ?
-                     WHERE ProductID = ?
-                     """;
-
+        String sql = "UPDATE Product SET Code=?, Name=?, Description=?, Image=?, CategoryID=?, UnitID=?, SupplierID=? WHERE ProductID=?";
         try {
-
             PreparedStatement ps = connection.prepareStatement(sql);
-
             ps.setString(1, p.getCode());
             ps.setString(2, p.getName());
-            ps.setDouble(3, p.getPrice());
-            ps.setString(4, p.getDescription());
-            ps.setString(5, p.getImage());
-            ps.setInt(6, p.getCategory().getId());
-            ps.setInt(7, p.getUnit().getId());
-            ps.setInt(8, p.getMinStock());
-            ps.setInt(9, p.getId());
-
+            ps.setString(3, p.getDescription());
+            ps.setString(4, p.getImage());
+            ps.setObject(5, p.getCategory() != null ? p.getCategory().getId() : null);
+            ps.setObject(6, p.getUnit() != null ? p.getUnit().getId() : null);
+            ps.setObject(7, p.getSupplier() != null ? p.getSupplier().getId() : null);
+            ps.setInt(8, p.getId());
             ps.executeUpdate();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     // ===============================
-    // DELETE
+    // 7. DELETE
     // ===============================
     public void delete(int id) {
-
         String sql = "DELETE FROM Product WHERE ProductID = ?";
-
         try {
-
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
-
             ps.executeUpdate();
-
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     // ===============================
-    // SEARCH + PAGINATION
+    // 8. SEARCH + PAGINATION (ORIGINAL STYLE)
     // ===============================
-    public List<Product> search(
-            String keyword,
-            int categoryId,
-            int unitId,
-            int page,
-            int pageSize) {
-
+    public List<Product> search(String keyword, int categoryId, int unitId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
-
         String sql = """
             SELECT * FROM Product
             WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
@@ -349,88 +236,81 @@ public class ProductDAO extends DBContext {
             ORDER BY ProductID
             OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
         """;
-
         try {
-
             PreparedStatement ps = connection.prepareStatement(sql);
-
             String search = "%" + keyword + "%";
-
             ps.setString(1, keyword);
             ps.setString(2, search);
             ps.setString(3, search);
-
             ps.setInt(4, categoryId);
             ps.setInt(5, categoryId);
-
             ps.setInt(6, unitId);
             ps.setInt(7, unitId);
-
             ps.setInt(8, (page - 1) * pageSize);
             ps.setInt(9, pageSize);
 
             ResultSet rs = ps.executeQuery();
-
             while (rs.next()) {
-
-                Product p = new Product();
-
-                p.setId(rs.getInt("ProductID"));
-                p.setCode(rs.getString("Code"));
-                p.setName(rs.getString("Name"));
-                p.setPrice(rs.getDouble("Price"));
-                p.setDescription(rs.getString("Description"));
-                p.setImage(rs.getString("Image"));
-                p.setMinStock(rs.getInt("MinStock"));
-
-                p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-//                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
-
-                list.add(p);
+                list.add(mapResultSetToProduct(rs));
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return list;
     }
 
     // ===============================
-    // GET PRODUCTS BY SUPPLIER
+    // 9. GET PRODUCTS BY SUPPLIER
     // ===============================
     public List<Product> getProductsBySupplier(int supplierId) {
         List<Product> list = new ArrayList<>();
-        // Get supplier's product ID first
-        SupplierDAO supplierDAO = new SupplierDAO();
-        Supplier supplier = supplierDAO.getById(supplierId);
-
-        if (supplier != null && supplier.getProductId() != null && supplier.getProductId() > 0) {
-            // Get the product
-            String sql = "SELECT ProductID, Code, Name, Price, Description, Image, MinStock, CategoryID, UnitID FROM Product WHERE ProductID = ?";
-            try {
-                PreparedStatement ps = connection.prepareStatement(sql);
-                ps.setInt(1, supplier.getProductId());
-                ResultSet rs = ps.executeQuery();
-                while (rs.next()) {
-                    Product p = new Product();
-                    p.setId(rs.getInt("ProductID"));
-                    p.setCode(rs.getString("Code"));
-                    p.setName(rs.getString("Name"));
-                    p.setPrice(rs.getDouble("Price"));
-                    p.setDescription(rs.getString("Description"));
-                    p.setImage(rs.getString("Image"));
-                    p.setMinStock(rs.getInt("MinStock"));
-                    p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-                    list.add(p);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        String sql = "SELECT * FROM Product WHERE SupplierID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, supplierId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToProduct(rs));
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return list;
     }
+    
+    // ===============================
+// 10. GET ALL
+// ===============================
+public List<Product> getAll() {
+    List<Product> list = new ArrayList<>();
+    String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
 
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
+
+        while (rs.next()) {
+            list.add(mapResultSetToProduct(rs));
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    return list;
 }
 
-
+    // Hàm dùng chung để map ResultSet sang Product (giúp code sạch hơn)
+    private Product mapResultSetToProduct(ResultSet rs) throws Exception {
+        Product p = new Product();
+        p.setId(rs.getInt("ProductID"));
+        p.setCode(rs.getString("Code"));
+        p.setName(rs.getString("Name"));
+        p.setDescription(rs.getString("Description"));
+        p.setImage(rs.getString("Image"));
+        p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
+        p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+        p.setSupplier(supplierDAO.getById(rs.getInt("SupplierID")));
+        return p;
+    }
+}

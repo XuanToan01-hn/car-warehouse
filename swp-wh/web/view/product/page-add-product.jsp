@@ -13,9 +13,8 @@
             <div class="content-page">
                 <div class="container-fluid">
                     <div class="card">
-                        <div class="card-header"><h4>Add New Product (via Image Link)</h4></div>
+                        <div class="card-header"><h4>Add New Product</h4></div>
                         <div class="card-body">
-                            <%-- BỎ enctype="multipart/form-data" --%>
                             <form action="add-product" method="post">
                                 <div class="row">
                                     <div class="col-md-12 form-group">
@@ -27,8 +26,12 @@
                                         <input type="text" name="code" value="${uCode}" class="form-control" required>
                                     </div>
                                     <div class="col-md-6 form-group">
-                                        <label>Price * <span style="color:red">${ePrice}</span></label>
-                                        <input type="number" name="price" value="${uPrice}" class="form-control" required>
+                                        <label>Supplier</label>
+                                        <select name="supplier" class="form-control">
+                                            <c:forEach items="${listSupplier}" var="s">
+                                                <option ${uSupplier == s.id ? 'selected' : ''} value="${s.id}">${s.name}</option>
+                                            </c:forEach>
+                                        </select>
                                     </div>
                                     <div class="col-md-6 form-group">
                                         <label>Category</label>
@@ -48,8 +51,7 @@
                                     </div>
                                     <div class="col-md-12 form-group">
                                         <label>Image URL *</label>
-                                        <%-- ĐỔI THÀNH INPUT TEXT --%>
-                                        <input type="text" name="image" value="${uImage}" class="form-control" placeholder="Paste image link here (e.g., https://example.com/image.jpg)">
+                                        <input type="text" name="image" value="${uImage}" class="form-control" placeholder="Paste image link here">
                                     </div>
                                     <div class="col-md-12 form-group">
                                         <label>Description</label>
