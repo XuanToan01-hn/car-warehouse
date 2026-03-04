@@ -12,90 +12,73 @@ import model.ProductDetail;
 public class InventoryTransactionDAO extends DBContext {
 
 
-    // 1. Lưu log giao dịch (Dùng trong GoodsIssueDAO)
-    public void insert(InventoryTransaction trans) {
-        String sql = "INSERT INTO Inventory_Transaction (ProductID, ProductDetailID, LocationID, " +
-                     "TransactionType, Quantity, ReferenceCode, TransactionDate) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, GETDATE())";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, trans.getProduct().getId());
-            ps.setInt(2, trans.getProductDetail().getId());
-            ps.setInt(3, trans.getLocation().getId());
-            ps.setString(4, trans.getTransactionType()); // 'ISSUE', 'RECEIPT', 'TRANSFER'
-            ps.setInt(5, trans.getQuantity());
-            ps.setString(6, trans.getReferenceCode());
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+public List<InventoryTransaction> getTransactions(int page, int pageSize, Integer type, String search) {
+    List<InventoryTransaction> list = new ArrayList<>();
+    String sql = "SELECT it.*, p.Name as ProductName, pd.Color, l.LocationName " +
+                 "FROM Inventory_Transaction it " +
+                 "JOIN Product p ON it.ProductID = p.ProductID " +
+                 "JOIN Product_Detail pd ON it.ProductDetailID = pd.ProductDetailID " +
+                 "JOIN Location l ON it.LocationID = l.LocationID " +
+                 "WHERE (1=1) ";
+    
+    if (type != null && type != 0) sql += " AND it.TransactionType = " + type;
+    if (search != null && !search.isEmpty()) sql += " AND it.ReferenceCode LIKE ?";
+    
+    sql += " ORDER BY it.TransactionDate DESC " +
+           " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        int paramIdx = 1;
+        if (search != null && !search.isEmpty()) {
+            ps.setString(paramIdx++, "%" + search + "%");
         }
-    }
+        ps.setInt(paramIdx++, (page - 1) * pageSize);
+        ps.setInt(paramIdx++, pageSize);
 
-    // 2. Lấy danh sách kèm Filter và Phân trang
-    public List<InventoryTransaction> getFiltered(String type, String search, int page, int pageSize) {
-        List<InventoryTransaction> list = new ArrayList<>();
-        int offset = (page - 1) * pageSize;
-        
-        // Query kết hợp join để lấy tên sản phẩm và tên kho
-        String sql = "SELECT it.*, p.Name as ProductName, pd.Color, l.LocationName " +
-                     "FROM Inventory_Transaction it " +
-                     "JOIN Product p ON it.ProductID = p.ProductID " +
-                     "JOIN Product_Detail pd ON it.ProductDetailID = pd.ProductDetailID " +
-                     "JOIN Location l ON it.LocationID = l.LocationID " +
-                     "WHERE (it.TransactionType LIKE ?) " +
-                     "AND (p.Name LIKE ? OR it.ReferenceCode LIKE ?) " +
-                     "ORDER BY it.TransactionDate DESC " +
-                     "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            InventoryTransaction t = new InventoryTransaction();
+            t.setId(rs.getInt("TransactionID"));
+            
+            // Map Product & Detail
+            Product p = new Product();
+            p.setName(rs.getString("ProductName"));
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setColor(rs.getString("Color"));
+            pd.setProduct(p);
+            t.setProductDetail(pd);
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, (type == null || type.isEmpty()) ? "%%" : type);
-            ps.setString(2, "%" + (search == null ? "" : search) + "%");
-            ps.setString(3, "%" + (search == null ? "" : search) + "%");
-            ps.setInt(4, offset);
-            ps.setInt(5, pageSize);
+            // Map Location
+            Location loc = new Location();
+            loc.setId(rs.getInt("LocationID"));
+            loc.setLocationName(rs.getString("LocationName"));
+            t.setLocation(loc);
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                InventoryTransaction it = new InventoryTransaction();
-                it.setId(rs.getInt("TransactionID"));
-                it.setTransactionType(rs.getString("TransactionType"));
-                it.setQuantity(rs.getInt("Quantity"));
-                it.setReferenceCode(rs.getString("ReferenceCode"));
-                it.setTransactionDate(rs.getTimestamp("TransactionDate"));
-
-                // Mapping Object liên quan
-                Product p = new Product();
-                p.setName(rs.getString("ProductName"));
-                it.setProduct(p);
-
-                ProductDetail pd = new ProductDetail();
-                pd.setColor(rs.getString("Color"));
-                it.setProductDetail(pd);
-
-                Location loc = new Location();
-                loc.setLocationName(rs.getString("LocationName"));
-                it.setLocation(loc);
-
-                list.add(it);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            t.setTransactionType(rs.getInt("TransactionType"));
+            t.setQuantity(rs.getInt("Quantity"));
+            t.setReferenceCode(rs.getString("ReferenceCode"));
+            t.setTransactionDate(rs.getTimestamp("TransactionDate"));
+            
+            list.add(t);
         }
-        return list;
+    } catch (SQLException e) {
+        e.printStackTrace();
     }
+    return list;
+}
 
-    // 3. Đếm tổng số bản ghi để phân trang
-    public int getTotalCount(String type, String search) {
-        String sql = "SELECT COUNT(*) FROM Inventory_Transaction it " +
-                     "JOIN Product p ON it.ProductID = p.ProductID " +
-                     "WHERE (it.TransactionType LIKE ?) " +
-                     "AND (p.Name LIKE ? OR it.ReferenceCode LIKE ?)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, (type == null || type.isEmpty()) ? "%%" : type);
-            ps.setString(2, "%" + (search == null ? "" : search) + "%");
-            ps.setString(3, "%" + (search == null ? "" : search) + "%");
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
-        } catch (SQLException e) { e.printStackTrace(); }
-        return 0;
-    }
+// Cần thêm hàm đếm tổng để phân trang
+public int getTotalTransactions(Integer type, String search) {
+    String sql = "SELECT COUNT(*) FROM Inventory_Transaction WHERE (1=1) ";
+    if (type != null && type != 0) sql += " AND TransactionType = " + type;
+    if (search != null && !search.isEmpty()) sql += " AND ReferenceCode LIKE ?";
+    
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        if (search != null && !search.isEmpty()) ps.setString(1, "%" + search + "%");
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1);
+    } catch (SQLException e) { e.printStackTrace(); }
+    return 0;
+}
 }

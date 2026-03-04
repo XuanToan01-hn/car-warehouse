@@ -245,20 +245,19 @@ public class GoodsIssueServlet extends HttpServlet {
             }
             int soId = Integer.parseInt(idRaw);
 
-            // 1. Lấy thông tin đơn hàng
             SalesOrder order = soDAO.getById(soId);
+            // Kiểm tra trạng thái: Không cho xuất nếu đơn đã hoàn thành (3) hoặc đã hủy (4)
             if (order == null || order.getStatus() == 4 || order.getStatus() == 3) {
                 response.sendRedirect("sales-order?action=warehouse-list");
                 return;
             }
 
-            // 2. Xử lý Location: Ưu tiên lấy từ tham số URL (do JS gửi về khi đổi kho)
             List<Location> locations = new LocationDAO().getAll();
             String locIdParam = request.getParameter("locationId");
             int selectedLocId = (locIdParam != null) ? Integer.parseInt(locIdParam)
                     : (locations.isEmpty() ? 0 : locations.get(0).getId());
 
-            // 3. Lấy danh sách hiển thị kèm Tồn kho (Cực kỳ quan trọng)
+            // Lấy dữ liệu UI bao gồm tồn kho tại kho đã chọn
             List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, selectedLocId);
 
             request.setAttribute("order", order);
@@ -278,11 +277,8 @@ public class GoodsIssueServlet extends HttpServlet {
         int locId = Integer.parseInt(request.getParameter("locationId"));
         String[] pdIds = request.getParameterValues("pdId");
         String[] shipQtys = request.getParameterValues("shipQty");
-        String note = request.getParameter("note");
 
         SalesOrder order = soDAO.getById(soId);
-
-        // Tạo Map để truy xuất nhanh thông tin chi tiết đơn hàng
         Map<Integer, SalesOrderDetail> orderMap = new HashMap<>();
         if (order.getDetails() != null) {
             for (SalesOrderDetail sod : order.getDetails()) {
@@ -291,9 +287,7 @@ public class GoodsIssueServlet extends HttpServlet {
         }
 
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null) {
-            user = new UserDAO().getById(1);
-        }
+        if (user == null) user = new UserDAO().getById(1); // Fallback nếu session hết hạn
 
         GoodsIssue gi = new GoodsIssue();
         gi.setIssueCode("GIN-" + System.currentTimeMillis());
@@ -301,72 +295,69 @@ public class GoodsIssueServlet extends HttpServlet {
         gi.setLocation(new Location());
         gi.getLocation().setId(locId);
         gi.setCreateBy(user);
-        gi.setStatus(1);
-        gi.setNote(note);
+        gi.setStatus(1); // Đã xuất
 
         List<GoodsIssueDetail> details = new ArrayList<>();
         List<String> errors = new ArrayList<>();
 
-        if (pdIds != null) {
+        if (pdIds != null && shipQtys != null) {
             for (int i = 0; i < pdIds.length; i++) {
-                int pdId = Integer.parseInt(pdIds[i]);
-                String qtyStr = (shipQtys[i] == null || shipQtys[i].isEmpty()) ? "0" : shipQtys[i];
-                int qtyToShip = Integer.parseInt(qtyStr);
+                try {
+                    int pdId = Integer.parseInt(pdIds[i]);
+                    int qtyToShip = (shipQtys[i] == null || shipQtys[i].isEmpty()) ? 0 : Integer.parseInt(shipQtys[i]);
 
-                if (qtyToShip <= 0) {
-                    continue;
+                    if (qtyToShip <= 0) continue;
+
+                    SalesOrderDetail originalDetail = orderMap.get(pdId);
+                    if (originalDetail == null) continue;
+
+                    int remaining = originalDetail.getQuantity() - originalDetail.getDeliveredQty();
+                    int stockAtLoc = lpDAO.getStockAtLocation(locId, pdId);
+
+                    // Validation tập trung
+                    if (qtyToShip > remaining) {
+                        errors.add(originalDetail.getProductDetail().getProduct().getName() + ": Xuất quá số lượng nợ (" + remaining + ")");
+                    }
+                    if (qtyToShip > stockAtLoc) {
+                        errors.add(originalDetail.getProductDetail().getProduct().getName() + ": Kho không đủ tồn (" + stockAtLoc + ")");
+                    }
+
+                    GoodsIssueDetail gid = new GoodsIssueDetail();
+                    gid.setProductDetail(originalDetail.getProductDetail());
+                    gid.setQuantityActual(qtyToShip);
+                    gid.setQuantityExpected(remaining);
+                    details.add(gid);
+                } catch (NumberFormatException e) {
+                    // Bỏ qua dòng nếu số lượng nhập sai định dạng
                 }
-
-                SalesOrderDetail originalDetail = orderMap.get(pdId);
-                if (originalDetail == null) {
-                    continue;
-                }
-
-                int remaining = originalDetail.getQuantity() - originalDetail.getDeliveredQty();
-
-                if (qtyToShip > remaining) {
-                    errors.add("Sản phẩm " + originalDetail.getProductDetail().getProduct().getName()
-                            + ": Giao quá số nợ (" + remaining + ")");
-                }
-
-                int stockAtLoc = lpDAO.getStockAtLocation(locId, pdId);
-                if (qtyToShip > stockAtLoc) {
-                    errors.add("Sản phẩm " + originalDetail.getProductDetail().getProduct().getName()
-                            + ": Vị trí này không đủ hàng (Có: " + stockAtLoc + ")");
-                }
-
-                GoodsIssueDetail gid = new GoodsIssueDetail();
-                gid.setProductDetail(originalDetail.getProductDetail());
-                gid.setQuantityActual(qtyToShip);
-                gid.setQuantityExpected(remaining);
-                details.add(gid);
             }
         }
 
         if (errors.isEmpty() && details.isEmpty()) {
-            errors.add("Vui lòng nhập số lượng cho ít nhất một mặt hàng.");
+            errors.add("Vui lòng nhập số lượng xuất cho ít nhất một sản phẩm.");
         }
 
-        // --- ĐOẠN FIX LỖI "MẤT TÍCH" ĐƠN HÀNG ---
         if (!errors.isEmpty()) {
-            request.setAttribute("errors", errors);
-            request.setAttribute("order", order);
-            request.setAttribute("locations", new LocationDAO().getAll());
-            // PHẢI NẠP LẠI uiDetails thì JSP mới có dữ liệu để vẽ bảng
-            request.setAttribute("uiDetails", giDAO.getDetailsForUI(soId, locId));
-            request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
+            handleError(request, response, soId, locId, order, errors);
             return;
         }
 
+        // Thực hiện lưu vào DB
         if (giDAO.confirmIssue(gi, details)) {
             response.sendRedirect("sales-order?action=warehouse-list");
         } else {
-            errors.add("Lỗi hệ thống khi lưu phiếu xuất kho.");
-            request.setAttribute("errors", errors);
-            request.setAttribute("order", order);
-            request.setAttribute("locations", new LocationDAO().getAll());
-            request.setAttribute("uiDetails", giDAO.getDetailsForUI(soId, locId));
-            request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
+            errors.add("Lỗi hệ thống: Không thể lưu phiếu xuất. Vui lòng kiểm tra lại tồn kho hoặc nhật ký giao dịch.");
+            handleError(request, response, soId, locId, order, errors);
         }
+    }
+
+    // Hàm bổ trợ để nạp lại dữ liệu khi có lỗi, tránh lặp code
+    private void handleError(HttpServletRequest request, HttpServletResponse response, int soId, int locId, SalesOrder order, List<String> errors) 
+            throws ServletException, IOException {
+        request.setAttribute("errors", errors);
+        request.setAttribute("order", order);
+        request.setAttribute("locations", new LocationDAO().getAll());
+        request.setAttribute("uiDetails", giDAO.getDetailsForUI(soId, locId));
+        request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
     }
 }

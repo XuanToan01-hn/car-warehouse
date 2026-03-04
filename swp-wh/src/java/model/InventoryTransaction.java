@@ -15,7 +15,7 @@ public class InventoryTransaction {
     private Product product;
     private ProductDetail productDetail;
     private Location location;
-    private String transactionType;
+    private int transactionType;
     private int quantity;
     private String referenceCode;
     private Date transactionDate;
@@ -34,8 +34,15 @@ public class InventoryTransaction {
     public Location getLocation() { return location; }
     public void setLocation(Location location) { this.location = location; }
 
-    public String getTransactionType() { return transactionType; }
-    public void setTransactionType(String transactionType) { this.transactionType = transactionType; }
+    public int getTransactionType() {
+        return transactionType;
+    }
+
+    public void setTransactionType(int transactionType) {
+        this.transactionType = transactionType;
+    }
+
+
 
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }

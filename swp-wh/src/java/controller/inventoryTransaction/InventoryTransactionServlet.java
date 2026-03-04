@@ -55,30 +55,43 @@ public class InventoryTransactionServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    @Override
+ private final InventoryTransactionDAO transDAO = new InventoryTransactionDAO();
+
+   @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        // 1. Lấy tham số filter & phân trang
-        String type = request.getParameter("type"); 
-        String search = request.getParameter("search");
-        String pageStr = request.getParameter("page");
-        
-        int page = (pageStr == null || pageStr.isEmpty()) ? 1 : Integer.parseInt(pageStr);
-        int pageSize = 10;
+        // 1. Lấy tham số phân trang
+        int page = 1;
+        int pageSize = 5; 
+        try {
+            String pageStr = request.getParameter("page");
+            if (pageStr != null && !pageStr.isEmpty()) {
+                page = Integer.parseInt(pageStr);
+            }
+        } catch (NumberFormatException e) { 
+            page = 1; 
+        }
 
-        InventoryTransactionDAO dao = new InventoryTransactionDAO();
+        // 2. Lấy tham số Filter & Search
+        String typeRaw = request.getParameter("type");
+        Integer type = (typeRaw != null && !typeRaw.isEmpty()) ? Integer.parseInt(typeRaw) : 0;
         
-        // 2. Lấy dữ liệu
-        List<InventoryTransaction> list = dao.getFiltered(type, search, page, pageSize);
-        int totalRecords = dao.getTotalCount(type, search);
+        String search = request.getParameter("search");
+        if (search == null) {
+            search = ""; // Tránh lỗi cộng chuỗi "null" trên URL JSP
+        }
+
+        // 3. Gọi DAO lấy dữ liệu
+        List<InventoryTransaction> list = transDAO.getTransactions(page, pageSize, type, search);
+        int totalRecords = transDAO.getTotalTransactions(type, search);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
-        // 3. Gửi dữ liệu qua JSP
-        request.setAttribute("logs", list);
-        request.setAttribute("totalPages", totalPages);
+        // 4. Đẩy dữ liệu lên JSP
+        request.setAttribute("transactions", list);
         request.setAttribute("currentPage", page);
-        request.setAttribute("type", type);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("selectedType", type);
         request.setAttribute("search", search);
 
         request.getRequestDispatcher("/view/inventory-transaction/log-list.jsp").forward(request, response);
