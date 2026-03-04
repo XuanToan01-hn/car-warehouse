@@ -34,6 +34,9 @@ public class SalesOrderServlet extends HttpServlet {
             case "create":
                 showCreateForm(request, response);
                 break;
+            case "getDetailsByProduct": // Thêm action này
+            getDetailsByProduct(request, response);
+            break;
             case "warehouse-list":
                 List<SalesOrder> warehouseOrders = salesOrderDAO.getAll(); // Hàm getAll của bạn đã có OrderedQty/DeliveredQty
                 request.setAttribute("orders", warehouseOrders);
@@ -42,9 +45,6 @@ public class SalesOrderServlet extends HttpServlet {
             case "view":
                 viewOrder(request, response);
                 break;
-//            case "close":
-//                closeOrder(request, response);
-//                break;
             default:
                 listOrders(request, response);
                 break;
@@ -69,13 +69,21 @@ public class SalesOrderServlet extends HttpServlet {
         request.getRequestDispatcher("/view/sales-order-list.jsp").forward(request, response);
     }
 
-    private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setAttribute("customers", customerDAO.getAll());
-        // For simplicity, listing some product details to select from
-        request.setAttribute("productDetails", productDetailDAO.getFiltered(null, null, 1, 100));
-        request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
-    }
+ private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    // 1. Load danh sách khách hàng
+    request.setAttribute("customers", customerDAO.getAll());
+    
+    // 2. Load danh sách Product (Bảng cha - để chọn tên SP)
+    ProductDAO pDAO = new ProductDAO();
+    request.setAttribute("productList", pDAO.getAll());
+    
+    // 3. Load TOÀN BỘ ProductDetail (Bảng con - chứa Lot, Serial, Price...)
+    ProductDetailDAO pdDAO = new ProductDetailDAO();
+    request.setAttribute("allDetails", pdDAO.getAll());
+    
+    request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
+}
 
     private void viewOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -187,24 +195,32 @@ public class SalesOrderServlet extends HttpServlet {
         // Forward sang trang JSP dành riêng cho Warehouse
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
+    
+    
+private void getDetailsByProduct(HttpServletRequest request, HttpServletResponse response)
+        throws IOException {
+    int productId = Integer.parseInt(request.getParameter("productId"));
+    List<ProductDetail> details = productDetailDAO.getByProductId(productId);
 
-//    private void closeOrder(HttpServletRequest request, HttpServletResponse response)
-//        throws ServletException, IOException {
-//    int id = Integer.parseInt(request.getParameter("id"));
-//    
-//    SalesOrder order = salesOrderDAO.getById(id);
-//    
-//    if (order != null) {
-//        // 2. Kiểm tra điều kiện: Phải có hàng đã giao và chưa giao đủ mới được Close
-//        if (order.getDeliveredQty() > 0 && order.getDeliveredQty() < order.getOrderedQty()) {
-//            salesOrderDAO.updateStatus(id, 5); // 5 là Closed
-//            request.getSession().setAttribute("message", "Đơn hàng dở dang đã được đóng thành công.");
-//        } else {
-//            // Thông báo lỗi nếu cố tình đóng đơn chưa giao gì hoặc đã giao đủ
-//            request.getSession().setAttribute("error", "Chỉ được phép đóng đơn hàng đang giao dở dang!");
-//        }
-//    }
-//    
-//    response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
-//}
+    // Trả về JSON (Sử dụng StringBuilder để tạo JSON thuần nếu không muốn dùng thư viện ngoài)
+    response.setContentType("application/json");
+    response.setCharacterEncoding("UTF-8");
+    
+    StringBuilder json = new StringBuilder("[");
+    for (int i = 0; i < details.size(); i++) {
+        ProductDetail d = details.get(i);
+        json.append("{");
+        json.append("\"id\":").append(d.getId()).append(",");
+        json.append("\"lot\":\"").append(d.getLotNumber()).append("\",");
+        json.append("\"serial\":\"").append(d.getSerialNumber()).append("\",");
+        json.append("\"price\":").append(d.getPrice()).append(",");
+        json.append("\"quantity\":").append(d.getQuantity()).append(",");
+        json.append("\"color\":\"").append(d.getColor()).append("\"");
+        json.append("}");
+        if (i < details.size() - 1) json.append(",");
+    }
+    json.append("]");
+    response.getWriter().write(json.toString());
+}
+
 }

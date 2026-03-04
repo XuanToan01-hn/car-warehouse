@@ -174,85 +174,65 @@ public List<Object[]> getDetailsForUI(int soId, int locationId) {
 //        }
 //    }
     public boolean confirmIssue(GoodsIssue gi, List<GoodsIssueDetail> details) {
+    // 1. SQL Queries
     String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, Note, CreateBy) VALUES (?, ?, ?, GETDATE(), ?, ?, ?)";
     String sqlGID = "INSERT INTO Goods_Issue_Detail (IssueID, ProductDetailID, QuantityExpected, QuantityActual) VALUES (?, ?, ?, ?)";
     String sqlUpdateStock = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
-    
-    // ĐOẠN LOG TRANSACTION Ở ĐÂY
-    String sqlTrans = "INSERT INTO Inventory_Transaction (ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) " +
-                      "VALUES (?, ?, ?, 'ISSUE', ?, ?, GETDATE())";
-    
     String sqlUpdateSO = "UPDATE Sales_Order SET Status = ? WHERE SalesOrderID = ?";
 
     try {
-        connection.setAutoCommit(false); // Bắt đầu giao dịch
+        // --- BỎ TRANSACTION (AUTO COMMIT MẶC ĐỊNH LÀ TRUE) ---
         
-        int issueId;
-        // 1. Lưu Header của Goods Issue
-        try (PreparedStatement psGI = connection.prepareStatement(sqlGI, Statement.RETURN_GENERATED_KEYS)) {
-            psGI.setString(1, gi.getIssueCode());
-            psGI.setInt(2, gi.getSalesOrder().getId());
-            psGI.setInt(3, gi.getLocation().getId());
-            psGI.setInt(4, gi.getStatus());
-            psGI.setString(5, gi.getNote());
-            psGI.setInt(6, gi.getCreateBy().getId());
-            psGI.executeUpdate();
-            
-            ResultSet rs = psGI.getGeneratedKeys();
-            if (!rs.next()) throw new SQLException("Failed to create Goods Issue header");
+        int issueId = -1;
+
+        // BƯỚC 1: Lưu Header
+        PreparedStatement psGI = connection.prepareStatement(sqlGI, Statement.RETURN_GENERATED_KEYS);
+        psGI.setString(1, gi.getIssueCode());
+        psGI.setInt(2, gi.getSalesOrder().getId());
+        psGI.setInt(3, gi.getLocation().getId());
+        psGI.setInt(4, gi.getStatus());
+        psGI.setString(5, gi.getNote());
+        psGI.setInt(6, gi.getCreateBy().getId());
+        psGI.executeUpdate();
+        
+        ResultSet rs = psGI.getGeneratedKeys();
+        if (rs.next()) {
             issueId = rs.getInt(1);
         }
 
-        try (PreparedStatement psGID = connection.prepareStatement(sqlGID);
-             PreparedStatement psStock = connection.prepareStatement(sqlUpdateStock);
-             PreparedStatement psTrans = connection.prepareStatement(sqlTrans)) {
+        // BƯỚC 2: Lưu Details và Cập nhật kho
+        PreparedStatement psGID = connection.prepareStatement(sqlGID);
+        PreparedStatement psStock = connection.prepareStatement(sqlUpdateStock);
+
+        for (GoodsIssueDetail d : details) {
+            // Lưu Detail
+            psGID.setInt(1, issueId);
+            psGID.setInt(2, d.getProductDetail().getId());
+            psGID.setInt(3, d.getQuantityExpected());
+            psGID.setInt(4, d.getQuantityActual());
+            psGID.executeUpdate(); // Chạy trực tiếp, không dùng Batch để dễ debug
+
+            // Cập nhật kho (Trừ số lượng)
+            psStock.setInt(1, d.getQuantityActual());
+            psStock.setInt(2, gi.getLocation().getId());
+            psStock.setInt(3, d.getProductDetail().getId());
+            int affected = psStock.executeUpdate();
             
-            for (GoodsIssueDetail detail : details) {
-                int pdId = detail.getProductDetail().getId();
-                int pId = detail.getProductDetail().getProduct().getId(); // Lấy ProductID từ đối tượng Product
-                int qty = detail.getQuantityActual();
-
-                // 2. Lưu chi tiết Goods Issue
-                psGID.setInt(1, issueId);
-                psGID.setInt(2, pdId);
-                psGID.setInt(3, detail.getQuantityExpected());
-                psGID.setInt(4, qty);
-                psGID.addBatch();
-
-                // 3. Cập nhật tồn kho (Trừ số lượng)
-                psStock.setInt(1, qty);
-                psStock.setInt(2, gi.getLocation().getId());
-                psStock.setInt(3, pdId);
-                int affected = psStock.executeUpdate();
-                if (affected == 0) throw new SQLException("Stock not found for ProductDetailID: " + pdId);
-
-                // 4. LƯU LOG GIAO DỊCH KHO (Inventory Transaction)
-                psTrans.setInt(1, pId);                // ProductID
-                psTrans.setInt(2, pdId);               // ProductDetailID
-                psTrans.setInt(3, gi.getLocation().getId()); // LocationID
-                psTrans.setInt(4, qty);                // Quantity
-                psTrans.setString(5, gi.getIssueCode()); // Dùng mã xuất kho làm ReferenceCode
-                psTrans.addBatch();
+            if (affected == 0) {
+                System.out.println(">>> LỖI: Không tìm thấy dòng sản phẩm " + d.getProductDetail().getId() + " tại kho " + gi.getLocation().getId() + " để trừ hàng!");
             }
-            
-            psGID.executeBatch();
-            psTrans.executeBatch(); // Thực thi lưu tất cả log giao dịch
         }
 
-        // 5. Cập nhật trạng thái Sales Order (Hoàn thành hoặc Giao một phần)
+        // BƯỚC 3: Cập nhật trạng thái đơn hàng (Sử dụng hàm helper cũ của bạn)
         updateSalesOrderStatus(gi.getSalesOrder().getId());
 
-        connection.commit(); // Hoàn tất giao dịch
         return true;
-    } catch (SQLException e) {
-        try { connection.rollback(); } catch (SQLException re) { re.printStackTrace(); }
-        e.printStackTrace();
+    } catch (Exception e) {
+        System.out.println(">>> CRITICAL ERROR IN DAO:");
+        e.printStackTrace(); // In toàn bộ lỗi ra console
         return false;
-    } finally {
-        try { connection.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
     }
 }
-
 // Hàm bổ trợ để check và update status SO
 private void updateSalesOrderStatus(int soId) throws SQLException {
     String sqlCheck = "SELECT " +

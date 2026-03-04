@@ -12,7 +12,22 @@ public class ProductDetailDAO extends DBContext {
 
     private final ProductDAO productDAO = new ProductDAO();
 
-    // --- CÁC HÀM TRUY VẤN DỮ LIỆU ---
+    // Trong ProductDetailDAO.java
+public List<ProductDetail> getByProductId(int productId) {
+    List<ProductDetail> list = new ArrayList<>();
+    String sql = "SELECT * FROM Product_Detail WHERE ProductID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, productId);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapResultSetToEntity(rs));
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return list;
+}
 
     public List<ProductDetail> getAll() {
         List<ProductDetail> list = new ArrayList<>();
