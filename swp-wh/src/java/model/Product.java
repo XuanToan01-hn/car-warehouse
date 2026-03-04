@@ -1,5 +1,13 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package model;
 
+/**
+ *
+ * @author Asus
+ */
 public class Product {
     private int id;
     private String code;
@@ -9,18 +17,8 @@ public class Product {
     private String image;
     private Unit unit;
     private Category category;
-    private Supplier supplier; // Cập nhật theo FK_Product_Supplier
     private int minStock;
-    private String color;
 
-    // Thêm Getter và Setter
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
     public Product() {}
 
     public Product(int id, String code, String name, double price, String description, String image, Unit unit, Category category) {
@@ -34,7 +32,7 @@ public class Product {
         this.category = category;
     }
 
-
+    
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -58,9 +56,6 @@ public class Product {
 
     public Category getCategory() { return category; }
     public void setCategory(Category category) { this.category = category; }
-
-    public Supplier getSupplier() { return supplier; }
-    public void setSupplier(Supplier supplier) { this.supplier = supplier; }
 
     public int getMinStock() { return minStock; }
     public void setMinStock(int minStock) { this.minStock = minStock; }

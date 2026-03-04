@@ -28,17 +28,12 @@ public class GetSupplierProductsServlet extends HttpServlet {
             StringBuilder json = new StringBuilder("[");
             for (int i = 0; i < products.size(); i++) {
                 Product p = products.get(i);
-
-                // Xử lý màu: nếu null hoặc rỗng thì để mặc định
-                String colorStr = (p.getColor() != null && !p.getColor().trim().isEmpty()) ? p.getColor() : "Chưa có màu";
-
                 if (i > 0) json.append(",");
                 json.append("{");
                 json.append("\"id\":").append(p.getId()).append(",");
                 json.append("\"name\":\"").append(escapeJson(p.getName())).append("\",");
                 json.append("\"code\":\"").append(escapeJson(p.getCode())).append("\",");
-                json.append("\"price\":").append(p.getPrice()).append(","); // Thêm dấu phẩy ở đây
-                json.append("\"color\":\"").append(escapeJson(colorStr)).append("\""); // Thêm trường color
+                json.append("\"price\":").append(p.getPrice());
                 json.append("}");
             }
             json.append("]");
