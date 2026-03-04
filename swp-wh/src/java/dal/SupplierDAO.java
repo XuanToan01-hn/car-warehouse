@@ -10,13 +10,21 @@ import java.util.List;
 import model.Supplier;
 
 public class SupplierDAO extends DBContext {
+    
+    public static void main(String[] args) {
+        SupplierDAO s = new SupplierDAO();
+        List<Supplier> g = s.getAll();
+        for(Supplier c : g){
+            System.out.println(c.getId() + " /");
+        }
+    }
 
     // ===============================
     // GET ALL
     // ===============================
     public List<Supplier> getAll() {
         List<Supplier> list = new ArrayList<>();
-        String sql = "SELECT SupplierID, Name, Address, Phone, Email, ProductID FROM Supplier ORDER BY Name";
+        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier ORDER BY Name";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ResultSet rs = ps.executeQuery();
@@ -27,10 +35,6 @@ public class SupplierDAO extends DBContext {
                 s.setAddress(rs.getString("Address"));
                 s.setPhone(rs.getString("Phone"));
                 s.setEmail(rs.getString("Email"));
-                int pid = rs.getInt("ProductID");
-                if (!rs.wasNull()) {
-                    s.setProductId(pid);
-                }
                 list.add(s);
             }
         } catch (SQLException e) {
@@ -43,7 +47,7 @@ public class SupplierDAO extends DBContext {
     // GET BY ID
     // ===============================
     public Supplier getById(int id) {
-        String sql = "SELECT SupplierID, Name, Address, Phone, Email, ProductID FROM Supplier WHERE SupplierID = ?";
+        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier WHERE SupplierID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
@@ -55,10 +59,10 @@ public class SupplierDAO extends DBContext {
                 s.setAddress(rs.getString("Address"));
                 s.setPhone(rs.getString("Phone"));
                 s.setEmail(rs.getString("Email"));
-                int pid = rs.getInt("ProductID");
-                if (!rs.wasNull()) {
-                    s.setProductId(pid);
-                }
+//                int pid = rs.getInt("ProductID");
+//                if (!rs.wasNull()) {
+//                    s.setProductId(pid);
+//                }
                 return s;
             }
         } catch (SQLException e) {
