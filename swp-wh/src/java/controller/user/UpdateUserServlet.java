@@ -191,9 +191,9 @@ public class UpdateUserServlet extends HttpServlet {
                 return;
             }
             Integer warehouseId = null;
-            if (roleId == 2 || roleId == 4) {
+            if (roleId == 3 || roleId == 4 || roleId == 5) {
                 if (InputValidator.isEmpty(warehouseIdStr)) {
-                    session.setAttribute("error", "Warehouse is required for Sales/Warehouse Staff!");
+                    session.setAttribute("error", "Warehouse is required for Sales Warehouse Staff and Purchasing staff!");
                     response.sendRedirect("userlist?page=" + page);
                     return;
                 }
@@ -216,7 +216,7 @@ public class UpdateUserServlet extends HttpServlet {
             existing.setRole(new Role(roleId));
             existing.setRole(new Role(roleId));
             if (warehouseId != null) {
-                existing.setWarehouse(new Warehouse(warehouseId)); // Giả sử bạn có class Warehouse
+                existing.setWarehouse(new Warehouse(warehouseId));
             } else {
                 existing.setWarehouse(null);
             }

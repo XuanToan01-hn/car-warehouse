@@ -42,9 +42,9 @@ public class SalesOrderServlet extends HttpServlet {
             case "view":
                 viewOrder(request, response);
                 break;
-            case "close":
-                closeOrder(request, response);
-                break;
+//            case "close":
+//                closeOrder(request, response);
+//                break;
             default:
                 listOrders(request, response);
                 break;
@@ -188,23 +188,23 @@ public class SalesOrderServlet extends HttpServlet {
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
 
-    private void closeOrder(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    int id = Integer.parseInt(request.getParameter("id"));
-    
-    SalesOrder order = salesOrderDAO.getById(id);
-    
-    if (order != null) {
-        // 2. Kiểm tra điều kiện: Phải có hàng đã giao và chưa giao đủ mới được Close
-        if (order.getDeliveredQty() > 0 && order.getDeliveredQty() < order.getOrderedQty()) {
-            salesOrderDAO.updateStatus(id, 5); // 5 là Closed
-            request.getSession().setAttribute("message", "Đơn hàng dở dang đã được đóng thành công.");
-        } else {
-            // Thông báo lỗi nếu cố tình đóng đơn chưa giao gì hoặc đã giao đủ
-            request.getSession().setAttribute("error", "Chỉ được phép đóng đơn hàng đang giao dở dang!");
-        }
-    }
-    
-    response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
-}
+//    private void closeOrder(HttpServletRequest request, HttpServletResponse response)
+//        throws ServletException, IOException {
+//    int id = Integer.parseInt(request.getParameter("id"));
+//    
+//    SalesOrder order = salesOrderDAO.getById(id);
+//    
+//    if (order != null) {
+//        // 2. Kiểm tra điều kiện: Phải có hàng đã giao và chưa giao đủ mới được Close
+//        if (order.getDeliveredQty() > 0 && order.getDeliveredQty() < order.getOrderedQty()) {
+//            salesOrderDAO.updateStatus(id, 5); // 5 là Closed
+//            request.getSession().setAttribute("message", "Đơn hàng dở dang đã được đóng thành công.");
+//        } else {
+//            // Thông báo lỗi nếu cố tình đóng đơn chưa giao gì hoặc đã giao đủ
+//            request.getSession().setAttribute("error", "Chỉ được phép đóng đơn hàng đang giao dở dang!");
+//        }
+//    }
+//    
+//    response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
+//}
 }
