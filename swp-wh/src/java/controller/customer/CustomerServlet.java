@@ -78,16 +78,26 @@ public class CustomerServlet extends HttpServlet {
 
         switch (action) {
             case "add": {
-                String customerCode = trimParam(request.getParameter("customerCode"));
+                // Auto-generate code
+                String customerCode = dao.getNextCustomerCode();
                 String name = trimParam(request.getParameter("name"));
                 String phone = trimParam(request.getParameter("phone"));
                 String email = trimParam(request.getParameter("email"));
                 String address = trimParam(request.getParameter("address"));
 
-                if (customerCode.isEmpty() || name.isEmpty()) {
+                // Validation
+                if (name.isEmpty() || !isValidName(name)) {
+                    request.getSession().setAttribute("error", "Tên phải là định dạng chữ!");
                     response.sendRedirect(request.getContextPath() + "/customers");
                     return;
                 }
+                
+                if (!phone.isEmpty() && !isValidPhone(phone)) {
+                    request.getSession().setAttribute("error", "Số điện thoại phải là 10 số và bắt đầu bằng số 0!");
+                    response.sendRedirect(request.getContextPath() + "/customers");
+                    return;
+                }
+
                 Customer c = new Customer();
                 c.setCustomerCode(customerCode);
                 c.setName(name);
@@ -95,6 +105,7 @@ public class CustomerServlet extends HttpServlet {
                 c.setEmail(email);
                 c.setAddress(address);
                 dao.insert(c);
+                request.getSession().setAttribute("success", "Thêm khách hàng thành công!");
                 break;
             }
             case "update": {
@@ -116,7 +127,20 @@ public class CustomerServlet extends HttpServlet {
                 String email = trimParam(request.getParameter("email"));
                 String address = trimParam(request.getParameter("address"));
 
-                if (customerCode.isEmpty() || name.isEmpty()) {
+                // Validation
+                if (name.isEmpty() || !isValidName(name)) {
+                    request.getSession().setAttribute("error", "Tên phải là định dạng chữ!");
+                    response.sendRedirect(request.getContextPath() + "/customers");
+                    return;
+                }
+                
+                if (!phone.isEmpty() && !isValidPhone(phone)) {
+                    request.getSession().setAttribute("error", "Số điện thoại phải là 10 số và bắt đầu bằng số 0!");
+                    response.sendRedirect(request.getContextPath() + "/customers");
+                    return;
+                }
+
+                if (customerCode.isEmpty()) {
                     response.sendRedirect(request.getContextPath() + "/customers");
                     return;
                 }
@@ -128,6 +152,7 @@ public class CustomerServlet extends HttpServlet {
                 c.setEmail(email);
                 c.setAddress(address);
                 dao.update(c);
+                request.getSession().setAttribute("success", "Cập nhật khách hàng thành công!");
                 break;
             }
             case "delete": {
@@ -146,6 +171,16 @@ public class CustomerServlet extends HttpServlet {
         }
 
         response.sendRedirect(request.getContextPath() + "/customers");
+    }
+
+    private boolean isValidName(String name) {
+        // Only letters and spaces, including Vietnamese characters
+        return name.matches("^[\\p{L}\\s]+$");
+    }
+
+    private boolean isValidPhone(String phone) {
+        // Exactly 10 digits, starts with 0
+        return phone.matches("^0\\d{9}$");
     }
 
     private static String trimParam(String s) {
