@@ -219,7 +219,7 @@
 
             if (selectedOption.value) {
                 priceInput.value = price || "";
-                stockInfo.innerText = "Available Stock: " + (stock || "0");
+//                stockInfo.innerText = "Available Stock: " + (stock || "0");
             } else {
                 priceInput.value = "";
                 stockInfo.innerText = "";

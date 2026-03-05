@@ -18,6 +18,17 @@ public class ProductDetail {
     private Date manufactureDate;
     private String color; // Thêm mới
     private double price;
+    private int quantity;
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+    
+    
 
     public ProductDetail() {
     }
