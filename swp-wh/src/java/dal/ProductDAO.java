@@ -17,8 +17,7 @@ public class ProductDAO extends DBContext {
     UnitDAO unitDAO = new UnitDAO();
     SupplierDAO supplierDAO = new SupplierDAO();
 
-
-     public static void main(String[] args) {
+    public static void main(String[] args) {
 
         ProductDAO dao = new ProductDAO();
 
@@ -40,7 +39,6 @@ public class ProductDAO extends DBContext {
                     + " | Code: " + p.getCode());
         }
 
-
     }
 
     // ===============================
@@ -56,20 +54,20 @@ public class ProductDAO extends DBContext {
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-        
+
         // Category filter
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-        
+
         // Unit filter
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
         }
-        
-        // Mặc định sắp xếp theo ID vì đã bỏ Price
+
+        // Mặc định sắp xếp theo ID
         sql.append(" ORDER BY ProductID DESC");
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
@@ -82,24 +80,6 @@ public class ProductDAO extends DBContext {
             }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Product p = new Product();
-                p.setId(rs.getInt("ProductID"));
-                p.setCode(rs.getString("Code"));
-                p.setName(rs.getString("Name"));
-                p.setDescription(rs.getString("Description"));
-                p.setImage(rs.getString("Image"));
-                p.setMinStock(rs.getInt("MinStock"));
-                p.setColor(rs.getString("Color"));
-
-                p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
-                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
-
-                int supId = rs.getInt("SupplierID");
-                if (!rs.wasNull()) {
-                    p.setSupplier(supplierDAO.getById(supId));
-                }
-
-                list.add(p);
                 list.add(mapResultSetToProduct(rs));
             }
         } catch (Exception e) {
@@ -107,25 +87,25 @@ public class ProductDAO extends DBContext {
         }
         return list;
     }
-    
+
     // ===============================
     // 2. GET TOTAL FILTERED
     // ===============================
     public int getTotalFilteredProducts(String search, String categoryId, String unitId, String supplierId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-        
+
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
-        
+
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
-        
+
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
@@ -186,7 +166,8 @@ public class ProductDAO extends DBContext {
 
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next())
+                return rs.getInt(1);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -235,16 +216,18 @@ public class ProductDAO extends DBContext {
     }
 
     // ===============================
-    // 7. DELETE
+    // 7. DELETE (trả boolean: true nếu thành công)
     // ===============================
-    public void delete(int id) {
+    public boolean delete(int id) {
         String sql = "DELETE FROM Product WHERE ProductID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
-            ps.executeUpdate();
+            int rows = ps.executeUpdate();
+            return rows > 0;
         } catch (Exception e) {
             e.printStackTrace();
+            return false;
         }
     }
 
@@ -254,13 +237,13 @@ public class ProductDAO extends DBContext {
     public List<Product> search(String keyword, int categoryId, int unitId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         String sql = """
-            SELECT * FROM Product
-            WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
-            AND (? = 0 OR CategoryID = ?)
-            AND (? = 0 OR UnitID = ?)
-            ORDER BY ProductID
-            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-        """;
+                    SELECT * FROM Product
+                    WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
+                    AND (? = 0 OR CategoryID = ?)
+                    AND (? = 0 OR UnitID = ?)
+                    ORDER BY ProductID
+                    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+                """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             String search = "%" + keyword + "%";
@@ -304,26 +287,26 @@ public class ProductDAO extends DBContext {
     }
 
     // ===============================
-// 10. GET ALL
-// ===============================
-public List<Product> getAll() {
-    List<Product> list = new ArrayList<>();
-    String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
+    // 10. GET ALL
+    // ===============================
+    public List<Product> getAll() {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
 
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
-            list.add(mapResultSetToProduct(rs));
+            while (rs.next()) {
+                list.add(mapResultSetToProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
-
-    return list;
-}
 
     // Hàm dùng chung để map ResultSet sang Product (giúp code sạch hơn)
     private Product mapResultSetToProduct(ResultSet rs) throws Exception {
@@ -336,6 +319,16 @@ public List<Product> getAll() {
         p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
         p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
         p.setSupplier(supplierDAO.getById(rs.getInt("SupplierID")));
+        // MinStock nếu có trong DB
+        try {
+            p.setMinStock(rs.getInt("MinStock"));
+        } catch (Exception ignored) {
+        }
+        // Color nếu có trong DB
+        try {
+            p.setColor(rs.getString("Color"));
+        } catch (Exception ignored) {
+        }
         return p;
     }
 }

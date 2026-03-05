@@ -18,6 +18,7 @@ public class ProductDetail {
     private Date manufactureDate;
     private String color; // Thêm mới
     private double price;
+    private int quantity; // Tổng tồn kho thực tế từ Location_Product (không phải cột DB)
 
     public ProductDetail() {
     }
@@ -36,6 +37,14 @@ public class ProductDetail {
 
     public void setPrice(double price) {
         this.price = price;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
     }
 
     public int getId() {

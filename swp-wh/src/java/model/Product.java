@@ -10,16 +10,7 @@ public class Product {
     private Category category;
     private Supplier supplier;
     private String color;
-// Thêm Supplier
-
-    // Thêm Getter và Setter
-    public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
+    private int minStock;
 
     public Product() {
     }
@@ -34,7 +25,8 @@ public class Product {
         this.category = category;
     }
 
-    public Product(int id, String code, String name, String description, String image, Unit unit, Category category, Supplier supplier) {
+    public Product(int id, String code, String name, String description, String image, Unit unit, Category category,
+            Supplier supplier) {
         this.id = id;
         this.code = code;
         this.name = name;
@@ -44,6 +36,7 @@ public class Product {
         this.category = category;
         this.supplier = supplier;
     }
+
     public int getId() {
         return id;
     }
@@ -108,7 +101,19 @@ public class Product {
         this.supplier = supplier;
     }
 
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
     public int getMinStock() {
         return minStock;
+    }
 
+    public void setMinStock(int minStock) {
+        this.minStock = minStock;
+    }
 }

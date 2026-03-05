@@ -170,7 +170,7 @@
                                                 </c:if>
 
                                                 <!-- Nút Tạo GRO chỉ hiện khi PO đã Mark Received (status 3) -->
-                                                <c:if test="${po.status == 3 && user.role.roleId == 4}">
+                                                <c:if test="${po.status == 3 && user.role.roleId == 3}">
                                                     <div class="border-top pt-3 mt-2">
                                                         <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
                                                             class="btn btn-success btn-lg">

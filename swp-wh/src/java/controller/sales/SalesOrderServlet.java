@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet(name = "SalesOrderServlet", urlPatterns = {"/sales-order"})
+@WebServlet(name = "SalesOrderServlet", urlPatterns = { "/sales-order" })
 public class SalesOrderServlet extends HttpServlet {
 
     private final SalesOrderDAO salesOrderDAO = new SalesOrderDAO();
@@ -35,10 +35,11 @@ public class SalesOrderServlet extends HttpServlet {
                 showCreateForm(request, response);
                 break;
             case "getDetailsByProduct": // Thêm action này
-            getDetailsByProduct(request, response);
-            break;
+                getDetailsByProduct(request, response);
+                break;
             case "warehouse-list":
-                List<SalesOrder> warehouseOrders = salesOrderDAO.getAll(); // Hàm getAll của bạn đã có OrderedQty/DeliveredQty
+                List<SalesOrder> warehouseOrders = salesOrderDAO.getAll(); // Hàm getAll của bạn đã có
+                                                                           // OrderedQty/DeliveredQty
                 request.setAttribute("orders", warehouseOrders);
                 request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
                 break;
@@ -69,21 +70,20 @@ public class SalesOrderServlet extends HttpServlet {
         request.getRequestDispatcher("/view/sales-order-list.jsp").forward(request, response);
     }
 
- private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    // 1. Load danh sách khách hàng
-    request.setAttribute("customers", customerDAO.getAll());
-    
-    // 2. Load danh sách Product (Bảng cha - để chọn tên SP)
-    ProductDAO pDAO = new ProductDAO();
-    request.setAttribute("productList", pDAO.getAll());
-    
-    // 3. Load TOÀN BỘ ProductDetail (Bảng con - chứa Lot, Serial, Price...)
-    ProductDetailDAO pdDAO = new ProductDetailDAO();
-    request.setAttribute("allDetails", pdDAO.getAll());
-    
-    request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
-}
+    private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        // 1. Load danh sách khách hàng
+        request.setAttribute("customers", customerDAO.getAll());
+
+        // 2. Load danh sách Product cha (để người dùng chọn tên SP trước)
+        ProductDAO pDAO = new ProductDAO();
+        request.setAttribute("productList", pDAO.getAll());
+
+        // Không load allDetails ở đây nữa vì sẽ dùng AJAX (getDetailsByProduct)
+        // để lấy chi tiết + tồn kho khi người dùng chọn sản phẩm
+
+        request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
+    }
 
     private void viewOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -143,7 +143,8 @@ public class SalesOrderServlet extends HttpServlet {
 
         // --- XỬ LÝ KẾT QUẢ ---
         if (!inventoryErrors.isEmpty()) {
-            // Nếu có ít nhất 1 sản phẩm thiếu hàng, không lưu vào DB mà báo lỗi về trang create
+            // Nếu có ít nhất 1 sản phẩm thiếu hàng, không lưu vào DB mà báo lỗi về trang
+            // create
             request.setAttribute("inventoryErrors", inventoryErrors);
             request.setAttribute("customers", customerDAO.getAll());
             request.setAttribute("productDetails", productDetailDAO.getFiltered(null, null, 1, 100));
@@ -195,32 +196,37 @@ public class SalesOrderServlet extends HttpServlet {
         // Forward sang trang JSP dành riêng cho Warehouse
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
-    
-    
-private void getDetailsByProduct(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
-    int productId = Integer.parseInt(request.getParameter("productId"));
-    List<ProductDetail> details = productDetailDAO.getByProductId(productId);
 
-    // Trả về JSON (Sử dụng StringBuilder để tạo JSON thuần nếu không muốn dùng thư viện ngoài)
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    
-    StringBuilder json = new StringBuilder("[");
-    for (int i = 0; i < details.size(); i++) {
-        ProductDetail d = details.get(i);
-        json.append("{");
-        json.append("\"id\":").append(d.getId()).append(",");
-        json.append("\"lot\":\"").append(d.getLotNumber()).append("\",");
-        json.append("\"serial\":\"").append(d.getSerialNumber()).append("\",");
-        json.append("\"price\":").append(d.getPrice()).append(",");
-        json.append("\"quantity\":").append(d.getQuantity()).append(",");
-        json.append("\"color\":\"").append(d.getColor()).append("\"");
-        json.append("}");
-        if (i < details.size() - 1) json.append(",");
+    private void getDetailsByProduct(HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
+        int productId = Integer.parseInt(request.getParameter("productId"));
+
+        // Lấy danh sách ProductDetail của sản phẩm này,
+        // KÈM số lượng tồn kho thực tế từ Location_Product (chỉ lấy những cái có hàng)
+        List<ProductDetail> details = productDetailDAO.getByProductId(productId);
+
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+
+        StringBuilder json = new StringBuilder("[");
+        for (int i = 0; i < details.size(); i++) {
+            ProductDetail d = details.get(i);
+            String lot = d.getLotNumber() != null ? d.getLotNumber() : "";
+            String serial = d.getSerialNumber() != null ? d.getSerialNumber() : "";
+            String color = d.getColor() != null ? d.getColor() : "";
+            json.append("{");
+            json.append("\"id\":").append(d.getId()).append(",");
+            json.append("\"lot\":\"").append(lot).append("\",");
+            json.append("\"serial\":\"").append(serial).append("\",");
+            json.append("\"price\":").append(d.getPrice()).append(",");
+            json.append("\"stockQty\":").append(d.getQuantity()).append(","); // Tồn kho thực tế
+            json.append("\"color\":\"").append(color).append("\"");
+            json.append("}");
+            if (i < details.size() - 1)
+                json.append(",");
+        }
+        json.append("]");
+        response.getWriter().write(json.toString());
     }
-    json.append("]");
-    response.getWriter().write(json.toString());
-}
 
 }

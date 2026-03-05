@@ -98,7 +98,7 @@
                         <h1 class="font-weight-bold mb-1">Purchase Orders</h1>
                         <p class="text-secondary mb-0">Track and manage inventory procurement from suppliers.</p>
                     </div>
-                    <c:if test="${not empty sessionScope.user and sessionScope.user.role.id == 3}">
+                    <c:if test="${not empty sessionScope.user and sessionScope.user.role.id == 5}">
                         <a href="${pageContext.request.contextPath}/add-purchase-order" class="btn btn-add">
                             <i class="ri-add-line"></i> Create New PO
                         </a>

@@ -1,14 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller.product;
 
 import dal.CategoryDAO;
 import dal.ProductDAO;
 import dal.SupplierDAO;
 import dal.UnitDAO;
-import dal.SupplierDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -18,7 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.Product;
 
-@WebServlet(name = "ListProduct", urlPatterns = {"/list-product"})
+@WebServlet(name = "ListProduct", urlPatterns = { "/list-product" })
 public class ListProduct extends HttpServlet {
 
     private static final int DEFAULT_PAGE_SIZE = 10;
@@ -32,18 +27,14 @@ public class ListProduct extends HttpServlet {
         UnitDAO unitDAO = new UnitDAO();
         SupplierDAO supplierDAO = new SupplierDAO();
 
-        // 1. Lấy các tham số lọc
-        String search = request.getParameter("search");
-        String categoryId = request.getParameter("categoryId");
-        String unitId = request.getParameter("unitId");
-
+        // Xử lý action getDetailJson (trả JSON cho modal edit)
+        String action = request.getParameter("action");
         if ("getDetailJson".equals(action)) {
             String idStr = request.getParameter("id");
             if (idStr != null && !idStr.trim().isEmpty()) {
                 try {
                     int id = Integer.parseInt(idStr.trim());
-                    ProductDAO dao = new ProductDAO();
-                    Product p = dao.getById(id);
+                    Product p = productDAO.getById(id);
                     if (p != null) {
                         response.setContentType("application/json");
                         response.setCharacterEncoding("UTF-8");
@@ -70,13 +61,20 @@ public class ListProduct extends HttpServlet {
             }
         }
 
-        // Parse page with default value
+        // 1. Lấy các tham số lọc
+        String search = request.getParameter("search");
+        String categoryId = request.getParameter("categoryId");
+        String unitId = request.getParameter("unitId");
+        String supplierId = request.getParameter("supplierId");
+
+        // 2. Parse page
         int page = 1;
         String pageParam = request.getParameter("page");
         if (pageParam != null && !pageParam.trim().isEmpty()) {
             try {
                 page = Integer.parseInt(pageParam);
-                if (page < 1) page = 1;
+                if (page < 1)
+                    page = 1;
             } catch (NumberFormatException e) {
                 page = 1;
             }
@@ -94,25 +92,20 @@ public class ListProduct extends HttpServlet {
             }
         }
 
-        // Get filtered and paginated products
-        String supplierId = request.getParameter("supplierId");
-        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, supplierId,
-                page,
-                pageSize);
+        // 4. Lấy danh sách sản phẩm có lọc + phân trang
+        List<Product> productList = productDAO.getFilteredProducts(search, categoryId, unitId, page, pageSize);
         int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId, supplierId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
-        // 5. Tính toán dải phân trang (ví dụ hiển thị: 1 2 [3] 4 5)
+        // 5. Tính toán dải phân trang
         int startPage = Math.max(1, page - 2);
         int endPage = Math.min(totalPages, page + 2);
 
-        // Set attributes
-        SupplierDAO supplierDAO = new SupplierDAO();
+        // 6. Set attributes
+        request.setAttribute("listProduct", productList);
         request.setAttribute("listSupplier", supplierDAO.getAll());
         request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
-        request.setAttribute("listUnit", unitDAO.getAll());
-        request.setAttribute("listSupplier", supplierDAO.getAll());
 
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
@@ -124,18 +117,13 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("search", search);
         request.setAttribute("categoryId", categoryId);
         request.setAttribute("unitId", unitId);
+        request.setAttribute("supplierId", supplierId);
 
         request.getRequestDispatcher("view/product/page-list-product.jsp").forward(request, response);
-
     }
 
     /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request  servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException      if an I/O error occurs
+     * Handles the HTTP POST method.
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -165,14 +153,14 @@ public class ListProduct extends HttpServlet {
         request.setAttribute("eCode", request.getAttribute("errorCode"));
         request.setAttribute("eDesc", request.getAttribute("errorDesc"));
 
-        productDAO = new ProductDAO();
         UnitDAO unitDAO = new UnitDAO();
         CategoryDAO categoryDAO = new CategoryDAO();
+        SupplierDAO supplierDAO = new SupplierDAO();
 
         String search = request.getParameter("search");
-        String sortPrice = request.getParameter("sortPrice");
         String categoryId = request.getParameter("categoryId");
         String unitId = request.getParameter("unitId");
+        String supplierId = request.getParameter("supplierId");
 
         // Parse page with default value
         int page = 1;
@@ -181,9 +169,9 @@ public class ListProduct extends HttpServlet {
             try {
                 page = Integer.parseInt(pageParam);
                 if (page < 1)
-                    page = 1; // Ensure page is positive
+                    page = 1;
             } catch (NumberFormatException e) {
-                page = 1; // Fallback to page 1 if parsing fails
+                page = 1;
             }
         }
 
@@ -195,16 +183,12 @@ public class ListProduct extends HttpServlet {
                 pageSize = Integer.parseInt(pageSizeParam);
                 pageSize = validatePageSize(pageSize);
             } catch (NumberFormatException e) {
-                pageSize = DEFAULT_PAGE_SIZE; // Fallback to default if parsing fails
+                pageSize = DEFAULT_PAGE_SIZE;
             }
         }
 
-        // s
         // Get filtered and paginated products
-        String supplierId = request.getParameter("supplierId");
-        List<Product> productList = productDAO.getFilteredProducts(search, sortPrice, categoryId, unitId, supplierId,
-                page,
-                pageSize);
+        List<Product> productList = productDAO.getFilteredProducts(search, categoryId, unitId, page, pageSize);
         int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId, supplierId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
@@ -215,8 +199,7 @@ public class ListProduct extends HttpServlet {
         boolean hasNext = page < totalPages;
 
         // Set attributes
-        SupplierDAO supDAO = new SupplierDAO();
-        request.setAttribute("listSupplier", supDAO.getAll());
+        request.setAttribute("listSupplier", supplierDAO.getAll());
         request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
         request.setAttribute("listProduct", productList);
@@ -239,9 +222,10 @@ public class ListProduct extends HttpServlet {
     }
 
     private int validatePageSize(int pageSize) {
-        int[] validSizes = {10, 20, 50, 100};
+        int[] validSizes = { 10, 20, 50, 100 };
         for (int size : validSizes) {
-            if (pageSize == size) return pageSize;
+            if (pageSize == size)
+                return pageSize;
         }
         return DEFAULT_PAGE_SIZE;
     }

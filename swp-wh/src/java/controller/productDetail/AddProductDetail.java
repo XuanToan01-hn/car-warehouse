@@ -54,7 +54,6 @@ public class AddProductDetail extends HttpServlet {
             pd.setLotNumber(lotNumber);
             pd.setSerialNumber(serialNumber);
             pd.setPrice(price);
-            pd.setQuantity(quantity);
             pd.setColor(color);
             // Parse ngày tháng
             pd.setManufactureDate(java.sql.Date.valueOf(manufactureDateStr));

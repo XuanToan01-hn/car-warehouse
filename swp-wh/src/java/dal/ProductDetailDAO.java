@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import model.ProductDetail;
 import model.Product;
-import java.sql.SQLException;
 
 public class ProductDetailDAO extends DBContext {
 
@@ -140,7 +139,8 @@ public class ProductDetailDAO extends DBContext {
                 ps.setObject(i + 1, params.get(i));
             }
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next())
+                    return rs.getInt(1);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -205,16 +205,52 @@ public class ProductDetailDAO extends DBContext {
         }
     }
 
-public void delete(int id) {
-    String sql = "DELETE FROM [Product_Detail] WHERE [ProductDetailID] = ?";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setInt(1, id);
-        ps.executeUpdate();
-    } catch (SQLException e) {
-        e.printStackTrace();
+    /**
+     * Lấy danh sách ProductDetail theo ProductID,
+     * kèm số lượng tồn kho thực tế (SUM từ Location_Product).
+     * Chỉ lấy những detail có tồn kho > 0.
+     */
+    public List<ProductDetail> getByProductId(int productId) {
+        List<ProductDetail> list = new ArrayList<>();
+        // JOIN với Location_Product để lấy tổng tồn kho thực tế
+        String sql = "SELECT pd.*, ISNULL(SUM(lp.Quantity), 0) AS StockQty " +
+                     "FROM Product_Detail pd " +
+                     "LEFT JOIN Location_Product lp ON pd.ProductDetailID = lp.ProductDetailID " +
+                     "WHERE pd.ProductID = ? " +
+                     "GROUP BY pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, " +
+                     "         pd.ManufactureDate, pd.ProductID, pd.Color, pd.Price " +
+                     "HAVING ISNULL(SUM(lp.Quantity), 0) > 0 " +
+                     "ORDER BY pd.ProductDetailID ASC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductDetail pd = new ProductDetail();
+                pd.setId(rs.getInt("ProductDetailID"));
+                pd.setLotNumber(rs.getString("LotNumber"));
+                pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setManufactureDate(rs.getDate("ManufactureDate"));
+                pd.setColor(rs.getString("Color"));
+                pd.setPrice(rs.getDouble("Price"));
+                pd.setQuantity(rs.getInt("StockQty")); // Số lượng TỒN KHO thực tế
+                pd.setProduct(productDAO.getById(productId));
+                list.add(pd);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
-}
 
+    public void delete(int id) {
+        String sql = "DELETE FROM [Product_Detail] WHERE [ProductDetailID] = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) {
         ProductDetailDAO dao = new ProductDetailDAO();
@@ -249,8 +285,6 @@ public void delete(int id) {
                 }
                 System.out.println("--------------------------------------------------");
             }
-        } else {
-            System.out.println("Không có dữ liệu hoặc lỗi kết nối.");
         }
     }
 }
