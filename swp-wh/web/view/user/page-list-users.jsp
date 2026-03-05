@@ -14,6 +14,16 @@
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/%40fortawesome/fontawesome-free/css/all.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/line-awesome/dist/line-awesome/css/line-awesome.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/vendor/remixicon/fonts/remixicon.css">
+        
+        <style>
+            /* Style riêng cho các ô readonly */
+            input[readonly] {
+                background-color: #e9ecef !important;
+                cursor: not-allowed;
+                border: 1px solid #ced4da;
+            }
+            .actions-group { white-space: nowrap; }
+        </style>
     </head>
     <body>
         <div id="loading">
@@ -152,7 +162,12 @@
 
                     <div class="custom-input-group"><label>Full Name</label><input type="text" name="fullName" id="editFullName" required></div>
                     <div class="custom-input-group"><label>User Code</label><input type="text" name="userCode" id="editUserCode" required></div>
-                    <div class="custom-input-group"><label>Username</label><input type="text" name="userName" id="editUserName" required></div>
+                    
+                    <div class="custom-input-group">
+                        <label>Username</label>
+                        <input type="text" name="userName" id="editUserName" readonly title="Username cannot be changed">
+                    </div>
+
                     <div class="custom-input-group">
                         <label>Gender</label>
                         <select name="male" id="editMale">
@@ -163,14 +178,16 @@
                     <div class="custom-input-group"><label>DOB</label><input type="date" name="dateOfBirth" id="editDateOfBirth"></div>
                     <div class="custom-input-group"><label>Email</label><input type="email" name="email" id="editEmail" required></div>
                     <div class="custom-input-group"><label>Phone</label><input type="text" name="phone" id="editPhone" required></div>
+                    
                     <div class="custom-input-group">
                         <label>Role</label>
-                        <select name="roleId" id="editRoleId">
+                        <select name="roleId" id="editRoleId" onchange="toggleWarehouseEdit()">
                             <c:forEach var="r" items="${roles}">
                                 <option value="${r.id}">${r.roleName}</option>
                             </c:forEach>
                         </select>
                     </div>
+                    
                     <div class="custom-input-group" id="editWarehouseGroup">
                         <label>Warehouse</label>
                         <select name="warehouseId" id="editWarehouseId">
@@ -180,6 +197,7 @@
                             </c:forEach>
                         </select>
                     </div>
+                    
                     <div class="custom-modal-buttons">
                         <button type="button" onclick="closeEditUserModal()">Cancel</button>
                         <button type="submit" class="btn btn-primary">Save</button>
@@ -217,11 +235,24 @@
             }
             function closeUserChangePasswordModal() { document.getElementById("customChangePasswordModal").style.display = "none"; }
 
+            // Hàm kiểm tra hiển thị Warehouse khi đổi Role trong Modal
+            function toggleWarehouseEdit() {
+                const roleId = document.getElementById("editRoleId").value;
+                const warehouseGroup = document.getElementById("editWarehouseGroup");
+                // Inventory Staff (3), Sale Staff (4), Purchasing Staff (5)
+                if (roleId == "3" || roleId == "4" || roleId == "5") {
+                    warehouseGroup.style.display = "block";
+                } else {
+                    warehouseGroup.style.display = "none";
+                    document.getElementById("editWarehouseId").value = "0";
+                }
+            }
+
             function openEditModel(id, code, name, user, male, dob, email, phone, roleId, page, kw, whId) {
                 document.getElementById("editUserId").value = id;
                 document.getElementById("editUserCode").value = code;
                 document.getElementById("editFullName").value = name;
-                document.getElementById("editUserName").value = user;
+                document.getElementById("editUserName").value = user; // Ô này giờ đã readonly
                 document.getElementById("editMale").value = male;
                 document.getElementById("editDateOfBirth").value = dob;
                 document.getElementById("editEmail").value = email;
@@ -229,11 +260,12 @@
                 document.getElementById("editRoleId").value = roleId;
                 document.getElementById("editPage").value = page;
                 document.getElementById("editKeyword").value = kw;
-                document.getElementById("editWarehouseId").value = (whId && whId !== 'null') ? whId : "0";
+                document.getElementById("editWarehouseId").value = (whId && whId !== 'null' && whId !== '0') ? whId : "0";
                 
-                document.getElementById("editWarehouseGroup").style.display = (id == "2" ||id == "3" || roleId == "4" || roleId == "5") ? "block" : "none";
+                toggleWarehouseEdit(); // Cập nhật hiển thị warehouse dựa trên role nạp vào
                 document.getElementById("customEditUserModal").style.display = "flex";
             }
+            
             function closeEditUserModal() { document.getElementById("customEditUserModal").style.display = "none"; }
 
             function confirmDelete(id, name, page, kw) {

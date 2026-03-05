@@ -170,6 +170,17 @@ public class UserDAO extends DBContext {
         }
         return list;
     }
+    
+    public boolean isUsernameExist(String username) {
+    String sql = "SELECT 1 FROM Users WHERE Username = ?";
+    try (PreparedStatement st = connection.prepareStatement(sql)) {
+        st.setString(1, username);
+        ResultSet rs = st.executeQuery();
+        return rs.next();
+    } catch (Exception e) {
+        return false;
+    }
+}
 
     public List<User> searchUsersWithRole(String keyword, int roleId, int offset, int limit) {
         List<User> list = new ArrayList<>();

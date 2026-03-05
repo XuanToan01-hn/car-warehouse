@@ -106,7 +106,7 @@ public class RegisterUserServlet extends HttpServlet {
         // 1. Khởi tạo các DAO cần thiết
         UserDAO userService = new UserDAO();
         RoleDAO roleService = new RoleDAO();
-        WarehouseDAO warehouseDAO = new WarehouseDAO(); 
+        WarehouseDAO warehouseDAO = new WarehouseDAO();
 
         HttpSession session = request.getSession();
         boolean hasError = false;
@@ -135,6 +135,10 @@ public class RegisterUserServlet extends HttpServlet {
         }
         if (userService.isUserCodeExist(userCode)) {
             request.setAttribute("error_userCode", "Employee code already exists!");
+            hasError = true;
+        }
+        if (userService.isUsernameExist(username)) {
+            request.setAttribute("error_username", "Tên đăng nhập đã tồn tại!");
             hasError = true;
         }
         if (!password.equals(confirmPassword)) {
