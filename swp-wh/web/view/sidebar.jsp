@@ -16,7 +16,7 @@
         <div class="data-scrollbar" data-scroll="1">
             <nav class="iq-sidebar-menu">
                 <ul id="iq-sidebar-toggle" class="iq-menu">
-                    <c:if test="${user.role.id == 5}">
+                    <c:if test="${user.role.id == 1}">
                         <li class=" ">
                             <a href="dash-board" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/dashboard.png"
@@ -172,7 +172,7 @@
                         </li>
                     </c:if>
 
-                    <c:if test="${user.role.id == 4 || empty user}">
+                    <c:if test="${user.role.id == 4}">
                         <li class=" ">
                             <a href="inventory-report-staff" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png"
