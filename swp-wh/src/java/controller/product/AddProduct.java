@@ -3,7 +3,7 @@ package controller.product;
 import dal.CategoryDAO;
 import dal.ProductDAO;
 import dal.UnitDAO;
-import dal.SupplierDAO; // Thêm SupplierDAO
+import dal.SupplierDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -23,18 +23,17 @@ public class AddProduct extends HttpServlet {
             throws ServletException, IOException {
         CategoryDAO categoryDAO = new CategoryDAO();
         UnitDAO unitDAO = new UnitDAO();
-        SupplierDAO supplierDAO = new SupplierDAO(); // Thêm mới
-
+        SupplierDAO supplierDAO = new SupplierDAO();
         request.setAttribute("listUnit", unitDAO.getAll());
         request.setAttribute("listCategory", categoryDAO.getAll());
-        request.setAttribute("listSupplier", supplierDAO.getAll()); // Đẩy supplier sang view
+        request.setAttribute("listSupplier", supplierDAO.getAll());
         request.getRequestDispatcher("view/product/page-add-product.jsp").forward(request, response);
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
+
         request.setCharacterEncoding("UTF-8");
 
         ProductDAO productDAO = new ProductDAO();
@@ -50,26 +49,30 @@ public class AddProduct extends HttpServlet {
         String code = (request.getParameter("code") != null) ? request.getParameter("code").trim() : "";
         String categoryStr = request.getParameter("category");
         String unitStr = request.getParameter("unit");
-        String supplierStr = request.getParameter("supplier"); // Thêm mới
+        String supplierStr = request.getParameter("supplier");
         String image = (request.getParameter("image") != null) ? request.getParameter("image").trim() : "";
-        String description = (request.getParameter("description") != null) ? request.getParameter("description").trim() : "";
+        String description = (request.getParameter("description") != null) ? request.getParameter("description").trim()
+                : "";
 
         int categoryId = 0;
         int unitId = 0;
         int supplierId = 0;
 
         try {
-            if (categoryStr != null && !categoryStr.isEmpty()) categoryId = Integer.parseInt(categoryStr);
-            if (unitStr != null && !unitStr.isEmpty()) unitId = Integer.parseInt(unitStr);
-            if (supplierStr != null && !supplierStr.isEmpty()) supplierId = Integer.parseInt(supplierStr);
+            if (categoryStr != null)
+                categoryId = Integer.parseInt(categoryStr);
+            if (unitStr != null)
+                unitId = Integer.parseInt(unitStr);
+            if (supplierStr != null)
+                supplierId = Integer.parseInt(supplierStr);
         } catch (NumberFormatException e) {
             flag = false;
         }
 
-        // 2. Validation cơ bản
-        if (name.isEmpty()) { 
-            request.setAttribute("eName", "Name is required"); 
-            flag = false; 
+        // Validation cơ bản
+        if (name.isEmpty()) {
+            request.setAttribute("eName", "Name is required");
+            flag = false;
         }
 
         if (!flag) {
@@ -89,14 +92,14 @@ public class AddProduct extends HttpServlet {
             product.setName(name);
             product.setDescription(description);
             product.setImage(image);
-            
+
             // Set các object liên quan
             Category c = new Category(); c.setId(categoryId);
             product.setCategory(c);
-            
+
             Unit u = new Unit(); u.setId(unitId);
             product.setUnit(u);
-            
+
             Supplier s = new Supplier(); s.setId(supplierId);
             product.setSupplier(s);
 

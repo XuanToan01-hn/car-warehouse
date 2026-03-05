@@ -1,7 +1,10 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
-    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-        <!doctype html>
-        <html lang="vi">
+    <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+        <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+            <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+
+                <!doctype html>
+                <html lang="vi">
 
         <head>
             <meta charset="utf-8">
@@ -21,6 +24,54 @@
                     opacity: 0.4;
                     pointer-events: none;
                 }
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+                    <title>Create Purchase Order | InventoryPro</title>
+
+                    <link
+                        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+                        rel="stylesheet">
+                    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
+                    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
+                    <link rel="stylesheet"
+                        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css">
+
+                    <style>
+                        :root {
+                            --primary: #0EA5E9;
+                            --success: #15803D;
+                            --warning: #F59E0B;
+                            --danger: #EF4444;
+                            --gray-dark: #0f172a;
+                        }
+
+                        body {
+                            font-family: 'Be Vietnam Pro', sans-serif;
+                            background-color: #f1f5f9;
+                            color: #1e293b;
+                        }
+
+                        .page-header {
+                            margin-bottom: 2rem;
+                            padding: 1.5rem 0;
+                        }
+
+                        .card-main {
+                            border-radius: 16px;
+                            border: none;
+                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+                            background: white;
+                            margin-bottom: 1.5rem;
+                        }
+
+                        .step-indicator {
+                            display: flex;
+                            align-items: center;
+                            gap: 1rem;
+                            margin-bottom: 1rem;
+                        }
 
                 .step-badge {
                     width: 32px;
@@ -37,10 +88,47 @@
                 .step-badge.active {
                     background: #17AEDF;
                 }
+                        .step-badge.active {
+                            background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
+                            color: white;
+                            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+                        }
 
                 .step-badge.inactive {
                     background: #adb5bd;
                 }
+                        .step-badge.inactive {
+                            background: #e2e8f0;
+                            color: #94a3b8;
+                        }
+
+                        .step-title {
+                            font-weight: 800;
+                            color: #1e293b;
+                            font-size: 1.1rem;
+                        }
+
+                        .form-label {
+                            font-weight: 700;
+                            color: #475569;
+                            text-transform: uppercase;
+                            font-size: 0.75rem;
+                            letter-spacing: 0.05em;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .form-control {
+                            border-radius: 10px;
+                            border: 2px solid #e2e8f0;
+                            font-weight: 600;
+                            padding: 0.6rem 1rem;
+                            height: auto;
+                        }
+
+                        .form-control:focus {
+                            border-color: var(--primary);
+                            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+                        }
 
                 .product-row {
                     background: #f8f9fa;
@@ -49,6 +137,19 @@
                     padding: 12px;
                     margin-bottom: 10px;
                 }
+                        .product-row {
+                            background: #f8fafc;
+                            border: 1px solid #e2e8f0;
+                            border-radius: 12px;
+                            padding: 1.5rem;
+                            margin-bottom: 1rem;
+                            transition: all 0.2s;
+                        }
+
+                        .product-row:hover {
+                            border-color: var(--primary);
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+                        }
 
                 .total-bar {
                     background: #17AEDF;
@@ -59,16 +160,89 @@
                 }
             </style>
         </head>
+                        .total-bar {
+                            background: #0f172a;
+                            color: white;
+                            border-radius: 12px;
+                            padding: 1.25rem 2rem;
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            font-size: 1.25rem;
+                            font-weight: 800;
+                            margin-top: 2rem;
+                        }
 
-        <body>
-            <div id="loading">
-                <div id="loading-center"></div>
-            </div>
-            <div class="wrapper">
-                <%@ include file="../sidebar.jsp" %>
-                <%@ include file="../header.jsp" %>
-                    <div class="content-page">
-                        <div class="container-fluid add-form-list">
+                        .btn-premium {
+                            border-radius: 12px;
+                            padding: 0.75rem 1.5rem;
+                            font-weight: 700;
+                            transition: all 0.3s ease;
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 0.5rem;
+                            border: none;
+                        }
+
+                        .btn-add-item {
+                            background: #e0f2fe;
+                            color: #0369a1;
+                        }
+
+                        .btn-add-item:hover {
+                            background: #bae6fd;
+                        }
+
+                        .btn-submit {
+                            background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
+                            color: white;
+                            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+                        }
+
+                        .btn-submit:hover:not(:disabled) {
+                            transform: translateY(-2px);
+                            box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+                        }
+
+                        .btn-submit:disabled {
+                            opacity: 0.6;
+                            cursor: not-allowed;
+                        }
+
+                        .modal-content {
+                            border-radius: 20px;
+                            border: none;
+                            overflow: hidden;
+                        }
+
+                        .modal-header {
+                            background: #fff;
+                            border-bottom: 1px solid #f1f5f9;
+                            padding: 1.5rem 2rem;
+                        }
+
+                        .modal-body {
+                            padding: 2rem;
+                        }
+
+                        .modal-footer {
+                            border-top: 1px solid #f1f5f9;
+                            padding: 1.5rem 2rem;
+                        }
+                    </style>
+                </head>
+
+                <body>
+                    <div class="wrapper">
+                        <jsp:include page="../sidebar.jsp" />
+                        <jsp:include page="../header.jsp" />
+                        <div class="content-page">
+                            <div class="container-fluid">
+                                <div class="page-header">
+                                    <h1 class="font-weight-bold mb-1">Create Purchase Order</h1>
+                                    <p class="text-secondary mb-0">Select a supplier and add products to generate a new
+                                        procurement request.</p>
+                                </div>
 
                             <!-- Thông báo thành công -->
                             <c:if test="${param.success == 'created' || success == 'created'}">
@@ -86,64 +260,75 @@
                                         data-dismiss="alert"><span>&times;</span></button>
                                 </div>
                             </c:if>
-
-                            <form action="${pageContext.request.contextPath}/add-purchase-order" method="post"
-                                id="poForm">
-
-                                <!-- ============================================================
-                 BƯỚC 1: CHỌN / TẠO SUPPLIER
-            ============================================================ -->
-                                <div class="card mb-3">
-                                    <div class="card-header d-flex align-items-center">
-                                        <span class="step-badge active mr-2">1</span>
-                                        <h5 class="mb-0">Thông Tin Đơn Hàng &amp; Supplier</h5>
+                                <!-- Notifications -->
+                                <c:if test="${param.success == 'created' || success == 'created'}">
+                                    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4"
+                                        style="border-radius: 12px; background: #dcfce7; color: #166534;">
+                                        <i class="ri-checkbox-circle-line mr-2"></i> <strong>Success!</strong> Purchase
+                                        Order created successfully.
+                                        <button type="button" class="close"
+                                            data-dismiss="alert"><span>&times;</span></button>
                                     </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="form-group">
-                                                    <label>
-<%--                                                        <i class="fas fa-hashtag mr-1"></i>--%>
-                                                        Mã đơn hàng *</label>
-                                                    <input type="text" name="orderCode" id="orderCode"
-                                                        class="form-control" value="${autoCode}"
-                                                        placeholder="Mã đơn hàng" required>
-                                                </div>
+                                </c:if>
+                                <c:if test="${not empty error}">
+                                    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4"
+                                        style="border-radius: 12px; background: #fee2e2; color: #991b1b;">
+                                        <i class="ri-error-warning-line mr-2"></i> <strong>Error!</strong> ${error}
+                                        <button type="button" class="close"
+                                            data-dismiss="alert"><span>&times;</span></button>
+                                    </div>
+                                </c:if>
+
+                                <form action="${pageContext.request.contextPath}/add-purchase-order" method="post"
+                                    id="poForm">
+                                    <!-- STEP 1: Supplier Info -->
+                                    <div class="card card-main">
+                                        <div class="card-header bg-white border-0 pt-4 px-4">
+                                            <div class="step-indicator">
+                                                <span class="step-badge active">1</span>
+                                                <span class="step-title">Order Information & Supplier</span>
                                             </div>
-                                            <div class="col-md-6">
-                                                <div class="form-group">
-                                                    <label>
-<%--                                                        <i class="fas fa-truck mr-1"></i> --%>
-                                                        Supplier *</label>
+                                        </div>
+                                        <div class="card-body px-4 pb-4">
+                                            <div class="row">
+                                                <div class="col-md-4 mb-3">
+                                                    <label class="form-label">Order Code *</label>
+                                                    <input type="text" name="orderCode" id="orderCode"
+                                                        class="form-control" value="${autoCode}" placeholder="PO-XXXX"
+                                                        required>
+                                                </div>
+                                                <div class="col-md-8 mb-3">
+                                                    <label class="form-label">Select Supplier *</label>
                                                     <div class="input-group">
                                                         <select name="supplierId" id="supplierSelect"
                                                             class="form-control" required>
-                                                            <option value="">-- Chọn Supplier --</option>
+                                                            <option value="">-- Choose a Supplier --</option>
                                                             <c:forEach var="s" items="${supplierList}">
-                                                                <option value="${s.id}" data-product-id="${s.productId}">${s.name}
-                                                                    <c:if test="${not empty s.phone}"> — ${s.phone}
-                                                                    </c:if>
+                                                                <option value="${s.id}">
+                                                                    ${s.name} <c:if test="${not empty s.phone}"> —
+                                                                        ${s.phone}</c:if>
                                                                 </option>
                                                             </c:forEach>
                                                         </select>
                                                         <div class="input-group-append">
-                                                            <button type="button" class="btn btn-outline-success"
-                                                                data-toggle="modal" data-target="#modalAddSupplier"
-                                                                title="Tạo supplier mới">
-<%--                                                                <i class="fas fa-plus"></i> --%>
-                                                                Tạo mới
+                                                            <button type="button" class="btn btn-outline-primary px-3"
+                                                                style="border-radius: 0 10px 10px 0; border: 2px solid #e2e8f0; border-left: none; font-weight: 700;"
+                                                                data-toggle="modal" data-target="#modalAddSupplier">
+                                                                <i class="ri-add-line"></i> New Supplier
                                                             </button>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div id="supplierInfo" class="alert alert-info py-2 d-none">
-<%--                                            <i class="fas fa-info-circle mr-1"></i>--%>
-                                            Supplier đã chọn. Bạn có thể thêm sản phẩm bên dưới.
+                                            <div id="supplierInfo"
+                                                class="alert alert-info py-2 d-none shadow-sm border-0"
+                                                style="border-radius: 10px; background: #e0f2fe; color: #0369a1;">
+                                                <i class="ri-information-line mr-1"></i> Supplier selected. You can now
+                                                add
+                                                products below.
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
                                 <!-- ============================================================
                  BƯỚC 2: DANH SÁCH SẢN PHẨM
@@ -369,6 +554,34 @@
                 let selectedSupplierName = null;
                 let selectedSupplierProductId = null;
 
+                        /* ============================================================
+                           SUPPLIER SELECT — kích hoạt bước 2
+                        ============================================================ */
+                        document.getElementById('supplierSelect').addEventListener('change', function () {
+                            // Kiểm tra xem đã có dòng sản phẩm nào được add chưa
+                            const hasRows = document.querySelectorAll('.product-row').length > 0;
+
+                            // Nếu đã có sản phẩm và đang cố đổi sang Supplier khác
+                            if (hasRows && selectedSupplierId) {
+                                const confirmChange = confirm('Thay đổi Nhà cung cấp sẽ xoá toàn bộ sản phẩm đang chọn bên dưới. Bạn có chắc muốn đổi?');
+
+                                if (!confirmChange) {
+                                    // Nếu người dùng ấn Cancel, trả dropdown về lại giá trị cũ
+                                    this.value = selectedSupplierId;
+                                    return;
+                                } else {
+                                    // Nếu người dùng ấn OK, xoá sạch các dòng sản phẩm hiện tại
+                                    document.getElementById('productRows').innerHTML = '';
+                                    document.getElementById('emptyMsg').style.display = ''; // Hiện lại icon xe tải mờ
+                                    rowCounter = 0;
+                                    calcGrandTotal();
+                                }
+                            }
+
+                            // Cập nhật Supplier ID và Name mới
+                            selectedSupplierId = this.value;
+                            const opt = this.options[this.selectedIndex];
+                            selectedSupplierName = opt.text;
                 /* ============================================================
                    SUPPLIER SELECT — kích hoạt bước 2
                 ============================================================ */
@@ -385,6 +598,14 @@
                         disableProductSection();
                     }
                 });
+                            if (selectedSupplierId) {
+                                // Tải sản phẩm của Supplier mới
+                                fetchSupplierProducts(selectedSupplierId);
+                                enableProductSection();
+                            } else {
+                                disableProductSection();
+                            }
+                        });
 
                 // Fetch products from server for selected supplier
                 function fetchSupplierProducts(supplierId) {
@@ -411,6 +632,34 @@
                     document.getElementById('step2Badge').classList.add('active');
                     document.getElementById('supplierInfo').classList.remove('d-none');
                 }
+                        function fetchSupplierProducts(supplierId) {
+                            currentSupplierProducts = []; // Reset danh sách
+
+                            fetch(ctx + '/get-supplier-products?supplierId=' + supplierId)
+                                .then(function (response) { return response.json(); })
+                                .then(function (products) {
+                                    if (Array.isArray(products) && products.length > 0) {
+                                        currentSupplierProducts = products;
+                                    }
+
+                                    // Tự động cập nhật lại option cho các dropdown "Product Selection" đang hiển thị trên giao diện
+                                    document.querySelectorAll('.product-select').forEach(function (select) {
+                                        const currentVal = select.value; // Giữ lại id sản phẩm đang chọn (nếu có)
+                                        select.innerHTML = buildProductOptions();
+                                        if (currentVal) select.value = currentVal;
+                                    });
+                                })
+                                .catch(function (err) {
+                                    console.error('Lỗi khi tải sản phẩm:', err);
+                                });
+                        }
+                        function enableProductSection() {
+                            document.getElementById('btnAddRow').disabled = false;
+                            document.getElementById('btnSubmit').disabled = false;
+                            document.getElementById('step2Badge').classList.remove('inactive');
+                            document.getElementById('step2Badge').classList.add('active');
+                            document.getElementById('supplierInfo').classList.remove('d-none');
+                        }
 
                 function disableProductSection() {
                     document.getElementById('btnAddRow').disabled = true;
@@ -519,44 +768,60 @@
 
                     document.getElementById('productRows').insertAdjacentHTML('beforeend', html);
 
-                    if (productToAdd) {
-                        const sel = document.getElementById('prodSel_' + idx);
-                        const opt = new Option(productToAdd.name + ' [' + productToAdd.code + ']', productToAdd.id, true, true);
-                        opt.dataset.price = productToAdd.price || 0;
-                        sel.add(opt);
-                        sel.value = productToAdd.id;
-                        document.getElementById('price_' + idx).value = productToAdd.price || 0;
-                        calcRow(idx);
-                    }
+                            if (productToAdd) {
+                                const sel = document.getElementById('prodSel_' + idx);
+                                const displayedPrice = numberFormat(productToAdd.price || 0) + ' đ';
+                                // Create an option that matches the structure of buildProductOptions
+                                const opt = new Option(productToAdd.name + ' [' + productToAdd.code + '] - ' + (productToAdd.color || 'Chưa có màu') + ' (' + displayedPrice + ')', productToAdd.id, true, true);
+                                opt.dataset.price = productToAdd.price || 0;
+                                opt.dataset.color = productToAdd.color || '';
+                                opt.dataset.detailId = productToAdd.detailId || '';
+                                sel.add(opt);
+                                sel.value = productToAdd.id;
+                                document.getElementById('price_' + idx).value = productToAdd.price || 0;
+                                document.getElementById('color_' + idx).value = productToAdd.color || '';
+                                calcRow(idx);
+                            }
 
-                    document.getElementById('prodSel_' + idx).addEventListener('change', function () {
-                        const opt = this.options[this.selectedIndex];
-                        if (opt && opt.dataset.price) {
-                            document.getElementById('price_' + idx).value = opt.dataset.price;
-                        }
-                        calcRow(idx);
-                    });
+                            document.getElementById('prodSel_' + idx).addEventListener('change', function () {
+                                const opt = this.options[this.selectedIndex];
+                                if (opt) {
+                                    // Tự động set giá tiền (Ưu tiên từ dataset.price của ProductDetail)
+                                    if (opt.dataset.price !== undefined && opt.dataset.price !== "") {
+                                        document.getElementById('price_' + idx).value = opt.dataset.price;
+                                    } else {
+                                        document.getElementById('price_' + idx).value = 0;
+                                    }
+                                    // Tự động set màu sắc
+                                    if (opt.dataset.color) {
+                                        document.getElementById('color_' + idx).value = opt.dataset.color;
+                                    } else {
+                                        document.getElementById('color_' + idx).value = '';
+                                    }
+                                }
+                                calcRow(idx);
+                            });
 
                     ['qty_' + idx, 'price_' + idx, 'tax_' + idx].forEach(function (id) {
                         document.getElementById(id).addEventListener('input', function () { calcRow(idx); });
                         document.getElementById(id).addEventListener('change', function () { calcRow(idx); });
                     });
 
-                    document.querySelectorAll('.btn-new-product').forEach(function (btn) {
-                        btn.onclick = function () {
-                            openProductModal(this.dataset.row);
-                        };
-                    });
-                }
+                            document.querySelectorAll('.btn-new-product').forEach(function (btn) {
+                                btn.onclick = function () {
+                                    openProductModal(this.dataset.row);
+                                };
+                            });
+                        }
 
-                function removeRow(idx) {
-                    const row = document.getElementById('row_' + idx);
-                    if (row) row.remove();
-                    calcGrandTotal();
-                    if (document.querySelectorAll('.product-row').length === 0) {
-                        document.getElementById('emptyMsg').style.display = '';
+                    function removeRow(idx) {
+                        const row = document.getElementById('row_' + idx);
+                        if (row) row.remove();
+                        calcGrandTotal();
+                        if (document.querySelectorAll('.product-row').length === 0) {
+                            document.getElementById('emptyMsg').style.display = '';
+                        }
                     }
-                }
 
                 /* ============================================================
                    TÍNH TIỀN
@@ -570,20 +835,21 @@
 
                     const sub = qty * price * (1 + rate / 100);
                     document.getElementById('sub_' + idx).value = sub.toFixed(0);
+                    document.getElementById('sub_text_' + idx).textContent = numberFormat(sub) + ' đ';
                     calcGrandTotal();
-                }
+                        }
 
-                function calcGrandTotal() {
-                    let total = 0;
-                    document.querySelectorAll('.subtotal-field').forEach(function(el) {
-                        total += parseFloat(el.value) || 0;
-                    });
-                    document.getElementById('grandTotal').textContent = numberFormat(total) + ' đ';
-                }
+                        function calcGrandTotal() {
+                            let total = 0;
+                            document.querySelectorAll('.subtotal-field').forEach(function (el) {
+                                total += parseFloat(el.value) || 0;
+                            });
+                            document.getElementById('grandTotal').textContent = numberFormat(total) + ' đ';
+                        }
 
-                function numberFormat(n) {
-                    return Math.round(n).toLocaleString('vi-VN');
-                }
+                        function numberFormat(n) {
+                            return Math.round(n).toLocaleString('vi-VN');
+                        }
 
                 /* ============================================================
                    MODAL: QUICK ADD SUPPLIER
@@ -594,10 +860,10 @@
                     const email = document.getElementById('sup_email').value.trim();
                     const address = document.getElementById('sup_address').value.trim();
 
-                    if (!name) {
-                        showMsg('supplierFormMsg', 'danger', 'Tên supplier không được trống!');
-                        return;
-                    }
+                            if (!name) {
+                                showMsg('supplierFormMsg', 'danger', 'Tên supplier không được trống!');
+                                return;
+                            }
 
                     const btn = this;
                     btn.disabled = true;
@@ -661,26 +927,26 @@
                         return;
                     }
 
-                    const btn = this;
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Đang lưu...';
+                            const btn = this;
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Đang lưu...';
 
-                    fetch(ctx + '/quick-add-product', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: 'name=' + encodeURIComponent(name) + '&code=' + encodeURIComponent(code) + '&price=' + encodeURIComponent(price) + '&categoryId=' + encodeURIComponent(categoryId) + '&supplierId=' + encodeURIComponent(supplierId)
-                    })
-                        .then(function(r) { return r.json(); })
-                        .then(function(data) {
-                            if (data.success) {
-                                const newProd = { id: data.productId, name: data.productName, code: data.productCode, price: parseFloat(price) || 0 };
-                                allProducts.push(newProd);
-
-                                selectedSupplierProductId = data.productId;
-                                const supSelect = document.getElementById('supplierSelect');
-                                if (supSelect && supSelect.selectedIndex >= 0) {
-                                    supSelect.options[supSelect.selectedIndex].setAttribute('data-product-id', data.productId);
-                                }
+                            fetch(ctx + '/quick-add-product', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: 'name=' + encodeURIComponent(name) + '&code=' + encodeURIComponent(code) + '&price=' + encodeURIComponent(price) + '&categoryId=' + encodeURIComponent(categoryId) + '&supplierId=' + encodeURIComponent(supplierId)
+                            })
+                                .then(function (r) { return r.json(); })
+                                .then(function (data) {
+                                    if (data.success) {
+                                        const newProd = { id: data.productId, name: data.productName, code: data.productCode, price: parseFloat(price) || 0, color: 'Chưa có màu' };
+                                        allProducts.push(newProd);
+                                        currentSupplierProducts.push(newProd);
+                                        selectedSupplierProductId = data.productId;
+                                        const supSelect = document.getElementById('supplierSelect');
+                                        if (supSelect && supSelect.selectedIndex >= 0) {
+                                            supSelect.options[supSelect.selectedIndex].setAttribute('data-product-id', data.productId);
+                                        }
 
                                 const sel = document.getElementById('prodSel_' + rowIdx);
                                 if (sel) {
@@ -726,20 +992,23 @@
                     }
                 });
 
-                /* ============================================================
-                   HELPERS
-                ============================================================ */
-                function showMsg(elId, type, msg) {
-                    const el = document.getElementById(elId);
-                    el.className = 'alert alert-' + type;
-                    el.textContent = msg;
-                }
-                function hideMsg(elId) {
-                    const el = document.getElementById(elId);
-                    el.className = 'd-none';
-                    el.textContent = '';
-                }
-            </script>
-        </body>
+                        /* ============================================================
+                           HELPERS
+                        ============================================================ */
+                        function showMsg(elId, type, msg) {
+                            const el = document.getElementById(elId);
+                            el.className = 'alert alert-' + type + ' border-0 shadow-sm';
+                            el.style.borderRadius = '12px';
+                            if (type === 'danger') el.style.background = '#fee2e2', el.style.color = '#991b1b';
+                            if (type === 'success') el.style.background = '#dcfce7', el.style.color = '#166534';
+                            el.innerHTML = (type === 'success' ? '<i class="ri-checkbox-circle-line mr-2"></i>' : '<i class="ri-error-warning-line mr-2"></i>') + msg;
+                        }
+                        function hideMsg(elId) {
+                            const el = document.getElementById(elId);
+                            el.className = 'd-none';
+                            el.innerHTML = '';
+                        }
+                    </script>
+                </body>
 
-        </html>
+                </html>

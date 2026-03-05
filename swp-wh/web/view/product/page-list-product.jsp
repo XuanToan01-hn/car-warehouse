@@ -170,13 +170,31 @@
         </div>
     </div>
 
-    <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
-    <script>
-        function prepareDelete(id, name) {
-            document.getElementById('deleteProductId').value = id;
-            document.getElementById('deleteProductName').innerText = name;
-            $('#deleteModal').modal('show');
-        }
-    </script>
-</body>
-</html>
+                <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
+                <script>
+                    function prepareEdit(id) {
+                        fetch('list-product?action=getDetailJson&id=' + id)
+                            .then(r => r.json())
+                            .then(data => {
+                                document.getElementById('product-id').value = data.id;
+                                document.getElementById('product-name').value = data.name;
+                                document.getElementById('product-code').value = data.code;
+                                document.getElementById('category-select').value = data.categoryId;
+                                document.getElementById('supplier-select').value = data.supplierId;
+                                document.getElementById('unit-select').value = data.unitId;
+                                document.getElementById('product-des').value = data.description || '';
+                                document.getElementById('product-image').value = data.image || '';
+                                $('#updateModal').modal('show');
+                            });
+                    }
+
+                    function prepareDelete(id, name) {
+                        document.getElementById('deleteProductId').value = id;
+                        document.getElementById('deleteProductName').innerText = name;
+                        $('#deleteModal').modal('show');
+                    }
+
+                </script>
+            </body>
+
+            </html>

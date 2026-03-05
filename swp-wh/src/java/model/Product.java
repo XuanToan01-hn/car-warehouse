@@ -1,13 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
-/**
- *
- * @author Asus
- */
 public class Product {
     private int id;
     private String code;
@@ -16,9 +8,21 @@ public class Product {
     private String image;
     private Unit unit;
     private Category category;
-    private Supplier supplier; // Thêm Supplier
+    private Supplier supplier;
+    private String color;
+// Thêm Supplier
 
-    public Product() {}
+    // Thêm Getter và Setter
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public Product() {
+    }
 
     public Product(int id, String code, String name, String description, String image, Unit unit, Category category) {
         this.id = id;
@@ -40,31 +44,61 @@ public class Product {
         this.category = category;
         this.supplier = supplier;
     }
+    public int getId() {
+        return id;
+    }
 
-    
-    
-    
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getCode() { return code; }
-    public void setCode(String code) { this.code = code; }
+    public String getCode() {
+        return code;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setCode(String code) {
+        this.code = code;
+    }
 
+    public String getName() {
+        return name;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getImage() { return image; }
-    public void setImage(String image) { this.image = image; }
+    public String getDescription() {
+        return description;
+    }
 
-    public Unit getUnit() { return unit; }
-    public void setUnit(Unit unit) { this.unit = unit; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public Category getCategory() { return category; }
-    public void setCategory(Category category) { this.category = category; }
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    public Unit getUnit() {
+        return unit;
+    }
+
+    public void setUnit(Unit unit) {
+        this.unit = unit;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
+    }
 
     public Supplier getSupplier() {
         return supplier;
@@ -74,5 +108,7 @@ public class Product {
         this.supplier = supplier;
     }
 
+    public int getMinStock() {
+        return minStock;
 
 }

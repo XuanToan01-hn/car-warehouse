@@ -53,7 +53,7 @@ public class GoodsReceiptDAO extends DBContext {
      * Dùng cho luồng nhập kho (GRO) khi chỉ có ProductID mà chưa chọn lô chi tiết.
      */
     private Integer findFirstProductDetailId(int productId) throws SQLException {
-        String sql = "SELECT ProductDetailID FROM Product_Detail WHERE ProductID = ? ORDER BY ProductDetailID ASC LIMIT 1";
+        String sql = "SELECT TOP 1 ProductDetailID FROM Product_Detail WHERE ProductID = ? ORDER BY ProductDetailID ASC";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -250,7 +250,7 @@ public class GoodsReceiptDAO extends DBContext {
                 + "WHERE (gr.ReceiptCode LIKE ? OR po.OrderCode LIKE ?) "
                 + "AND (? = 0 OR gr.Status = ?) "
                 + "ORDER BY gr.ReceiptDate DESC "
-                + "LIMIT ?, ?";
+                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             String kw = "%" + keyword + "%";
             ps.setString(1, kw);
@@ -365,7 +365,7 @@ public class GoodsReceiptDAO extends DBContext {
     public int createDraft(GoodsReceipt gr, List<GoodsReceiptDetail> details) {
         String sqlHeader = "INSERT INTO Goods_Receipt "
                 + "(ReceiptCode, PurchaseOrderID, LocationID, ReceiptDate, Status, Note, CreateBy) "
-                + "VALUES (?, ?, ?, NOW(), ?, ?, ?)";
+                + "VALUES (?, ?, ?, GETDATE(), ?, ?, ?)";
 
         String sqlDetail = "INSERT INTO Goods_Receipt_Detail "
                 + "(ReceiptID, ProductID, ProductDetailID, QuantityExpected, QuantityActual) "
@@ -394,7 +394,8 @@ public class GoodsReceiptDAO extends DBContext {
                     if (d.getProductDetail() != null) {
                         pdId = d.getProductDetail().getId();
                     } else {
-                        // Tự map sang một ProductDetailID bất kỳ của Product để phù hợp với cấu trúc tồn kho
+                        // Tự map sang một ProductDetailID bất kỳ của Product để phù hợp với cấu trúc
+                        // tồn kho
                         pdId = findFirstProductDetailId(productId);
                     }
 
@@ -545,7 +546,8 @@ public class GoodsReceiptDAO extends DBContext {
         }
 
         String sqlPod = "SELECT ProductID, Quantity FROM Purchase_Order_Detail WHERE PurchaseOrderID = ?";
-        // ProductDetailID để NULL ở cấp chi tiết; khi cập nhật tồn kho sẽ tự map sang ProductDetail phù hợp
+        // ProductDetailID để NULL ở cấp chi tiết; khi cập nhật tồn kho sẽ tự map sang
+        // ProductDetail phù hợp
         String sqlIns = "INSERT INTO Goods_Receipt_Detail "
                 + "(ReceiptID, ProductID, ProductDetailID, QuantityExpected, QuantityActual) "
                 + "VALUES (?, ?, NULL, ?, ?)";
@@ -560,8 +562,8 @@ public class GoodsReceiptDAO extends DBContext {
                     psIns.setInt(1, receiptId); // ReceiptID
                     psIns.setInt(2, productId); // ProductID
                     // VALUES (?, ?, NULL, ?, ?) -> chỉ có 4 tham số
-                    psIns.setInt(3, qty);       // QuantityExpected
-                    psIns.setInt(4, qty);       // QuantityActual
+                    psIns.setInt(3, qty); // QuantityExpected
+                    psIns.setInt(4, qty); // QuantityActual
                     psIns.executeUpdate();
                 }
             }
@@ -607,7 +609,7 @@ public class GoodsReceiptDAO extends DBContext {
 
         String sqlTrans = "INSERT INTO Inventory_Transaction "
                 + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
-                + "VALUES (?, ?, ?, 'RECEIPT', ?, ?, NOW())";
+                + "VALUES (?, ?, ?, 'RECEIPT', ?, ?, GETDATE())";
 
         try (PreparedStatement psFetch = connection.prepareStatement(sqlFetchDetails);
                 PreparedStatement psStockUpdate = connection.prepareStatement(sqlUpdateStock);
@@ -626,8 +628,10 @@ public class GoodsReceiptDAO extends DBContext {
                         continue;
                     }
 
-                    // Nếu ProductDetailID đang null (dữ liệu cũ), cố gắng map sang một ProductDetail bất kỳ của Product.
-                    // Nếu vẫn không có ProductDetail → bỏ qua cập nhật tồn kho cho dòng này nhưng vẫn cho phép Confirm.
+                    // Nếu ProductDetailID đang null (dữ liệu cũ), cố gắng map sang một
+                    // ProductDetail bất kỳ của Product.
+                    // Nếu vẫn không có ProductDetail → bỏ qua cập nhật tồn kho cho dòng này nhưng
+                    // vẫn cho phép Confirm.
                     if (isPdIdNull) {
                         Integer fallbackPdId = findFirstProductDetailId(productId);
                         if (fallbackPdId != null) {

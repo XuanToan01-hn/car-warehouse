@@ -126,7 +126,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4 d-flex gap-2">
-                                <button type="submit" class="btn btn-primary flex-grow-1" 
+                                <button type="submit" class="btn btn-primary flex-grow-1"
                                         style="border-radius: 12px; font-weight: 700; background: var(--primary); border: none; padding: 0.75rem;">
                                     Apply Filters
                                 </button>
@@ -172,7 +172,7 @@
                                             <fmt:formatNumber value="${po.totalAmount}" type="number" groupingUsed="true"/> đ
                                         </td>
                                         <td class="text-right">
-                                            <a href="${pageContext.request.contextPath}/detail-purchase-order?id=${po.id}" 
+                                            <a href="${pageContext.request.contextPath}/detail-purchase-order?id=${po.id}"
                                                class="btn btn-sm btn-outline-primary" style="border-radius: 8px;">
                                                <i class="ri-eye-line"></i> View
                                             </a>

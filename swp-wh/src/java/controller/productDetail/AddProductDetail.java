@@ -5,6 +5,8 @@
 
 package controller.productDetail;
 
+import dal.ProductDAO;
+import dal.ProductDetailDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,6 +14,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Product;
+import model.ProductDetail;
 
 /**
  *
@@ -25,7 +29,7 @@ public class AddProductDetail extends HttpServlet {
     throws ServletException, IOException {
         // Lấy danh sách sản phẩm để người dùng chọn trong dropdown (Select Box)
         dal.ProductDAO pDao = new dal.ProductDAO();
-        request.setAttribute("products", pDao.getAll()); 
+        request.setAttribute("products", pDao.getAll());
         request.getRequestDispatcher("view/product-detail/add.jsp").forward(request, response);
     } 
 
@@ -66,4 +70,15 @@ public class AddProductDetail extends HttpServlet {
             response.sendRedirect("add-product-detail?error=1");
         }
     }
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return "Short description";
+    }// </editor-fold>
+
 }

@@ -1,10 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
-
 package controller.productDetail;
 
+import dal.ProductDAO;
+import dal.ProductDetailDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -12,12 +9,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import model.Product;
+import model.ProductDetail;
 
-/**
- *
- * @author Asus
- */
-@WebServlet(name="EditProductDetail", urlPatterns={"/edit-product-detail"})
+@WebServlet(name = "EditProductDetail", urlPatterns = { "/edit-product-detail" })
 public class EditProductDetail extends HttpServlet {
 
     @Override
@@ -26,15 +21,15 @@ public class EditProductDetail extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         dal.ProductDetailDAO dao = new dal.ProductDetailDAO();
         dal.ProductDAO pDao = new dal.ProductDAO();
-        
+
         request.setAttribute("pd", dao.getById(id));
         request.setAttribute("products", pDao.getAll());
         request.getRequestDispatcher("view/product-detail/edit.jsp").forward(request, response);
-    } 
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         try {
             int id = Integer.parseInt(request.getParameter("id"));
             int productId = Integer.parseInt(request.getParameter("productId"));
@@ -44,11 +39,20 @@ public class EditProductDetail extends HttpServlet {
             double price = Double.parseDouble(request.getParameter("price"));
             int quantity = Integer.parseInt(request.getParameter("quantity"));
             String color = request.getParameter("color");
+            ProductDetail pd = new ProductDetail();
+            pd.setId(Integer.parseInt(request.getParameter("id")));
+            pd.setLotNumber(request.getParameter("lotNumber"));
+            pd.setSerialNumber(request.getParameter("serialNumber"));
+            pd.setManufactureDate(java.sql.Date.valueOf(request.getParameter("mfdDate")));
+            pd.setColor(request.getParameter("color"));
+            pd.setPrice(Double.parseDouble(request.getParameter("price")));
 
             model.ProductDetail pd = new model.ProductDetail();
             pd.setId(id);
             model.Product p = new model.Product();
             p.setId(productId);
+            Product p = new Product();
+            p.setId(Integer.parseInt(request.getParameter("productId")));
             pd.setProduct(p);
             pd.setLotNumber(lotNumber);
             pd.setSerialNumber(serialNumber);

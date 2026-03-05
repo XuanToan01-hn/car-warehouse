@@ -17,7 +17,7 @@
                         <div class="card-body">
                             <form action="update-product" method="post">
                                 <input type="hidden" name="id" value="${p.id}">
-                                
+
                                 <div class="row">
                                     <div class="col-md-12 form-group">
                                         <label>Product Name * <span style="color:red">${eName}</span></label>

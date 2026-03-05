@@ -15,9 +15,9 @@ public class ProductDAO extends DBContext {
     // Khởi tạo các DAO để dùng chung, tránh tạo mới liên tục trong vòng lặp
     CategoryDAO categoryDAO = new CategoryDAO();
     UnitDAO unitDAO = new UnitDAO();
-    SupplierDAO supplierDAO = new SupplierDAO(); 
-    
-    
+    SupplierDAO supplierDAO = new SupplierDAO();
+
+
      public static void main(String[] args) {
 
         ProductDAO dao = new ProductDAO();
@@ -50,18 +50,20 @@ public class ProductDAO extends DBContext {
         List<Product> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
-        
+
         if (search != null && !search.trim().isEmpty()) {
             sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
             params.add("%" + search + "%");
             params.add("%" + search + "%");
         }
         
+        // Category filter
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
         
+        // Unit filter
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
@@ -80,6 +82,24 @@ public class ProductDAO extends DBContext {
             }
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
+                Product p = new Product();
+                p.setId(rs.getInt("ProductID"));
+                p.setCode(rs.getString("Code"));
+                p.setName(rs.getString("Name"));
+                p.setDescription(rs.getString("Description"));
+                p.setImage(rs.getString("Image"));
+                p.setMinStock(rs.getInt("MinStock"));
+                p.setColor(rs.getString("Color"));
+
+                p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
+                p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
+
+                int supId = rs.getInt("SupplierID");
+                if (!rs.wasNull()) {
+                    p.setSupplier(supplierDAO.getById(supId));
+                }
+
+                list.add(p);
                 list.add(mapResultSetToProduct(rs));
             }
         } catch (Exception e) {
@@ -87,11 +107,11 @@ public class ProductDAO extends DBContext {
         }
         return list;
     }
-
+    
     // ===============================
     // 2. GET TOTAL FILTERED
     // ===============================
-    public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
+    public int getTotalFilteredProducts(String search, String categoryId, String unitId, String supplierId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
         
@@ -109,6 +129,11 @@ public class ProductDAO extends DBContext {
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
+        }
+
+        if (supplierId != null && !supplierId.isEmpty()) {
+            sql.append(" AND SupplierID = ?");
+            params.add(Integer.parseInt(supplierId));
         }
 
         try {
@@ -277,7 +302,7 @@ public class ProductDAO extends DBContext {
         }
         return list;
     }
-    
+
     // ===============================
 // 10. GET ALL
 // ===============================
