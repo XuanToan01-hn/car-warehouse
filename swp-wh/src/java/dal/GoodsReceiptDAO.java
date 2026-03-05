@@ -608,7 +608,7 @@ public class GoodsReceiptDAO extends DBContext {
 
         String sqlTrans = "INSERT INTO Inventory_Transaction "
                 + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
-                + "VALUES (?, ?, ?, 'RECEIPT', ?, ?, GETDATE())";
+                + "VALUES (?, ?, ?, 1, ?, ?, GETDATE())";
 
         try (PreparedStatement psFetch = connection.prepareStatement(sqlFetchDetails);
                 PreparedStatement psStockUpdate = connection.prepareStatement(sqlUpdateStock);

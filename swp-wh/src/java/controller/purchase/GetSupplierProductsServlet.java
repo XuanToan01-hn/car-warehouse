@@ -32,7 +32,8 @@ public class GetSupplierProductsServlet extends HttpServlet {
                 Product p = products.get(i);
 
                 // Fetch Product_Detail liên quan đến Product này
-                List<ProductDetail> details = productDetailDAO.getByProductId(p.getId());
+                // Lấy toàn bộ chi tiết để đổ ra dropdown màu sắc bất kể tồn kho
+                List<ProductDetail> details = productDetailDAO.getAllDetailsByProductId(p.getId());
 
                 if (i > 0) json.append(",");
                 json.append("{");

@@ -66,7 +66,7 @@ public class ProductDAO extends DBContext {
     // 2. GET TOTAL FILTERED
     // ===============================
     public int getTotalFilteredProducts(String search, String categoryId, String unitId, String supplierId) {
-    public int getTotalFilteredProducts(String search, String categoryId, String unitId) {
+
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
@@ -299,103 +299,5 @@ public List<Product> getAll() {
     // ===============================
     // HÀM MAIN ĐỂ TEST CÁC CHỨC NĂNG
     // ===============================
-    public static void main(String[] args) {
-        ProductDAO dao = new ProductDAO();
 
-        System.out.println("========== BẮT ĐẦU TEST ProductDAO ==========");
-
-        // --- Chuẩn bị dữ liệu mẫu (Lưu ý: Bạn cần đổi ID 1, 2... cho khớp với DB của bạn) ---
-        Category testCat = new Category(); testCat.setId(1);
-        Unit testUnit = new Unit(); testUnit.setId(1);
-        Supplier testSup = new Supplier(); testSup.setId(1);
-
-        // 1. Test getAll()
-        System.out.println("\n1. Test getAll():");
-        List<Product> allProducts = dao.getAll();
-        System.out.println("-> Tổng số sản phẩm hiện có: " + allProducts.size());
-
-        // 2. Test insertAndGetId()
-        System.out.println("\n2. Test insertAndGetId():");
-        Product p1 = new Product();
-        p1.setCode("SP_TEST_01");
-        p1.setName("Sản phẩm Test 01");
-        p1.setDescription("Mô tả SP 01");
-        p1.setImage("img_01.png");
-        p1.setCategory(testCat);
-        p1.setUnit(testUnit);
-        p1.setSupplier(testSup);
-
-        int insertedId = dao.insertAndGetId(p1);
-        System.out.println("-> Đã thêm sản phẩm mới. ID được tạo: " + insertedId);
-
-        // 3. Test getById()
-        System.out.println("\n3. Test getById(" + insertedId + "):");
-        Product fetchedProduct = dao.getById(insertedId);
-        if (fetchedProduct != null) {
-            System.out.println("-> Lấy thành công: " + fetchedProduct.getName() + " - Code: " + fetchedProduct.getCode());
-        } else {
-            System.out.println("-> Không tìm thấy!");
-        }
-
-        // 4. Test update()
-        System.out.println("\n4. Test update():");
-        if (fetchedProduct != null) {
-            fetchedProduct.setName("Sản phẩm Test 01 (Đã sửa)");
-            fetchedProduct.setDescription("Mô tả đã cập nhật");
-            dao.update(fetchedProduct);
-            Product updatedProduct = dao.getById(insertedId);
-            System.out.println("-> Tên sau khi sửa: " + updatedProduct.getName());
-        }
-
-        // 5. Test insert() (Normal)
-        System.out.println("\n5. Test insert() (Không lấy ID):");
-        Product p2 = new Product();
-        p2.setCode("SP_TEST_02");
-        p2.setName("Sản phẩm Test 02");
-        p2.setCategory(testCat);
-        p2.setUnit(testUnit);
-        p2.setSupplier(testSup);
-        dao.insert(p2);
-        System.out.println("-> Đã insert thành công (SP_TEST_02).");
-
-        // 6. Test getFilteredProducts() & getTotalFilteredProducts()
-        System.out.println("\n6. Test getFilteredProducts & getTotalFilteredProducts:");
-        String search = "Test";
-        String catIdStr = "1";
-        String unitIdStr = "1";
-
-        int totalFiltered = dao.getTotalFilteredProducts(search, catIdStr, unitIdStr);
-        System.out.println("-> Tổng số tìm thấy với từ khóa '" + search + "': " + totalFiltered);
-
-        List<Product> filteredList = dao.getFilteredProducts(search, catIdStr, unitIdStr, 1, 5); // Trang 1, 5 records
-        System.out.println("-> Kích thước danh sách lọc (Page 1, Size 5): " + filteredList.size());
-        for (Product p : filteredList) {
-            System.out.println("   - " + p.getId() + " | " + p.getName() + " | " + p.getCode());
-        }
-
-        // 7. Test search() (Original style)
-        System.out.println("\n7. Test search() (Original style):");
-        List<Product> searchOldStyle = dao.search("Test", 1, 1, 1, 5);
-        System.out.println("-> Kết quả search cũ trả về: " + searchOldStyle.size() + " sản phẩm.");
-
-        // 8. Test getProductsBySupplier()
-        System.out.println("\n8. Test getProductsBySupplier(1):");
-        List<Product> bySupplier = dao.getProductsBySupplier(1);
-        System.out.println("-> Sản phẩm của Supplier 1: " + bySupplier.size());
-
-        // 9. Test delete()
-        System.out.println("\n9. Test delete() (Dọn dẹp dữ liệu test):");
-        // Xóa SP_TEST_01 (chúng ta biết ID từ insertedId)
-        dao.delete(insertedId);
-        System.out.println("-> Đã xóa sản phẩm ID: " + insertedId);
-
-        // Tìm và xóa SP_TEST_02 (Vì insert thường không trả về ID, ta tìm qua search rồi xóa)
-        List<Product> toDeleteList = dao.getFilteredProducts("SP_TEST_02", null, null, 1, 10);
-        for (Product p : toDeleteList) {
-            dao.delete(p.getId());
-            System.out.println("-> Đã xóa dọn dẹp sản phẩm rác: " + p.getName());
-        }
-
-        System.out.println("\n========== KẾT THÚC TEST ==========");
-    }
 }

@@ -96,7 +96,7 @@
                                 <div class="card mb-3">
                                     <div class="card-header d-flex align-items-center">
                                         <span class="step-badge active mr-2">1</span>
-                                        <h5 class="mb-0">Thông Tin Đơn Hàng &amp; Supplier</h5>
+                                        <h5 class="mb-0">PO Information &amp; Supplier</h5>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
@@ -104,7 +104,7 @@
                                                 <div class="form-group">
                                                     <label>
 <%--                                                        <i class="fas fa-hashtag mr-1"></i>--%>
-                                                        Mã đơn hàng *</label>
+    Order code *</label>
                                                     <input type="text" name="orderCode" id="orderCode"
                                                         class="form-control" value="${autoCode}"
                                                         placeholder="Mã đơn hàng" required>
@@ -188,7 +188,7 @@
                                     <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit"
                                         style="background-color:#17AEDF" disabled>
 <%--                                        <i class="fas fa-save mr-1"></i> --%>
-                                        Tạo Purchase Order
+                                        Create Purchase Order
                                     </button>
                                 </div>
 
@@ -204,7 +204,7 @@
                                         <div class="modal-header" style="background:#17AEDF; color:#fff;">
                                             <h5 class="modal-title">
 <%--                                                <i class="fas fa-truck mr-2"></i>--%>
-                                                Tạo Supplier Mới
+                                                Create New Supplier
                                             </h5>
                                             <button type="button" class="close text-white"
                                                 data-dismiss="modal">&times;</button>
@@ -212,12 +212,12 @@
                                         <div class="modal-body">
                                             <div id="supplierFormMsg" class="d-none"></div>
                                             <div class="form-group">
-                                                <label>Tên Supplier *</label>
+                                                <label>Supplier Name</label>
                                                 <input type="text" id="sup_name" class="form-control"
                                                     placeholder="Nhập tên supplier">
                                             </div>
                                             <div class="form-group">
-                                                <label>Số điện thoại</label>
+                                                <label>PhoneNumber</label>
                                                 <input type="text" id="sup_phone" class="form-control"
                                                     placeholder="0xxxxxxxxx">
                                             </div>
@@ -227,16 +227,16 @@
                                                     placeholder="supplier@email.com">
                                             </div>
                                             <div class="form-group">
-                                                <label>Địa chỉ</label>
+                                                <label>Address</label>
                                                 <textarea id="sup_address" class="form-control" rows="2"
                                                     placeholder="Địa chỉ supplier"></textarea>
                                             </div>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary"
-                                                data-dismiss="modal">Hủy</button>
+                                                data-dismiss="modal">Cancel</button>
                                             <button type="button" class="btn btn-success" id="btnSaveSupplier">
-                                                <i class="fas fa-save mr-1"></i> Lưu Supplier
+<%--                                                <i class="fas fa-save mr-1"></i> Save Supplier--%>
                                             </button>
                                         </div>
                                     </div>
@@ -251,7 +251,7 @@
                                 <div class="modal-dialog" role="document">
                                     <div class="modal-content">
                                         <div class="modal-header" style="background:#28a745; color:#fff;">
-                                            <h5 class="modal-title"><i class="fas fa-box mr-2"></i>Tạo Sản Phẩm Mới</h5>
+                                            <h5 class="modal-title"><i class="fas fa-box mr-2"></i>Create New Product</h5>
                                             <button type="button" class="close text-white"
                                                 data-dismiss="modal">&times;</button>
                                         </div>
@@ -259,19 +259,19 @@
                                             <div id="productFormMsg" class="d-none"></div>
                                             <!-- Supplier gắn với product (read-only, auto từ bước 1) -->
                                             <div class="form-group">
-                                                <label>Supplier <span class="badge badge-info">Tự động</span></label>
+                                                <label>Supplier <span class="badge badge-info">Auto</span></label>
                                                 <input type="text" id="prod_supplierName" class="form-control" readonly
                                                     style="background:#e9ecef;">
                                                 <input type="hidden" id="prod_supplierId">
                                                 <input type="hidden" id="prod_targetRowIndex">
                                             </div>
                                             <div class="form-group">
-                                                <label>Tên sản phẩm *</label>
+                                                <label>Product Name *</label>
                                                 <input type="text" id="prod_name" class="form-control"
                                                     placeholder="Nhập tên sản phẩm">
                                             </div>
                                             <div class="form-group">
-                                                <label>Mã sản phẩm *</label>
+                                                <label>Product Code*</label>
                                                 <input type="text" id="prod_code" class="form-control"
                                                     placeholder="VD: CAR-001">
                                             </div>
@@ -283,9 +283,9 @@
                                             <div class="row">
                                                 <div class="col-md-6">
                                                     <div class="form-group">
-                                                        <label>Danh mục</label>
+                                                        <label>Category</label>
                                                         <select id="prod_categoryId" class="form-control">
-                                                            <option value="">-- Chọn danh mục --</option>
+                                                            <option value="">-- Select Category --</option>
                                                             <c:forEach var="cat" items="${categoryList}">
                                                                 <option value="${cat.id}">${cat.name}</option>
                                                             </c:forEach>
@@ -296,9 +296,9 @@
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary"
-                                                data-dismiss="modal">Hủy</button>
+                                                data-dismiss="modal">Cancel</button>
                                             <button type="button" class="btn btn-success" id="btnSaveProduct">
-                                                <i class="fas fa-save mr-1"></i> Lưu Sản Phẩm
+<%--                                                <i class="fas fa-save mr-1"></i> Save Product--%>
                                             </button>
                                         </div>
                                     </div>
@@ -425,7 +425,7 @@
                 });
 
                 function buildTaxOptions() {
-                    let opts = '<option value="">-- Không --</option>';
+                    let opts = '<option value="">-- No --</option>';
                     allTaxes.forEach(function (t) {
                         opts += '<option value="' + t.id + '" data-rate="' + t.rate + '">' + t.name + ' (' + t.rate + '%)</option>';
                     });
@@ -435,7 +435,7 @@
 
 
                 function buildProductOptions() {
-                    let opts = '<option value="">-- Chọn sản phẩm --</option>';
+                    let opts = '<option value="">-- Select Product --</option>';
 
                     // Filter products that match the selected supplier's product
                     allProducts.forEach(function (p) {
@@ -445,8 +445,8 @@
                     });
 
                     // If no products found in allProducts, build from server data
-                    if (opts === '<option value="">-- Chọn sản phẩm --</option>' && selectedSupplierId) {
-                        opts += '<option value="">Đang tải sản phẩm...</option>';
+                    if (opts === '<option value="">-- Select Product --</option>' && selectedSupplierId) {
+                        opts += '<option value="">Loading Product...</option>';
                     }
 
                     return opts;
@@ -463,7 +463,7 @@
                         '<div class="product-row" id="row_' + idx + '">' +
                         '<div class="row align-items-end">' +
                         '<div class="col-md-3">' +
-                        '<label class="small font-weight-bold">Sản phẩm *</label>' +
+                        '<label class="small font-weight-bold">Product *</label>' +
                         '<div class="input-group">' +
                         '<select name="productId[]" id="prodSel_' + idx + '" class="form-control product-select" data-row="' + idx + '" required>' +
                         prodOpts +
@@ -496,7 +496,7 @@
                         '</select>' +
                         '</div>' +
                         '<div class="col-md-1">' +
-                        '<label class="small font-weight-bold" style="font-size: 11px;">Thành tiền</label>' +
+                        '<label class="small font-weight-bold" style="font-size: 11px;">Total:</label>' +
                         '<input type="number" name="subTotal[]" id="sub_' + idx + '" class="form-control subtotal-field" readonly style="background:#e9ecef; padding-left: 5px; padding-right:5px;">' +
                         '</div>' +
                         '<div class="col-md-1 text-center">' +
@@ -515,7 +515,7 @@
                         const priceInput = document.getElementById('price_' + idx);
 
                         if (prod && prod.details && prod.details.length > 0) {
-                            let opts = '<option value="">-- Chọn màu --</option>';
+                            let opts = '<option value="">-- Select Color --</option>';
                             let uniqueColors = []; // Lọc màu trùng
                             prod.details.forEach(function(d) {
                                 if (d.color && !uniqueColors.includes(d.color)) {
@@ -525,7 +525,7 @@
                             });
                             colorSel.innerHTML = opts;
                         } else {
-                            colorSel.innerHTML = '<option value="">-- Hết dữ liệu màu --</option>';
+                            colorSel.innerHTML = '<option value="">-- No color Information --</option>';
                         }
                         priceInput.value = 0;
                         calcRow(idx);
@@ -605,7 +605,7 @@
 
                     const btn = this;
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Đang lưu...';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
 
                     fetch(ctx + '/quick-add-supplier', {
                         method: 'POST',
@@ -635,7 +635,7 @@
                         .catch(function() { showMsg('supplierFormMsg', 'danger', 'Lỗi kết nối server'); })
                         .finally(function() {
                             btn.disabled = false;
-                            btn.innerHTML = '<i class="fas fa-save mr-1"></i> Lưu Supplier';
+                             btn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Supplier';
                         });
                 });
 
@@ -667,7 +667,7 @@
 
                     const btn = this;
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Đang lưu...';
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving...';
 
                     fetch(ctx + '/quick-add-product', {
                         method: 'POST',
@@ -705,7 +705,7 @@
                         .catch(function() { showMsg('productFormMsg', 'danger', 'Lỗi kết nối server'); })
                         .finally(function() {
                             btn.disabled = false;
-                            btn.innerHTML = '<i class="fas fa-save mr-1"></i> Lưu Sản Phẩm';
+                            btn.innerHTML = '<i class="fas fa-save mr-1"></i> Save Product';
                         });
                 });
 

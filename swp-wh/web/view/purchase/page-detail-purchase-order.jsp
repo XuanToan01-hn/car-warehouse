@@ -7,7 +7,7 @@
             <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-                <title>Chi Tiết Purchase Order</title>
+                <title>Purchase Order In Details</title>
                 <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
@@ -33,7 +33,7 @@
                                         <div class="card">
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <div class="header-title">
-                                                    <h4 class="card-title">Chi Tiết Purchase Order:
+                                                    <h4 class="card-title">Purchase Order:
                                                         <strong>${po.orderCode}</strong>
                                                     </h4>
                                                 </div>
