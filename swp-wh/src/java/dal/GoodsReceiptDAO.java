@@ -601,15 +601,15 @@ public class GoodsReceiptDAO extends DBContext {
 
         String sqlUpdateStock = "UPDATE Location_Product "
                 + "SET Quantity = Quantity + ? "
-                + "WHERE LocationID = ? AND (ProductDetailID = ? OR (ProductDetailID IS NULL AND ? IS NULL)) AND ProductID = ?";
+                + "WHERE LocationID = ? AND ProductDetailID = ?";
 
         String sqlInsertStock = "INSERT INTO Location_Product "
-                + "(LocationID, ProductDetailID, ProductID, Quantity) "
-                + "VALUES (?, ?, ?, ?)";
+                + "(LocationID, ProductDetailID, Quantity) "
+                + "VALUES (?, ?, ?)";
 
         String sqlTrans = "INSERT INTO Inventory_Transaction "
-                + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
-                + "VALUES (?, ?, ?, 'RECEIPT', ?, ?, GETDATE())";
+                + "(ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
+                + "VALUES (?, ?, 1, ?, ?, GETDATE())";
 
         try (PreparedStatement psFetch = connection.prepareStatement(sqlFetchDetails);
                 PreparedStatement psStockUpdate = connection.prepareStatement(sqlUpdateStock);
@@ -648,23 +648,19 @@ public class GoodsReceiptDAO extends DBContext {
                     psStockUpdate.setInt(1, qtyActual);
                     psStockUpdate.setInt(2, locationId);
                     psStockUpdate.setInt(3, productDetailId);
-                    psStockUpdate.setInt(4, productDetailId);
-                    psStockUpdate.setInt(5, productId);
                     int affected = psStockUpdate.executeUpdate();
 
                     if (affected == 0) {
                         psStockInsert.setInt(1, locationId);
                         psStockInsert.setInt(2, productDetailId);
-                        psStockInsert.setInt(3, productId);
-                        psStockInsert.setInt(4, qtyActual);
+                        psStockInsert.setInt(3, qtyActual);
                         psStockInsert.executeUpdate();
                     }
 
-                    psTrans.setInt(1, productId);
-                    psTrans.setInt(2, productDetailId);
-                    psTrans.setInt(3, locationId);
-                    psTrans.setInt(4, qtyActual);
-                    psTrans.setString(5, receiptCode);
+                    psTrans.setInt(1, productDetailId);
+                    psTrans.setInt(2, locationId);
+                    psTrans.setInt(3, qtyActual);
+                    psTrans.setString(4, receiptCode);
                     psTrans.addBatch();
                 }
             }

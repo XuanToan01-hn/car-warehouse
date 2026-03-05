@@ -468,7 +468,7 @@
                         ============================================================ */
                         const allProducts = [
                             <c:forEach var="p" items="${productList}">
-                                {id: ${p.id}, name: "${fn:escapeXml(p.name)}", code: "${fn:escapeXml(p.code)}" },
+                                {id: ${p.id}, name: "${fn:escapeXml(p.name)}", code: "${fn:escapeXml(p.code)}", price: 0, detailId: 0 },
                             </c:forEach>
                         ];
 
@@ -586,7 +586,10 @@
                         function buildProductOptions() {
                             let opts = '<option value="">-- Chọn sản phẩm --</option>';
                             currentSupplierProducts.forEach(function (p) {
-                                opts += '<option value="' + p.id + '">' + p.name + ' [' + p.code + ']</option>';
+                                opts += '<option value="' + p.id + '"'
+                                    + ' data-price="' + (p.price || 0) + '"'
+                                    + ' data-detail-id="' + (p.detailId || 0) + '"'
+                                    + '>' + p.name + ' [' + p.code + ']</option>';
                             });
                             if (currentSupplierProducts.length === 0 && selectedSupplierId) {
                                 opts += '<option value="" disabled>Supplier này chưa có sản phẩm</option>';
@@ -629,8 +632,10 @@
                                 '<input type="number" name="quantity[]" id="qty_' + idx + '" class="form-control qty-input" data-row="' + idx + '" value="1" min="1" required>' +
                                 '</div>' +
                                 '<div class="col-md-2">' +
-                                '<label class="small font-weight-bold">Đơn giá (đ) *</label>' +
-                                '<input type="number" name="price[]" id="price_' + idx + '" class="form-control price-input" data-row="' + idx + '" value="0" min="0" step="1000" required>' +
+                                '<label class="small font-weight-bold">Đơn giá (đ)</label>' +
+                                '<input type="text" id="price_display_' + idx + '" class="form-control" readonly style="background:#e9ecef; font-weight:700; color:#0369a1;" value="0 đ">' +
+                                '<input type="hidden" name="price[]" id="price_' + idx + '" value="0">' +
+                                '<input type="hidden" name="productDetailId[]" id="detailId_' + idx + '" value="0">' +
                                 '</div>' +
                                 '<div class="col-md-2">' +
                                 '<label class="small font-weight-bold">Thuế</label>' +
@@ -664,21 +669,21 @@
                                 calcRow(idx);
                             }
 
-                            // Lắng nghe thay đổi của dropdown sản phẩm
+                            // Lắng nghe thay đổi của dropdown sản phẩm → tự động điền giá từ ProductDetail
                             document.getElementById('prodSel_' + idx).addEventListener('change', function () {
                                 const opt = this.options[this.selectedIndex];
-                                if (opt && opt.dataset.price !== undefined && opt.dataset.price !== '') {
-                                    document.getElementById('price_' + idx).value = opt.dataset.price;
-                                } else {
-                                    document.getElementById('price_' + idx).value = 0;
-                                }
+                                const price = (opt && opt.dataset.price) ? parseFloat(opt.dataset.price) : 0;
+                                const detailId = (opt && opt.dataset.detailId) ? opt.dataset.detailId : 0;
+                                document.getElementById('price_' + idx).value = price;
+                                document.getElementById('detailId_' + idx).value = detailId;
+                                document.getElementById('price_display_' + idx).value = numberFormat(price) + ' đ';
                                 if (opt && opt.dataset.color) {
                                     document.getElementById('color_' + idx).value = opt.dataset.color;
                                 }
                                 calcRow(idx);
                             });
 
-                            ['qty_' + idx, 'price_' + idx, 'tax_' + idx].forEach(function (id) {
+                            ['qty_' + idx, 'tax_' + idx].forEach(function (id) {
                                 document.getElementById(id).addEventListener('input', function () { calcRow(idx); });
                                 document.getElementById(id).addEventListener('change', function () { calcRow(idx); });
                             });

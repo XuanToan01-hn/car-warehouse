@@ -22,8 +22,8 @@ public class EditProductDetail extends HttpServlet {
         ProductDAO pDao = new ProductDAO();
 
         request.setAttribute("pd", dao.getById(id));
-        request.setAttribute("products", pDao.getAll());
-        request.getRequestDispatcher("view/product-detail/edit.jsp").forward(request, response);
+        request.setAttribute("listProduct", pDao.getAll());
+        request.getRequestDispatcher("view/product-detail/page-update-product-detail.jsp").forward(request, response);
     }
 
     @Override
@@ -34,7 +34,7 @@ public class EditProductDetail extends HttpServlet {
             int productId = Integer.parseInt(request.getParameter("productId"));
             String lotNumber = request.getParameter("lotNumber");
             String serialNumber = request.getParameter("serialNumber");
-            String manufactureDateStr = request.getParameter("manufactureDate");
+            String manufactureDateStr = request.getParameter("mfdDate");
             double price = Double.parseDouble(request.getParameter("price"));
             String color = request.getParameter("color");
 
@@ -42,7 +42,10 @@ public class EditProductDetail extends HttpServlet {
             pd.setId(id);
             pd.setLotNumber(lotNumber);
             pd.setSerialNumber(serialNumber);
-            pd.setManufactureDate(java.sql.Date.valueOf(manufactureDateStr));
+            if (manufactureDateStr == null || manufactureDateStr.trim().isEmpty()) {
+                throw new IllegalArgumentException("Manufacture date is required.");
+            }
+            pd.setManufactureDate(java.sql.Date.valueOf(manufactureDateStr.trim()));
             pd.setColor(color);
             pd.setPrice(price);
 

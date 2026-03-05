@@ -50,10 +50,10 @@
                                             <label>Price *</label>
                                             <input type="number" step="0.01" name="price" class="form-control" required>
                                         </div>
-                                        <div class="col-md-4 mb-3">
+<!--                                        <div class="col-md-4 mb-3">
                                             <label>Quantity *</label>
                                             <input type="number" name="quantity" class="form-control" required>
-                                        </div>
+                                        </div>-->
                                         <div class="col-md-4 mb-3">
                                             <label>Manufacture Date</label>
                                             <input type="date" name="manufactureDate" class="form-control" required>

@@ -232,7 +232,6 @@ public class ProductDetailDAO extends DBContext {
                 pd.setManufactureDate(rs.getDate("ManufactureDate"));
                 pd.setColor(rs.getString("Color"));
                 pd.setPrice(rs.getDouble("Price"));
-                pd.setQuantity(rs.getInt("StockQty")); // Số lượng TỒN KHO thực tế
                 pd.setProduct(productDAO.getById(productId));
                 list.add(pd);
             }

@@ -113,6 +113,10 @@
                                             <td>${p.unit.name}</td>
                                             <td><span class="text-info font-weight-bold">${p.supplier.name}</span></td> <td class="text-right">
                                                 <div class="d-flex justify-content-end">
+                                                    <a href="list-product-detail?productId=${p.id}"
+                                                                        class="btn-action btn-detail mr-2">
+                                                                        <i class="ri-eye-line"></i> Detail
+                                                                    </a>
                                                     <a href="update-product?id=${p.id}" class="btn-action btn-edit mr-2">
                                                         <i class="ri-pencil-line"></i> Edit
                                                     </a>
