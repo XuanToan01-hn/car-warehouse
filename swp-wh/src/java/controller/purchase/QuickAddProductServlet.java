@@ -40,7 +40,6 @@ public class QuickAddProductServlet extends HttpServlet {
             p.setCode(code.trim());
             p.setDescription("");
             p.setImage("");
-            p.setMinStock(0);
 
             if (catIdStr != null && !catIdStr.isEmpty()) {
                 try {
@@ -52,7 +51,7 @@ public class QuickAddProductServlet extends HttpServlet {
                 }
             }
 
-            // Set Supplier (Theo Model và DB mới)
+            // Gán trực tiếp Supplier vào Product theo cấu trúc DB mới
             if (supIdStr != null && !supIdStr.isEmpty()) {
                 try {
                     Supplier sup = new Supplier();
@@ -63,14 +62,12 @@ public class QuickAddProductServlet extends HttpServlet {
                 }
             }
 
-            // Insert Product (ProductDAO lúc này đã tự động lưu SupplierID vào DB)
             int newProductId = productDAO.insertAndGetId(p);
 
             if (newProductId > 0) {
                 out.print("{\"success\":true,\"productId\":" + newProductId
                         + ",\"productName\":\"" + escapeJson(name.trim())
-                        + "\",\"productCode\":\"" + escapeJson(code.trim())
-                        + "\",\"color\":\"Chưa có màu\"}"); // Thêm trường color ở đây
+                        + "\",\"productCode\":\"" + escapeJson(code.trim()) + "\"}");
             } else {
                 out.print("{\"success\":false,\"message\":\"Lỗi khi lưu sản phẩm\"}");
             }
