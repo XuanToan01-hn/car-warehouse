@@ -121,4 +121,19 @@ public class LocationProductDAO extends DBContext {
         lp.setProduct(lp.getProductDetail().getProduct());
         return lp;
     }
+    
+    public List<LocationProduct> getByLocationId(int locId) {
+    List<LocationProduct> list = new ArrayList<>();
+    String sql = "SELECT * FROM Location_Product WHERE LocationID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, locId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            list.add(mapRow(rs)); // mapRow đã có ProductDetail & Product của bạn
+        }
+    } catch (Exception e) { e.printStackTrace(); }
+    return list;
+}
+
+
 }

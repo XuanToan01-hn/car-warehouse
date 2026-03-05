@@ -3,10 +3,13 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/LocationProduct.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/internal/transfer-list.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/LocationDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/internal/create-transfer.jsp</file>
             <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/model/Location.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/inventoryTransaction/InventoryTransactionServlet.java</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/good-issue/goods-issue-create.jsp</file>
-            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/web/view/inventory-transaction/log-list.jsp</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/dal/TransferDAO.java</file>
+            <file>file:/C:/Users/Asus/OneDrive/Documents/Desktop/SWP-WH/car-warehouse/swp-wh/src/java/controller/transferInternal/TransferServlet.java</file>
         </group>
     </open-files>
 </project-private>
