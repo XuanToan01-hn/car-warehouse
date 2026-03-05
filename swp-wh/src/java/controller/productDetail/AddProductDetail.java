@@ -21,29 +21,28 @@ import model.ProductDetail;
  *
  * @author Asus
  */
-@WebServlet(name="AddProductDetail", urlPatterns={"/add-product-detail"})
+@WebServlet(name = "AddProductDetail", urlPatterns = { "/add-product-detail" })
 public class AddProductDetail extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         // Lấy danh sách sản phẩm để người dùng chọn trong dropdown (Select Box)
         dal.ProductDAO pDao = new dal.ProductDAO();
-        request.setAttribute("products", pDao.getAll());
-        request.getRequestDispatcher("view/product-detail/add.jsp").forward(request, response);
-    } 
+        request.setAttribute("listProduct", pDao.getAll());
+        request.getRequestDispatcher("view/product-detail/page-add-product-detail.jsp").forward(request, response);
+    }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
+            throws ServletException, IOException {
         try {
             // 1. Lấy dữ liệu từ form
             int productId = Integer.parseInt(request.getParameter("productId"));
             String lotNumber = request.getParameter("lotNumber");
             String serialNumber = request.getParameter("serialNumber");
-            String manufactureDateStr = request.getParameter("manufactureDate");
+            String manufactureDateStr = request.getParameter("mfdDate");
             double price = Double.parseDouble(request.getParameter("price"));
-            int quantity = Integer.parseInt(request.getParameter("quantity"));
             String color = request.getParameter("color");
 
             // 2. Tạo đối tượng Model
@@ -56,7 +55,10 @@ public class AddProductDetail extends HttpServlet {
             pd.setPrice(price);
             pd.setColor(color);
             // Parse ngày tháng
-            pd.setManufactureDate(java.sql.Date.valueOf(manufactureDateStr));
+            if (manufactureDateStr == null || manufactureDateStr.trim().isEmpty()) {
+                throw new IllegalArgumentException("Manufacture date is required.");
+            }
+            pd.setManufactureDate(java.sql.Date.valueOf(manufactureDateStr.trim()));
 
             // 3. Lưu vào DB
             dal.ProductDetailDAO db = new dal.ProductDetailDAO();

@@ -17,7 +17,7 @@
                             <div class="container-fluid">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <h4 class="mb-0">Warehouse Inventory Details</h4>
-                                    <a href="add-product-detail" class="btn btn-success btn-sm">+ Add New Inventory</a>
+                                    <!--                                    <a href="add-product-detail" class="btn btn-success btn-sm">+ Add New Inventory</a>-->
                                 </div>
 
                                 <div class="card mb-4">

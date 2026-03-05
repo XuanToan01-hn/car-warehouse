@@ -121,8 +121,6 @@
                                                                 method="post" class="d-inline">
                                                                 <input type="hidden" name="id" value="${po.id}">
                                                                 <input type="hidden" name="status" value="2">
-                                                                <button type="submit" class="btn btn-primary mr-2" title="Khóa đơn, không cho chỉnh sửa">
-                                                                    <i class="fas fa-lock mr-1"></i> Confirm
                                                                 <button type="submit" class="btn btn-primary mr-2">
 <%--                                                                    <i class="fas fa-check mr-1"></i> --%>
                                                                     Confirm

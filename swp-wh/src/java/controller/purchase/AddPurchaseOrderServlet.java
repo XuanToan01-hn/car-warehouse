@@ -5,6 +5,7 @@ import dal.PurchaseOrderDAO;
 import dal.SupplierDAO;
 import dal.TaxDAO;
 import dal.ProductDAO;
+import dal.ProductDetailDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,6 +16,7 @@ import jakarta.servlet.http.HttpSession;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import model.Product;
+import model.ProductDetail;
 import model.PurchaseOrder;
 import model.PurchaseOrderDetail;
 import model.Supplier;
@@ -70,6 +72,7 @@ public class AddPurchaseOrderServlet extends HttpServlet {
             String[] prices = request.getParameterValues("price[]");
             String[] taxIds = request.getParameterValues("taxId[]");
             String[] subTotals = request.getParameterValues("subTotal[]");
+            String[] productDetailIds = request.getParameterValues("productDetailId[]");
 
             if (productIds == null || productIds.length == 0) {
                 request.setAttribute("error", "Cần thêm ít nhất 1 sản phẩm!");
@@ -104,6 +107,7 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 throw new Exception("Tạo PO thất bại");
 
             // Insert từng dòng chi tiết
+            ProductDetailDAO pdDAO = new ProductDetailDAO();
             for (int i = 0; i < productIds.length; i++) {
                 PurchaseOrderDetail pod = new PurchaseOrderDetail();
                 pod.setPurchaseOrderId(newPoId);
@@ -112,7 +116,28 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 p.setId(Integer.parseInt(productIds[i]));
                 pod.setProduct(p);
                 pod.setQuantity(Integer.parseInt(quantities[i]));
-                pod.setPrice(Double.parseDouble(prices[i]));
+
+                // Lấy giá từ ProductDetail DB (theo productDetailId), fallback về giá form
+                double unitPrice = 0;
+                try {
+                    if (productDetailIds != null && productDetailIds[i] != null
+                            && !productDetailIds[i].isEmpty() && !productDetailIds[i].equals("0")) {
+                        int pdId = Integer.parseInt(productDetailIds[i]);
+                        ProductDetail pd = pdDAO.getById(pdId);
+                        if (pd != null) {
+                            unitPrice = pd.getPrice();
+                        }
+                    }
+                } catch (Exception ex) {
+                    /* fallback */ }
+                // Nếu không lấy được từ DB, dùng giá gửi từ form (hidden field)
+                if (unitPrice == 0 && prices != null && prices[i] != null) {
+                    try {
+                        unitPrice = Double.parseDouble(prices[i]);
+                    } catch (Exception ex) {
+                    }
+                }
+                pod.setPrice(unitPrice);
                 pod.setSubTotal(Double.parseDouble(subTotals[i]));
 
                 if (taxIds != null && taxIds[i] != null && !taxIds[i].isEmpty() && !taxIds[i].equals("0")) {

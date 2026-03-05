@@ -219,7 +219,7 @@ public class SalesOrderServlet extends HttpServlet {
             json.append("\"lot\":\"").append(lot).append("\",");
             json.append("\"serial\":\"").append(serial).append("\",");
             json.append("\"price\":").append(d.getPrice()).append(",");
-            json.append("\"stockQty\":").append(d.getQuantity()).append(","); // Tồn kho thực tế
+//            json.append("\"stockQty\":").append(d.getQuantity()).append(","); // Tồn kho thực tế
             json.append("\"color\":\"").append(color).append("\"");
             json.append("}");
             if (i < details.size() - 1)
