@@ -62,7 +62,7 @@
 
                     <li>
                         <a href="warehouses" class="svg-icon">
-                            <img src="${pageContext.request.contextPath}/assets/images/icon/location.png">
+<img src="${pageContext.request.contextPath}/assets/images/icon/location.png">
                             <span class="ml-4">Warehouses</span>
                         </a>
                     </li>

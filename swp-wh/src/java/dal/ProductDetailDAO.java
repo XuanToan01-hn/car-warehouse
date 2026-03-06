@@ -212,15 +212,18 @@ public class ProductDetailDAO extends DBContext {
      */
     public List<ProductDetail> getByProductId(int productId) {
         List<ProductDetail> list = new ArrayList<>();
-        // JOIN với Location_Product để lấy tổng tồn kho thực tế
-        String sql = "SELECT pd.*, ISNULL(SUM(lp.Quantity), 0) AS StockQty " +
-                     "FROM Product_Detail pd " +
-                     "LEFT JOIN Location_Product lp ON pd.ProductDetailID = lp.ProductDetailID " +
-                     "WHERE pd.ProductID = ? " +
-                     "GROUP BY pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, " +
-                     "         pd.ManufactureDate, pd.ProductID, pd.Color, pd.Price " +
-                     "HAVING ISNULL(SUM(lp.Quantity), 0) > 0 " +
-                     "ORDER BY pd.ProductDetailID ASC";
+        // Đã sửa: Liệt kê rõ các cột thay vì dùng pd.*
+        String sql = "SELECT pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, " +
+                "       pd.ManufactureDate, pd.ProductID, pd.Color, pd.Price, " +
+                "       ISNULL(SUM(lp.Quantity), 0) AS StockQty " +
+                "FROM Product_Detail pd " +
+                "LEFT JOIN Location_Product lp ON pd.ProductDetailID = lp.ProductDetailID " +
+                "WHERE pd.ProductID = ? " +
+                "GROUP BY pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, " +
+                "         pd.ManufactureDate, pd.ProductID, pd.Color, pd.Price " +
+                "HAVING ISNULL(SUM(lp.Quantity), 0) > 0 " +
+                "ORDER BY pd.ProductDetailID ASC";
+
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
             ResultSet rs = ps.executeQuery();
@@ -233,6 +236,11 @@ public class ProductDetailDAO extends DBContext {
                 pd.setColor(rs.getString("Color"));
                 pd.setPrice(rs.getDouble("Price"));
                 pd.setProduct(productDAO.getById(productId));
+
+                // Lưu ý: Bạn đã tính StockQty trong SQL nhưng chưa set vào Object.
+                // Nếu model ProductDetail có thuộc tính này, hãy uncomment dòng dưới:
+                // pd.setStockQty(rs.getInt("StockQty"));
+
                 list.add(pd);
             }
         } catch (SQLException e) {
@@ -240,7 +248,36 @@ public class ProductDetailDAO extends DBContext {
         }
         return list;
     }
+    /**
+     * Lấy toàn bộ danh sách ProductDetail theo ProductID không quan tâm tồn kho (Dùng cho nhập hàng/PO).
+     */
+    public List<ProductDetail> getAllDetailsByProductId(int productId) {
+        List<ProductDetail> list = new ArrayList<>();
+        String sql = "SELECT * FROM Product_Detail WHERE ProductID = ? ORDER BY ProductDetailID ASC";
 
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductDetail pd = new ProductDetail();
+                pd.setId(rs.getInt("ProductDetailID"));
+                pd.setLotNumber(rs.getString("LotNumber"));
+                pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setManufactureDate(rs.getDate("ManufactureDate"));
+
+                // Bắt exception nếu bảng chưa chuẩn hóa cột này
+                try {
+                    pd.setColor(rs.getString("Color"));
+                    pd.setPrice(rs.getDouble("Price"));
+                } catch (SQLException ignored) {}
+
+                list.add(pd);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
     public void delete(int id) {
         String sql = "DELETE FROM [Product_Detail] WHERE [ProductDetailID] = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

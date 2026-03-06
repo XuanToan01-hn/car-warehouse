@@ -53,6 +53,7 @@ public class GoodsReceiptDAO extends DBContext {
      * Dùng cho luồng nhập kho (GRO) khi chỉ có ProductID mà chưa chọn lô chi tiết.
      */
     private Integer findFirstProductDetailId(int productId) throws SQLException {
+        // Đổi LIMIT 1 thành SELECT TOP 1
         String sql = "SELECT TOP 1 ProductDetailID FROM Product_Detail WHERE ProductID = ? ORDER BY ProductDetailID ASC";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, productId);
@@ -394,8 +395,7 @@ public class GoodsReceiptDAO extends DBContext {
                     if (d.getProductDetail() != null) {
                         pdId = d.getProductDetail().getId();
                     } else {
-                        // Tự map sang một ProductDetailID bất kỳ của Product để phù hợp với cấu trúc
-                        // tồn kho
+                        // Tự map sang một ProductDetailID bất kỳ của Product để phù hợp với cấu trúc tồn kho
                         pdId = findFirstProductDetailId(productId);
                     }
 
@@ -546,8 +546,7 @@ public class GoodsReceiptDAO extends DBContext {
         }
 
         String sqlPod = "SELECT ProductID, Quantity FROM Purchase_Order_Detail WHERE PurchaseOrderID = ?";
-        // ProductDetailID để NULL ở cấp chi tiết; khi cập nhật tồn kho sẽ tự map sang
-        // ProductDetail phù hợp
+        // ProductDetailID để NULL ở cấp chi tiết; khi cập nhật tồn kho sẽ tự map sang ProductDetail phù hợp
         String sqlIns = "INSERT INTO Goods_Receipt_Detail "
                 + "(ReceiptID, ProductID, ProductDetailID, QuantityExpected, QuantityActual) "
                 + "VALUES (?, ?, NULL, ?, ?)";
@@ -562,8 +561,8 @@ public class GoodsReceiptDAO extends DBContext {
                     psIns.setInt(1, receiptId); // ReceiptID
                     psIns.setInt(2, productId); // ProductID
                     // VALUES (?, ?, NULL, ?, ?) -> chỉ có 4 tham số
-                    psIns.setInt(3, qty); // QuantityExpected
-                    psIns.setInt(4, qty); // QuantityActual
+                    psIns.setInt(3, qty);       // QuantityExpected
+                    psIns.setInt(4, qty);       // QuantityActual
                     psIns.executeUpdate();
                 }
             }
@@ -601,15 +600,15 @@ public class GoodsReceiptDAO extends DBContext {
 
         String sqlUpdateStock = "UPDATE Location_Product "
                 + "SET Quantity = Quantity + ? "
-                + "WHERE LocationID = ? AND ProductDetailID = ?";
+                + "WHERE LocationID = ? AND (ProductDetailID = ? OR (ProductDetailID IS NULL AND ? IS NULL)) AND ProductID = ?";
 
         String sqlInsertStock = "INSERT INTO Location_Product "
-                + "(LocationID, ProductDetailID, Quantity) "
-                + "VALUES (?, ?, ?)";
+                + "(LocationID, ProductDetailID, ProductID, Quantity) "
+                + "VALUES (?, ?, ?, ?)";
 
         String sqlTrans = "INSERT INTO Inventory_Transaction "
-                + "(ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
-                + "VALUES (?, ?, 1, ?, ?, GETDATE())";
+                + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
+                + "VALUES (?, ?, ?, 1, ?, ?, GETDATE())";
 
         try (PreparedStatement psFetch = connection.prepareStatement(sqlFetchDetails);
                 PreparedStatement psStockUpdate = connection.prepareStatement(sqlUpdateStock);
@@ -628,10 +627,8 @@ public class GoodsReceiptDAO extends DBContext {
                         continue;
                     }
 
-                    // Nếu ProductDetailID đang null (dữ liệu cũ), cố gắng map sang một
-                    // ProductDetail bất kỳ của Product.
-                    // Nếu vẫn không có ProductDetail → bỏ qua cập nhật tồn kho cho dòng này nhưng
-                    // vẫn cho phép Confirm.
+                    // Nếu ProductDetailID đang null (dữ liệu cũ), cố gắng map sang một ProductDetail bất kỳ của Product.
+                    // Nếu vẫn không có ProductDetail → bỏ qua cập nhật tồn kho cho dòng này nhưng vẫn cho phép Confirm.
                     if (isPdIdNull) {
                         Integer fallbackPdId = findFirstProductDetailId(productId);
                         if (fallbackPdId != null) {
@@ -648,19 +645,23 @@ public class GoodsReceiptDAO extends DBContext {
                     psStockUpdate.setInt(1, qtyActual);
                     psStockUpdate.setInt(2, locationId);
                     psStockUpdate.setInt(3, productDetailId);
+                    psStockUpdate.setInt(4, productDetailId);
+                    psStockUpdate.setInt(5, productId);
                     int affected = psStockUpdate.executeUpdate();
 
                     if (affected == 0) {
                         psStockInsert.setInt(1, locationId);
                         psStockInsert.setInt(2, productDetailId);
-                        psStockInsert.setInt(3, qtyActual);
+                        psStockInsert.setInt(3, productId);
+                        psStockInsert.setInt(4, qtyActual);
                         psStockInsert.executeUpdate();
                     }
 
-                    psTrans.setInt(1, productDetailId);
-                    psTrans.setInt(2, locationId);
-                    psTrans.setInt(3, qtyActual);
-                    psTrans.setString(4, receiptCode);
+                    psTrans.setInt(1, productId);
+                    psTrans.setInt(2, productDetailId);
+                    psTrans.setInt(3, locationId);
+                    psTrans.setInt(4, qtyActual);
+                    psTrans.setString(5, receiptCode);
                     psTrans.addBatch();
                 }
             }

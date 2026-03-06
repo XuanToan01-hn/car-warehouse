@@ -17,29 +17,6 @@ public class ProductDAO extends DBContext {
     UnitDAO unitDAO = new UnitDAO();
     SupplierDAO supplierDAO = new SupplierDAO();
 
-    public static void main(String[] args) {
-
-        ProductDAO dao = new ProductDAO();
-
-        // Test case 1: Không filter gì, lấy trang 1, 5 sản phẩm
-        List<Product> list1 = dao.getFilteredProducts(null, null, null, 1, 5);
-        System.out.println("=== Test 1: No filter ===");
-        for (Product p : list1) {
-            System.out.println("ID: " + p.getId()
-                    + " | Name: " + p.getName()
-                    + " | Code: " + p.getCode());
-        }
-
-        // Test case 2: Search theo tên
-        List<Product> list2 = dao.getFilteredProducts("milk", null, null, 1, 5);
-        System.out.println("\n=== Test 2: Search 'milk' ===");
-        for (Product p : list2) {
-            System.out.println("ID: " + p.getId()
-                    + " | Name: " + p.getName()
-                    + " | Code: " + p.getCode());
-        }
-
-    }
 
     // ===============================
     // 1. GET FILTERED PRODUCTS
@@ -55,19 +32,16 @@ public class ProductDAO extends DBContext {
             params.add("%" + search + "%");
         }
 
-        // Category filter
         if (categoryId != null && !categoryId.isEmpty()) {
             sql.append(" AND CategoryID = ?");
             params.add(Integer.parseInt(categoryId));
         }
 
-        // Unit filter
         if (unitId != null && !unitId.isEmpty()) {
             sql.append(" AND UnitID = ?");
             params.add(Integer.parseInt(unitId));
         }
 
-        // Mặc định sắp xếp theo ID
         sql.append(" ORDER BY ProductID DESC");
         sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
@@ -92,6 +66,7 @@ public class ProductDAO extends DBContext {
     // 2. GET TOTAL FILTERED
     // ===============================
     public int getTotalFilteredProducts(String search, String categoryId, String unitId, String supplierId) {
+
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
 
@@ -237,13 +212,13 @@ public class ProductDAO extends DBContext {
     public List<Product> search(String keyword, int categoryId, int unitId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         String sql = """
-                    SELECT * FROM Product
-                    WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
-                    AND (? = 0 OR CategoryID = ?)
-                    AND (? = 0 OR UnitID = ?)
-                    ORDER BY ProductID
-                    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-                """;
+            SELECT * FROM Product
+            WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
+            AND (? = 0 OR CategoryID = ?)
+            AND (? = 0 OR UnitID = ?)
+            ORDER BY ProductID
+            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+        """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             String search = "%" + keyword + "%";
@@ -287,26 +262,26 @@ public class ProductDAO extends DBContext {
     }
 
     // ===============================
-    // 10. GET ALL
-    // ===============================
-    public List<Product> getAll() {
-        List<Product> list = new ArrayList<>();
-        String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
+// 10. GET ALL
+// ===============================
+public List<Product> getAll() {
+    List<Product> list = new ArrayList<>();
+    String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
 
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ResultSet rs = ps.executeQuery();
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ResultSet rs = ps.executeQuery();
 
-            while (rs.next()) {
-                list.add(mapResultSetToProduct(rs));
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        while (rs.next()) {
+            list.add(mapResultSetToProduct(rs));
         }
 
-        return list;
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return list;
+}
 
     // Hàm dùng chung để map ResultSet sang Product (giúp code sạch hơn)
     private Product mapResultSetToProduct(ResultSet rs) throws Exception {
@@ -319,16 +294,10 @@ public class ProductDAO extends DBContext {
         p.setCategory(categoryDAO.getByID(rs.getInt("CategoryID")));
         p.setUnit(unitDAO.getUnitById(rs.getInt("UnitID")));
         p.setSupplier(supplierDAO.getById(rs.getInt("SupplierID")));
-        // MinStock nếu có trong DB
-        try {
-            p.setMinStock(rs.getInt("MinStock"));
-        } catch (Exception ignored) {
-        }
-        // Color nếu có trong DB
-        try {
-            p.setColor(rs.getString("Color"));
-        } catch (Exception ignored) {
-        }
         return p;
     }
+    // ===============================
+    // HÀM MAIN ĐỂ TEST CÁC CHỨC NĂNG
+    // ===============================
+
 }
