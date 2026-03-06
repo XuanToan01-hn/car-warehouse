@@ -12,6 +12,8 @@ public class PurchaseOrder {
     private double totalAmount;
     private User createBy;
     private List<PurchaseOrderDetail> details;
+    private int orderedQty;
+    private int receivedQty;
 
     public PurchaseOrder() {
     }
@@ -78,6 +80,22 @@ public class PurchaseOrder {
 
     public void setDetails(List<PurchaseOrderDetail> details) {
         this.details = details;
+    }
+
+    public int getOrderedQty() {
+        return orderedQty;
+    }
+
+    public void setOrderedQty(int orderedQty) {
+        this.orderedQty = orderedQty;
+    }
+
+    public int getReceivedQty() {
+        return receivedQty;
+    }
+
+    public void setReceivedQty(int receivedQty) {
+        this.receivedQty = receivedQty;
     }
 
     public String getStatusLabel() {

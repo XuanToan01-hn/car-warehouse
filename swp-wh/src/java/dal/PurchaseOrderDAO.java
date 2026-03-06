@@ -44,6 +44,16 @@ public class PurchaseOrderDAO extends DBContext {
             po.setCreateBy(u);
         }
 
+        // Ordered / Received qty (chỉ có trong searchAndPaginate, thử đọc an toàn)
+        try {
+            po.setOrderedQty(rs.getInt("OrderedQty"));
+        } catch (SQLException ignored) {
+        }
+        try {
+            po.setReceivedQty(rs.getInt("ReceivedQty"));
+        } catch (SQLException ignored) {
+        }
+
         return po;
     }
 
@@ -77,16 +87,21 @@ public class PurchaseOrderDAO extends DBContext {
     public List<PurchaseOrder> searchAndPaginate(String keyword, int status, int offset, int limit) {
         List<PurchaseOrder> list = new ArrayList<>();
         String sql = """
-            SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
-                   po.CreatedDate, po.CreateBy,
-                   po.SupplierID, s.Name AS SupplierName
-            FROM Purchase_Order po
-            LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
-            WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
-              AND (? = 0 OR po.Status = ?)
-            ORDER BY po.CreatedDate DESC
-            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-            """;
+                SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
+                       po.CreatedDate, po.CreateBy,
+                       po.SupplierID, s.Name AS SupplierName,
+                       ISNULL((SELECT SUM(pod.Quantity) FROM Purchase_Order_Detail pod WHERE pod.PurchaseOrderID = po.PurchaseOrderID), 0) AS OrderedQty,
+                       ISNULL((SELECT SUM(grd.QuantityActual)
+                               FROM Goods_Receipt gr
+                               JOIN Goods_Receipt_Detail grd ON gr.ReceiptID = grd.ReceiptID
+                               WHERE gr.PurchaseOrderID = po.PurchaseOrderID AND gr.Status = 2), 0) AS ReceivedQty
+                FROM Purchase_Order po
+                LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
+                WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
+                  AND (? = 0 OR po.Status = ?)
+                ORDER BY po.CreatedDate DESC
+                OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
+                """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             String kw = "%" + keyword + "%";
@@ -284,6 +299,7 @@ public class PurchaseOrderDAO extends DBContext {
             e.printStackTrace();
         }
     }
+
     public static void main(String[] args) {
         PurchaseOrderDAO dao = new PurchaseOrderDAO();
 
@@ -294,8 +310,7 @@ public class PurchaseOrderDAO extends DBContext {
                     po.getId() + " | " +
                             po.getOrderCode() + " | " +
                             po.getSupplier().getName() + " | " +
-                            po.getTotalAmount()
-            );
+                            po.getTotalAmount());
         }
 
         System.out.println("\n===== TEST searchAndPaginate() =====");
@@ -318,8 +333,7 @@ public class PurchaseOrderDAO extends DBContext {
                 System.out.println(
                         " - " + d.getProduct().getName() +
                                 " | Qty: " + d.getQuantity() +
-                                " | SubTotal: " + d.getSubTotal()
-                );
+                                " | SubTotal: " + d.getSubTotal());
             }
         } else {
             System.out.println("Order not found");
