@@ -88,153 +88,134 @@ public class UpdateUserServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession();
-        String page = request.getParameter("page");
-        String keyword = request.getParameter("keyword");
+  @Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    HttpSession session = request.getSession();
+    String page = request.getParameter("page");
+    String keyword = request.getParameter("keyword");
 
-        try {
-            String idStr = request.getParameter("userId");
-            String fullName = request.getParameter("fullName");
-            String userCode = request.getParameter("userCode");
-            String userName = request.getParameter("userName");
-            String maleStr = request.getParameter("male");
-            String dateOfBirthStr = request.getParameter("dateOfBirth");
-            String email = request.getParameter("email");
-            String phone = request.getParameter("phone");
-            String roleIdStr = request.getParameter("roleId");
-            String warehouseIdStr = request.getParameter("warehouseId");
+    try {
+        // 1. Lấy các thông tin từ form
+        String idStr = request.getParameter("userId");
+        String fullName = request.getParameter("fullName");
+        String maleStr = request.getParameter("male");
+        String dateOfBirthStr = request.getParameter("dateOfBirth");
+        String email = request.getParameter("email");
+        String phone = request.getParameter("phone");
+        String roleIdStr = request.getParameter("roleId");
+        String warehouseIdStr = request.getParameter("warehouseId");
 
-            // Validate ID
-            if (InputValidator.isEmpty(idStr)) {
-                session.setAttribute("error", "Invalid user ID!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
+        // Lưu ý: userCode và userName được gửi về từ input readonly, 
+        // nhưng chúng ta sẽ không dùng chúng để cập nhật vào DB cho an toàn.
 
-            int userId = Integer.parseInt(idStr);
+        // 2. Validate ID
+        if (InputValidator.isEmpty(idStr)) {
+            session.setAttribute("error", "Không tìm thấy ID người dùng!");
+            response.sendRedirect("userlist?page=" + page);
+            return;
+        }
+        int userId = Integer.parseInt(idStr);
 
-            // Validate inputs
-            if (InputValidator.isEmpty(fullName) || !InputValidator.isValid(fullName, InputValidator.NAME_USER)) {
-                session.setAttribute("error", "Invalid full name!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
+        // 3. Lấy dữ liệu hiện tại từ Database
+        UserDAO userService = new UserDAO();
+        User existing = userService.getById(userId);
 
-            if (InputValidator.isEmpty(userCode) || !InputValidator.isValid(userCode, InputValidator.USER_CODE)) {
-                session.setAttribute("error", "Invalid user code!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            if (InputValidator.isEmpty(userName) || !InputValidator.isValid(userName, InputValidator.USERNAME)) {
-                session.setAttribute("error", "Invalid username!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            if (InputValidator.isEmpty(email) || !InputValidator.isValid(email, InputValidator.EMAIL_REGEX)) {
-                session.setAttribute("error", "Invalid email!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            if (InputValidator.isEmpty(phone) || !InputValidator.isValid(phone, InputValidator.PHONE_NUMBER)) {
-                session.setAttribute("error", "Invalid phone number!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            int male = Integer.parseInt(maleStr);
-            if (male != 0 && male != 1) {
-                session.setAttribute("error", "Invalid gender value!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            LocalDate dob = LocalDate.parse(dateOfBirthStr);
-            if (!InputValidator.isOver18(dob)) {
-                session.setAttribute("error", "User must be at least 18 years old!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            int roleId = Integer.parseInt(roleIdStr);
-
-            UserDAO userService = new UserDAO();
-            User existing = userService.getById(userId);
-
-            if (existing == null) {
-                session.setAttribute("error", "User not found!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            // Check duplicates if changed
-            if (!userCode.equals(existing.getUserCode()) && userService.isUserCodeExist(userCode)) {
-                session.setAttribute("error", "User code already exists!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            if (!email.equals(existing.getEmail()) && userService.isEmailExist(email)) {
-                session.setAttribute("error", "Email already exists!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
-            if (!phone.equals(existing.getPhone()) && userService.isPhoneExist(phone)) {
-                session.setAttribute("error", "Phone number already exists!");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-            Integer warehouseId = null;
-            if (roleId == 3 || roleId == 4 || roleId == 5) {
-                if (InputValidator.isEmpty(warehouseIdStr)) {
-                    session.setAttribute("error", "Warehouse is required for Sales Warehouse Staff and Purchasing staff!");
-                    response.sendRedirect("userlist?page=" + page);
-                    return;
-                }
-                try {
-                    warehouseId = Integer.parseInt(warehouseIdStr);
-                } catch (NumberFormatException e) {
-                    session.setAttribute("error", "Invalid warehouse ID!");
-                    response.sendRedirect("userlist?page=" + page);
-                    return;
-                }
-            }
-            // Update user info
-            existing.setFullName(fullName);
-            existing.setUserCode(userCode);
-            existing.setUsername(userName);
-            existing.setMale(male);
-            existing.setDateOfBirth(dob.toString());
-            existing.setEmail(email);
-            existing.setPhone(phone);
-            existing.setRole(new Role(roleId));
-            existing.setRole(new Role(roleId));
-            if (warehouseId != null) {
-                existing.setWarehouse(new Warehouse(warehouseId));
-            } else {
-                existing.setWarehouse(null);
-            }
-            boolean updated = userService.update(existing);
-
-            if (updated) {
-                session.setAttribute("success", "User updated successfully!");
-            } else {
-                session.setAttribute("error", "Failed to update user!");
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            session.setAttribute("error", "Invalid data or system error!");
+        if (existing == null) {
+            session.setAttribute("error", "Người dùng không tồn tại!");
+            response.sendRedirect("userlist?page=" + page);
+            return;
         }
 
-        response.sendRedirect("userlist?page=" + page + "&keyword=" + URLEncoder.encode(keyword == null ? "" : keyword, "UTF-8"));
+        // 4. Validate các trường ĐƯỢC PHÉP sửa
+        if (InputValidator.isEmpty(fullName) || !InputValidator.isValid(fullName, InputValidator.NAME_USER)) {
+            session.setAttribute("error", "Họ tên không hợp lệ!");
+            redirectBack(response, page, keyword);
+            return;
+        }
+
+        if (InputValidator.isEmpty(email) || !InputValidator.isValid(email, InputValidator.EMAIL_REGEX)) {
+            session.setAttribute("error", "Email không hợp lệ!");
+            redirectBack(response, page, keyword);
+            return;
+        }
+
+        if (InputValidator.isEmpty(phone) || !InputValidator.isValid(phone, InputValidator.PHONE_NUMBER)) {
+            session.setAttribute("error", "Số điện thoại không hợp lệ!");
+            redirectBack(response, page, keyword);
+            return;
+        }
+
+        // Kiểm tra 18 tuổi
+        LocalDate dob = LocalDate.parse(dateOfBirthStr);
+        if (!InputValidator.isOver18(dob)) {
+            session.setAttribute("error", "Người dùng phải từ 18 tuổi trở lên!");
+            redirectBack(response, page, keyword);
+            return;
+        }
+
+        // 5. Kiểm tra trùng lặp Email và Phone (chỉ kiểm tra nếu có sự thay đổi)
+        if (!email.equals(existing.getEmail()) && userService.isEmailExist(email)) {
+            session.setAttribute("error", "Email đã tồn tại trong hệ thống!");
+            redirectBack(response, page, keyword);
+            return;
+        }
+
+        if (!phone.equals(existing.getPhone()) && userService.isPhoneExist(phone)) {
+            session.setAttribute("error", "Số điện thoại đã tồn tại!");
+            redirectBack(response, page, keyword);
+            return;
+        }
+
+        // 6. Xử lý logic Warehouse và Role
+        int roleId = Integer.parseInt(roleIdStr);
+        Integer warehouseId = null;
+        // Kiểm tra các Role yêu cầu có Warehouse (ví dụ ID: 3, 4, 5)
+        if (roleId == 3 || roleId == 4 || roleId == 5) {
+            if (InputValidator.isEmpty(warehouseIdStr) || "0".equals(warehouseIdStr)) {
+                session.setAttribute("error", "Vui lòng chọn Kho hàng cho vai trò này!");
+                redirectBack(response, page, keyword);
+                return;
+            }
+            warehouseId = Integer.parseInt(warehouseIdStr);
+        }
+
+        // 7. CẬP NHẬT ĐỐI TƯỢNG (Chỉ set các trường được phép thay đổi)
+        existing.setFullName(fullName);
+        existing.setMale(Integer.parseInt(maleStr));
+        existing.setDateOfBirth(dateOfBirthStr);
+        existing.setEmail(email);
+        existing.setPhone(phone);
+        existing.setRole(new Role(roleId));
+        
+        if (warehouseId != null && warehouseId > 0) {
+            existing.setWarehouse(new Warehouse(warehouseId));
+        } else {
+            existing.setWarehouse(null);
+        }
+
+        // Lưu ý: KHÔNG gọi existing.setUserCode() và existing.setUserName() 
+        // để giữ nguyên dữ liệu gốc trong DB.
+
+        boolean updated = userService.update(existing);
+
+        if (updated) {
+            session.setAttribute("success", "Cập nhật người dùng thành công!");
+        } else {
+            session.setAttribute("error", "Cập nhật thất bại tại hệ thống!");
+        }
+
+    } catch (Exception e) {
+        e.printStackTrace();
+        session.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
     }
+
+    response.sendRedirect("userlist?page=" + page + "&keyword=" + URLEncoder.encode(keyword == null ? "" : keyword, "UTF-8"));
+}
+
+private void redirectBack(HttpServletResponse response, String page, String keyword) throws IOException {
+    response.sendRedirect("userlist?page=" + page + "&keyword=" + URLEncoder.encode(keyword == null ? "" : keyword, "UTF-8"));
+}
 
     /**
      * Returns a short description of the servlet.

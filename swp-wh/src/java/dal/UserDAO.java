@@ -477,8 +477,6 @@ public boolean update(User u) {
         ps.setString(6, u.getEmail());
         ps.setString(7, u.getPhone());
         ps.setInt(8, u.getRole().getId());
-
-        // 2. Xử lý WarehouseID (Quan trọng: Tránh lỗi khóa ngoại nếu ID = 0 hoặc null)
         if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
             ps.setInt(9, u.getWarehouse().getId());
         } else {
