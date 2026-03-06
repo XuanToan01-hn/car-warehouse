@@ -68,12 +68,13 @@
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <div class="header-title">
                                                     <h4 class="card-title"><i
-                                                            class="fas fa-truck-loading mr-2 text-success"></i>Tạo Goods
+                                                            class="fas fa-truck-loading mr-2 text-success"></i>Create Goods
                                                         Receipt Order</h4>
                                                 </div>
                                                 <a href="${pageContext.request.contextPath}/goods-receipt"
                                                     class="btn btn-secondary">
-                                                    <i class="fas fa-arrow-left mr-1"></i> Quay lại
+<%--                                                    <i class="fas fa-arrow-left mr-1"></i> --%>
+                                                    Back
                                                 </a>
                                             </div>
                                             <div class="card-body">
@@ -113,8 +114,7 @@
                                                         <div class="col-md-6">
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold"><i
-                                                                        class="fas fa-map-marker-alt mr-1 text-danger"></i>Vị
-                                                                    Trí Nhập Kho <span
+                                                                        class="fas fa-map-marker-alt mr-1 text-danger"></i>Receiving Warehouse location<span
                                                                         class="text-danger">*</span></label>
                                                                 <select name="locationId" class="form-control" required>
                                                                     <option value="">-- Chọn Location --</option>
@@ -130,8 +130,7 @@
                                                         <div class="col-md-12">
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold"><i
-                                                                        class="fas fa-sticky-note mr-1 text-warning"></i>Ghi
-                                                                    Chú</label>
+                                                                        class="fas fa-sticky-note mr-1 text-warning"></i>Note</label>
                                                                 <textarea name="note" class="form-control" rows="2"
                                                                     placeholder="Nhập ghi chú (tuỳ chọn)..."></textarea>
                                                             </div>
@@ -146,8 +145,7 @@
                                             <div class="card mt-3">
                                                 <div class="card-header">
                                                     <h5 class="card-title mb-0"><i
-                                                            class="fas fa-list mr-2 text-success"></i>Chi Tiết Sản Phẩm
-                                                        Cần Nhập</h5>
+                                                            class="fas fa-list mr-2 text-success"></i>Product Details to be Imported</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <div id="po-info-box" class="po-info-box d-none">
@@ -161,20 +159,18 @@
                                                             <thead>
                                                                 <tr>
                                                                     <th>#</th>
-                                                                    <th>Mã SP</th>
-                                                                    <th>Tên Sản Phẩm</th>
-                                                                    <th class="text-center">SL Đặt Hàng</th>
-                                                                    <th class="text-center">SL
-                                                                        Thực Tế Nhận <span class="text-danger"></span>
+                                                                    <th>Product Code</th>
+                                                                    <th>Product Name</th>
+                                                                    <th class="text-center">Order quantity</th>
+                                                                    <th class="text-center">Actual quantity receivedspan class="text-danger"></span>
                                                                     </th>
-                                                                    <th class="text-center">Chênh Lệch</th>
+                                                                    <th class="text-center">Difference</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="product-tbody">
                                                                 <tr id="no-po-msg-row">
                                                                     <td colspan="6" id="no-po-msg"><i
-                                                                            class="fas fa-hand-point-up mr-2"></i>Vui
-                                                                        lòng chọn Purchase Order để xem sản phẩm</td>
+                                                                            class="fas fa-hand-point-up mr-2"></i>Please select Purchase Order to view the product.</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -183,7 +179,7 @@
                                                     <div class="text-right mt-3">
                                                         <button type="submit" form="groForm"
                                                             class="btn btn-warning btn-lg" id="submitBtn" disabled>
-                                                            <i class="fas fa-save mr-2"></i>Lưu Phiếu Nháp
+                                                            <i class="fas fa-save mr-2"></i>Save Receipt
                                                         </button>
                                                     </div>
                                                 </div>
