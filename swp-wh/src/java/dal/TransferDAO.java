@@ -1,152 +1,121 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dal;
-
-/**
- *
- * @author Asus
- */
-
 
 import context.DBContext;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import model.TransferOrder;
 
 public class TransferDAO extends DBContext {
-    
-public boolean createTransferRequest(TransferOrder order) {
-    String sqlOrder = "INSERT INTO Transfer_Order (TransferCode, FromLocationID, ToLocationID, Status, CreateBy) VALUES (?, ?, ?, 1, ?)";
-    String sqlDetail = "INSERT INTO Transfer_Order_Detail (TransferOrderID, ProductDetailID, Quantity) VALUES (?, ?, ?)";
-    
-    try {
-        connection.setAutoCommit(false);
-        // 1. Tạo đơn tổng
-        PreparedStatement psOrder = connection.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
-        psOrder.setString(1, "TRF-" + System.currentTimeMillis());
-        psOrder.setInt(2, order.getFromLocationId());
-        psOrder.setInt(3, order.getToLocationId());
-        psOrder.setInt(4, order.getCreateBy());
-        psOrder.executeUpdate();
-        
-        ResultSet rs = psOrder.getGeneratedKeys();
-        if (rs.next()) {
-            int orderId = rs.getInt(1);
-            // 2. Tạo chi tiết đơn
-            PreparedStatement psDetail = connection.prepareStatement(sqlDetail);
-            psDetail.setInt(1, orderId);
-            psDetail.setInt(2, order.getProductDetailId());
-            psDetail.setInt(3, order.getQuantity());
-            psDetail.executeUpdate();
-        }
-        connection.commit();
-        return true;
-    } catch (SQLException e) {
-        try { connection.rollback(); } catch (SQLException ex) {}
-        e.printStackTrace();
-        return false;
-    } finally {
-        try { connection.setAutoCommit(true); } catch (SQLException e) {}
-    }
-}
 
-    // 1. Lấy danh sách các yêu cầu chuyển kho đang chờ (Status = 1)
-    public List<TransferOrder> getPendingTransfers() {
-        List<TransferOrder> list = new ArrayList<>();
-        String sql = "SELECT t.TransferOrderID, t.TransferCode, t.FromLocationID, t.ToLocationID, " +
-                     "d.ProductDetailID, d.Quantity, pd.ProductID " +
-                     "FROM Transfer_Order t " +
-                     "JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
-                     "JOIN Product_Detail pd ON d.ProductDetailID = pd.ProductDetailID " +
-                     "WHERE t.Status = 1";
-        try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                TransferOrder to = new TransferOrder();
-                to.setId(rs.getInt("TransferOrderID"));
-                to.setTransferCode(rs.getString("TransferCode"));
-                to.setFromLocationId(rs.getInt("FromLocationID"));
-                to.setToLocationId(rs.getInt("ToLocationID"));
-                to.setProductDetailId(rs.getInt("ProductDetailID"));
-                to.setProductId(rs.getInt("ProductID"));
-                to.setQuantity(rs.getInt("Quantity"));
-                list.add(to);
-            }
-        } catch (SQLException e) { e.printStackTrace(); }
-        return list;
-    }
-
-    // 2. Thực thi chuyển kho: Trừ kho xuất, Cộng kho nhập, Ghi Log, Cập nhật Status
-    public boolean executeTransfer(int transferId) {
-        String sqlGet = "SELECT t.FromLocationID, t.ToLocationID, d.ProductID, d.ProductDetailID, d.Quantity, t.TransferCode " +
-                        "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
-                        "WHERE t.TransferOrderID = ?";
-        String sqlSub = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
-        String sqlAdd = "INSERT INTO Location_Product (LocationID, ProductID, ProductDetailID, Quantity) VALUES (?, ?, ?, ?) " +
-                        "ON DUPLICATE KEY UPDATE Quantity = Quantity + VALUES(Quantity)";
-        String sqlLog = "INSERT INTO Inventory_Transaction (ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) VALUES (?,?,?,?,?,?)";
-        String sqlUpdateStatus = "UPDATE Transfer_Order SET Status = 2 WHERE TransferOrderID = ?";
-
+    public boolean executeTransfer(int fromLoc, int toLoc, int userId, String[] pdIds, String[] qtys) {
+        String transferCode = "TRF-" + System.currentTimeMillis();
         try {
-            connection.setAutoCommit(false); // Bắt đầu Transaction
+            connection.setAutoCommit(false);
 
-            // B1: Lấy thông tin phiếu
-            PreparedStatement psGet = connection.prepareStatement(sqlGet);
-            psGet.setInt(1, transferId);
-            ResultSet rs = psGet.executeQuery();
-
-            if (rs.next()) {
-                int fromLoc = rs.getInt("FromLocationID");
-                int toLoc = rs.getInt("ToLocationID");
-                int pId = rs.getInt("ProductID");
-                int pdId = rs.getInt("ProductDetailID");
-                int qty = rs.getInt("Quantity");
-                String code = rs.getString("TransferCode");
-
-                // B2: Trừ số lượng kho xuất
-                PreparedStatement psSub = connection.prepareStatement(sqlSub);
-                psSub.setInt(1, qty);
-                psSub.setInt(2, fromLoc);
-                psSub.setInt(3, pdId);
-                psSub.executeUpdate();
-
-                // B3: Cộng số lượng kho nhập (Sử dụng ON DUPLICATE KEY để xử lý nếu kho nhập chưa có SP này)
-                PreparedStatement psAdd = connection.prepareStatement(sqlAdd);
-                psAdd.setInt(1, toLoc);
-                psAdd.setInt(2, pId);
-                psAdd.setInt(3, pdId);
-                psAdd.setInt(4, qty);
-                psAdd.executeUpdate();
-
-                // B4: Ghi log giao dịch (2 dòng: Xuất và Nhập)
-                PreparedStatement psLog = connection.prepareStatement(sqlLog);
-                // Log Xuất
-                psLog.setInt(1, pId); psLog.setInt(2, pdId); psLog.setInt(3, fromLoc);
-                psLog.setString(4, "TRANSFER_OUT"); psLog.setInt(5, -qty); psLog.setString(6, code);
-                psLog.addBatch();
-                // Log Nhập
-                psLog.setInt(1, pId); psLog.setInt(2, pdId); psLog.setInt(3, toLoc);
-                psLog.setString(4, "TRANSFER_IN"); psLog.setInt(5, qty); psLog.setString(6, code);
-                psLog.addBatch();
-                psLog.executeBatch();
-
-                // B5: Đổi trạng thái phiếu thành Hoàn thành (2)
-                PreparedStatement psStatus = connection.prepareStatement(sqlUpdateStatus);
-                psStatus.setInt(1, transferId);
-                psStatus.executeUpdate();
-
-                connection.commit(); // Thành công toàn bộ
-                return true;
+            // 1. Insert Transfer_Order
+            String sqlOrder = "INSERT INTO Transfer_Order (TransferCode, FromLocationID, ToLocationID, Status, CreateBy, TransferDate) VALUES (?, ?, ?, 2, ?, CURRENT_TIMESTAMP)";
+            int orderId = 0;
+            try (PreparedStatement ps = connection.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, transferCode);
+                ps.setInt(2, fromLoc);
+                ps.setInt(3, toLoc);
+                ps.setInt(4, userId);
+                ps.executeUpdate();
+                ResultSet rs = ps.getGeneratedKeys();
+                if (rs.next()) orderId = rs.getInt(1);
             }
-        } catch (SQLException e) {
-            try { connection.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+
+            for (int i = 0; i < pdIds.length; i++) {
+                int pdId = Integer.parseInt(pdIds[i]);
+                int qty = Integer.parseInt(qtys[i]);
+                int pId = getProductId(pdId); // Lấy ProductID cha (Bắt buộc cho PK Location_Product)
+
+                // 2. Insert Transfer_Order_Detail
+                String sqlDetail = "INSERT INTO Transfer_Order_Detail (TransferOrderID, ProductDetailID, Quantity) VALUES (?, ?, ?)";
+                try (PreparedStatement ps = connection.prepareStatement(sqlDetail)) {
+                    ps.setInt(1, orderId);
+                    ps.setInt(2, pdId);
+                    ps.setInt(3, qty);
+                    ps.executeUpdate();
+                }
+
+                // 3. Trừ kho xuất (FromLocationID)
+                String sqlSub = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ? AND Quantity >= ?";
+                try (PreparedStatement ps = connection.prepareStatement(sqlSub)) {
+                    ps.setInt(1, qty);
+                    ps.setInt(2, fromLoc);
+                    ps.setInt(3, pdId);
+                    ps.setInt(4, qty);
+                    if (ps.executeUpdate() == 0) throw new SQLException("Hết hàng tại kho xuất cho ID: " + pdId);
+                }
+
+                // 4. Cộng kho nhập (ToLocationID) - FIX: Thêm ProductID vào INSERT
+                if (!checkExistInLocation(toLoc, pdId)) {
+                    // BẢNG CỦA BẠN CÓ PK LÀ (LocationID, ProductID, ProductDetailID) NÊN PHẢI CÓ PID
+                    String sqlIns = "INSERT INTO Location_Product (LocationID, ProductID, ProductDetailID, Quantity) VALUES (?, ?, ?, ?)";
+                    try (PreparedStatement ps = connection.prepareStatement(sqlIns)) {
+                        ps.setInt(1, toLoc);
+                        ps.setInt(2, pId); 
+                        ps.setInt(3, pdId);
+                        ps.setInt(4, qty);
+                        ps.executeUpdate();
+                    }
+                } else {
+                    String sqlUp = "UPDATE Location_Product SET Quantity = Quantity + ? WHERE LocationID = ? AND ProductDetailID = ?";
+                    try (PreparedStatement ps = connection.prepareStatement(sqlUp)) {
+                        ps.setInt(1, qty);
+                        ps.setInt(2, toLoc);
+                        ps.setInt(3, pdId);
+                        ps.executeUpdate();
+                    }
+                }
+
+                // 5. Log Transaction (Thêm cột CreateBy như trong DB của bạn)
+                logTransaction(pId, pdId, fromLoc, 4, -qty, transferCode, userId); // Xuất
+                logTransaction(pId, pdId, toLoc, 3, qty, transferCode, userId);  // Nhập
+            }
+
+            connection.commit();
+            return true;
+        } catch (Exception e) {
             e.printStackTrace();
+            try { connection.rollback(); } catch (SQLException ex) {}
+            return false;
         } finally {
-            try { connection.setAutoCommit(true); } catch (SQLException e) { e.printStackTrace(); }
+            try { connection.setAutoCommit(true); } catch (SQLException e) {}
         }
-        return false;
+    }
+
+    private int getProductId(int pdId) throws SQLException {
+        String sql = "SELECT ProductID FROM Product_Detail WHERE ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, pdId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        }
+        return 0;
+    }
+
+    private boolean checkExistInLocation(int locId, int pdId) throws SQLException {
+        String sql = "SELECT 1 FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, locId);
+            ps.setInt(2, pdId);
+            return ps.executeQuery().next();
+        }
+    }
+
+    private void logTransaction(int pId, int pdId, int locId, int type, int qty, String ref, int uId) throws SQLException {
+        // DB của bạn có cột CreateBy và CurrentStatus
+        String sql = "INSERT INTO Inventory_Transaction (ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, CreateBy, CurrentStatus, TransactionDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, pId);
+            ps.setInt(2, pdId);
+            ps.setInt(3, locId);
+            ps.setInt(4, type);
+            ps.setInt(5, qty);
+            ps.setString(6, ref);
+            ps.setInt(7, uId);
+            ps.setString(8, "COMPLETED");
+            ps.executeUpdate();
+        }
     }
 }
