@@ -140,6 +140,8 @@
             <body>
                 <div class="wrapper">
                     <jsp:include page="../sidebar.jsp" />
+                            <jsp:include page="../header.jsp" />
+
                     <div class="content-page">
                         <div class="container-fluid">
                             <div class="page-header">

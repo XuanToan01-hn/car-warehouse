@@ -1,13 +1,18 @@
+<%-- 
+    Document   : page-goods-receipt-list
+    Created on : 2026
+    Author     : Updated by Gemini
+--%>
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Danh Sách Goods Receipt</title>
+        <title>Goods Receipt List</title>
         <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
         <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
@@ -25,6 +30,7 @@
         </div>
         <div class="wrapper">
             <%@ include file="../sidebar.jsp" %>
+            <jsp:include page="../header.jsp" />
             <div class="content-page">
                 <div class="container-fluid">
                     <div class="row">
@@ -32,27 +38,24 @@
                             <div class="card">
                                 <div class="card-header d-flex justify-content-between align-items-center">
                                     <div class="header-title">
-                                        <h4 class="card-title"><i
-                                                class="fas fa-clipboard-check mr-2"></i>Danh Sách Goods
-                                            Receipt Order</h4>
+                                        <h4 class="card-title">Goods Receipt Order List</h4>
                                     </div>
                                     <a href="${pageContext.request.contextPath}/create-goods-receipt"
                                        class="btn btn-primary">
-                                        <i class="fas fa-plus mr-1"></i> Tạo GRO Mới
+                                        Create New GRO
                                     </a>
                                 </div>
                                 <div class="card-body">
-                                    <!-- Search form -->
                                     <form method="get"
                                           action="${pageContext.request.contextPath}/goods-receipt"
                                           class="row mb-3">
                                         <div class="col-md-5">
                                             <input type="text" name="keyword" class="form-control"
-                                                   placeholder="Tìm theo mã GRO, mã PO..." value="${keyword}">
+                                                   placeholder="Search by GRO code, PO code..." value="${keyword}">
                                         </div>
                                         <div class="col-md-3">
                                             <select name="status" class="form-control">
-                                                <option value="0" ${status==0 ? 'selected' : '' }>-- Tất cả trạng thái --
+                                                <option value="0" ${status==0 ? 'selected' : '' }>-- All Status --
                                                 </option>
                                                 <option value="1" ${status==1 ? 'selected' : '' }>Draft
                                                 </option>
@@ -63,25 +66,23 @@
                                             </select>
                                         </div>
                                         <div class="col-md-2">
-                                            <button type="submit" class="btn btn-primary mr-2"><i
-                                                    class="fas fa-search mr-1"></i> Tìm</button>
+                                            <button type="submit" class="btn btn-primary mr-2">Search</button>
                                             <a href="${pageContext.request.contextPath}/goods-receipt"
-                                               class="btn btn-warning"><i class="fas fa-undo mr-1"></i>Reset</a>
+                                               class="btn btn-warning">Reset</a>
                                         </div>
                                     </form>
 
-                                    <!-- Table -->
                                     <div class="table-responsive">
                                         <table class="table table-bordered table-hover">
                                             <thead class="thead-light">
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>Mã GRO</th>
+                                                    <th>GRO Code</th>
                                                     <th>Purchase Order</th>
                                                     <th>Location</th>
-                                                    <th>Ngày Nhập</th>
-                                                    <th>Trạng Thái</th>
-                                                    <th>Thao Tác</th>
+                                                    <th>Received Date</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -90,9 +91,7 @@
                                                         <tr>
                                                             <td colspan="7"
                                                                 class="text-center text-muted py-4">
-                                                                <i
-                                                                    class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                                                                Không có dữ liệu
+                                                                No data available
                                                             </td>
                                                         </tr>
                                                     </c:when>
@@ -134,8 +133,7 @@
                                                                 <td>
                                                                     <a href="${pageContext.request.contextPath}/detail-goods-receipt?id=${gr.id}"
                                                                        class="btn btn-sm btn-info">
-                                                                        <i class="fas fa-eye mr-1"></i> Chi
-                                                                        tiết
+                                                                        Details
                                                                     </a>
                                                                 </td>
                                                             </tr>
@@ -146,7 +144,6 @@
                                         </table>
                                     </div>
 
-                                    <!-- Pagination -->
                                     <c:if test="${totalPages > 1}">
                                         <nav>
                                             <ul class="pagination justify-content-center">
@@ -168,7 +165,7 @@
                                             </ul>
                                         </nav>
                                     </c:if>
-                                    <p class="text-muted text-center">Tổng: <strong>${total}</strong> phiếu
+                                    <p class="text-muted text-center">Total: <strong>${total}</strong> records
                                     </p>
                                 </div>
                             </div>

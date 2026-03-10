@@ -98,6 +98,12 @@
                             <span class="ml-4">Goods Receipt</span>
                         </a>
                     </li>
+                    <li>
+                        <a href="goods-issue" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
+                            <span class="ml-4">Goods Issue</span>
+                        </a>
+                    </li>
                 </c:if>
 
 

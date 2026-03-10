@@ -34,6 +34,8 @@
 <body>
     <div class="wrapper">
         <%@ include file="../sidebar.jsp" %>
+                <jsp:include page="../header.jsp" />
+
         <div class="content-page">
             <div class="container-fluid">
                 <div class="page-header">

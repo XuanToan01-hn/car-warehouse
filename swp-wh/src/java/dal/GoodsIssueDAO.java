@@ -12,54 +12,6 @@ public class GoodsIssueDAO extends DBContext {
     private final ProductDetailDAO productDetailDAO = new ProductDetailDAO();
     private final LocationDAO locationDAO = new LocationDAO();
 
-    public static void main(String[] args) {
-        GoodsIssueDAO dao = new GoodsIssueDAO();
-
-        // 1. Tạo đối tượng GoodsIssue giả lập
-        GoodsIssue gi = new GoodsIssue();
-        gi.setIssueCode("TEST-GIN-" + System.currentTimeMillis());
-        
-        // Giả sử SalesOrder ID = 1
-        SalesOrder so = new SalesOrder();
-        so.setId(1); 
-        so.setStatus(2); // Giả lập trạng thái hiện tại là 2
-        gi.setSalesOrder(so);
-        
-        // Giả sử Location ID = 1
-        Location loc = new Location();
-        loc.setId(1);
-        gi.setLocation(loc);
-        
-        // Giả sử User ID = 1 (Người tạo)
-        User u = new User();
-        u.setId(1);
-        gi.setCreateBy(u);
-        
-        gi.setStatus(1); // Trạng thái phiếu xuất: Created
-
-        // 2. Tạo danh sách chi tiết GoodsIssueDetail
-        List<GoodsIssueDetail> details = new ArrayList<>();
-        
-        // Giả sử ProductDetail ID = 1, xuất 4 cái, nợ cũ là 5
-        GoodsIssueDetail d1 = new GoodsIssueDetail();
-        ProductDetail pd1 = new ProductDetail();
-        pd1.setId(1); 
-        d1.setProductDetail(pd1);
-        d1.setQuantityActual(4);
-        d1.setQuantityExpected(5);
-        
-        details.add(d1);
-
-        // 3. Thực hiện gọi hàm confirm
-        System.out.println("--- BẮT ĐẦU TEST INSERT ---");
-        boolean result = dao.confirmIssue(gi, details);
-        
-        if (result) {
-            System.out.println("SUCCESS: Đã lưu phiếu xuất, trừ kho và ghi log thành công!");
-        } else {
-            System.err.println("FAILED: Có lỗi xảy ra. Kiểm tra console ở trên để xem StackTrace SQL!");
-        }
-    }
 
     public List<SalesOrder> getOrdersForIssue() {
         List<SalesOrder> list = new ArrayList<>();
