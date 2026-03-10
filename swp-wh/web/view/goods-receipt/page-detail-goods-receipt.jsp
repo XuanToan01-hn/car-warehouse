@@ -2,12 +2,12 @@
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <!doctype html>
-<html lang="vi">
+<html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Chi Tiết Goods Receipt</title>
+    <title>Goods Receipt Details</title>
     <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
@@ -44,33 +44,32 @@
                             <div class="header-title">
                                 <h4 class="card-title">
                                     <i class="fas fa-clipboard-list mr-2 text-info"></i>
-                                    Chi Tiết Goods Receipt: <strong>${gr.receiptCode}</strong>
+                                    Goods Receipt Details: <strong>${gr.receiptCode}</strong>
                                 </h4>
                             </div>
                             <a href="${pageContext.request.contextPath}/goods-receipt" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left mr-1"></i> Quay lại
+                                <i class="fas fa-arrow-left mr-1"></i> Back
                             </a>
                         </div>
                         <div class="card-body">
 
-                            <!-- Alerts -->
                             <c:if test="${param.success == 'confirmed'}">
                                 <div class="alert alert-success">
-                                    <i class="fas fa-check-circle mr-2"></i>Đã hoàn thành (Completed) phiếu nhập kho.
+                                    <i class="fas fa-check-circle mr-2"></i>The warehouse receipt has been completed.
                                 </div>
                             </c:if>
                             <c:if test="${param.success == 'cancelled'}">
                                 <div class="alert alert-warning">
-                                    <i class="fas fa-ban mr-2"></i>Đã huỷ (Cancelled) phiếu nhập kho.
+                                    <i class="fas fa-ban mr-2"></i>The warehouse receipt has been cancelled.
                                 </div>
                             </c:if>
                             <c:if test="${not empty param.error}">
                                 <div class="alert alert-danger">
                                     <i class="fas fa-exclamation-triangle mr-2"></i>
                                     <c:choose>
-                                        <c:when test="${param.error == 'confirm_failed'}">Không thể hoàn thành phiếu (Confirm failed).</c:when>
-                                        <c:when test="${param.error == 'cancel_failed'}">Không thể huỷ phiếu (Cancel failed).</c:when>
-                                        <c:otherwise>Có lỗi xảy ra. Vui lòng thử lại.</c:otherwise>
+                                        <c:when test="${param.error == 'confirm_failed'}">Confirm failed.</c:when>
+                                        <c:when test="${param.error == 'cancel_failed'}">Cancel failed.</c:when>
+                                        <c:otherwise>An error occurred. Please try again.</c:otherwise>
                                     </c:choose>
                                 </div>
                             </c:if>
@@ -79,11 +78,11 @@
                                 <div class="col-md-6">
                                     <table class="table table-borderless mb-0">
                                         <tr>
-                                            <td class="font-weight-bold" width="40%">Mã GRO:</td>
+                                            <td class="font-weight-bold" width="40%"> GRO Code:</td>
                                             <td><span class="mono text-primary font-weight-bold">${gr.receiptCode}</span></td>
                                         </tr>
                                         <tr>
-                                            <td class="font-weight-bold">Ngày nhập:</td>
+                                            <td class="font-weight-bold">Date of entry:</td>
                                             <td>
                                                 <c:choose>
                                                     <c:when test="${not empty gr.receiptDate}">
@@ -112,7 +111,7 @@
                                 <div class="col-md-6">
                                     <table class="table table-borderless mb-0">
                                         <tr>
-                                            <td class="font-weight-bold" width="40%">Trạng thái:</td>
+                                            <td class="font-weight-bold" width="40%">Status:</td>
                                             <td>
                                                 <c:choose>
                                                     <c:when test="${gr.status == 1}">
@@ -158,24 +157,23 @@
 
                             <c:if test="${not empty gr.note}">
                                 <div class="mt-2">
-                                    <strong>Ghi chú:</strong> <span class="text-muted">${gr.note}</span>
+                                    <strong>Note:</strong> <span class="text-muted">${gr.note}</span>
                                 </div>
                             </c:if>
 
-                            <!-- Actions for Draft -->
                             <c:if test="${gr.status == 1}">
                                 <div class="border-top pt-3 mt-3 d-flex justify-content-between align-items-center flex-wrap">
-                                   
+
                                     <div class="mt-2 mt-md-0">
                                         <button type="submit" form="confirmForm" class="btn btn-success"
-                                                onclick="return confirm('Xác nhận hoàn thành phiếu nhập kho? Thao tác này sẽ cập nhật tồn kho.');">
+                                                onclick="return confirm('Confirm completion of the warehouse receipt? This action will update the inventory.');">
                                             <i class="fas fa-check mr-1"></i> Confirm (Completed)
                                         </button>
                                         <form method="post" action="${pageContext.request.contextPath}/confirm-goods-receipt" class="d-inline ml-2">
                                             <input type="hidden" name="receiptId" value="${gr.id}">
                                             <input type="hidden" name="action" value="cancel">
                                             <button type="submit" class="btn btn-danger"
-                                                    onclick="return confirm('Huỷ phiếu nhập kho?');">
+                                                    onclick="return confirm('Cancel the warehouse receipt?');">
                                                 <i class="fas fa-times mr-1"></i> Cancel
                                             </button>
                                         </form>
@@ -185,17 +183,15 @@
                         </div>
                     </div>
 
-                    <!-- Receipt details -->
                     <div class="card mt-3">
                         <div class="card-header">
                             <h5 class="card-title mb-0">
-                                <i class="fas fa-list mr-2"></i>Chi Tiết Nhập Kho
+                                <i class="fas fa-list mr-2"></i>Receipt Details
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
 
-                                <!-- If draft: wrap table inside confirm form to send detailId[] + qtyActual[] -->
                                 <c:choose>
                                     <c:when test="${gr.status == 1}">
                                         <form id="confirmForm" method="post" action="${pageContext.request.contextPath}/confirm-goods-receipt">
@@ -205,11 +201,11 @@
                                                 <thead class="thead-light">
                                                 <tr>
                                                     <th>#</th>
-                                                    <th>Mã SP</th>
-                                                    <th>Tên Sản Phẩm</th>
-                                                    <th class="text-center">SL Dự Kiến</th>
-                                                    <th class="text-center">SL Thực Tế Nhận</th>
-                                                    <th class="text-center">Chênh Lệch (Dự kiến - Thực tế)</th>
+                                                    <th>Product Code</th>
+                                                    <th>Product Name</th>
+                                                    <th class="text-center">Expected Qty</th>
+                                                    <th class="text-center">Actual Received Qty</th>
+                                                    <th class="text-center">Difference (Expected - Actual)</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -218,7 +214,7 @@
                                                         <tr>
                                                             <td colspan="6" class="text-center text-muted py-4">
                                                                 <i class="fas fa-inbox mr-1"></i>
-                                                                Không có dữ liệu chi tiết.
+                                                                No detailed data available.
                                                             </td>
                                                         </tr>
                                                     </c:when>
@@ -256,11 +252,11 @@
                                             <thead class="thead-light">
                                             <tr>
                                                 <th>#</th>
-                                                <th>Mã SP</th>
-                                                <th>Tên Sản Phẩm</th>
-                                                <th class="text-center">SL Dự Kiến</th>
-                                                <th class="text-center">SL Thực Tế Nhận</th>
-                                                <th class="text-center">Chênh Lệch (Dự kiến - Thực tế)</th>
+                                                <th>Product Code</th>
+                                                <th>Product Name</th>
+                                                <th class="text-center">Expected Qty</th>
+                                                <th class="text-center">Actual Received Qty</th>
+                                                <th class="text-center">Difference (Expected - Actual)</th>
                                             </tr>
                                             </thead>
                                             <tbody>
@@ -282,7 +278,7 @@
                                                 <c:when test="${empty gr.details}">
                                                     <tr>
                                                         <td colspan="6" class="text-center text-muted py-4">
-                                                            <i class="fas fa-inbox mr-1"></i>Không có dữ liệu chi tiết
+                                                            <i class="fas fa-inbox mr-1"></i>No detailed data available.
                                                         </td>
                                                     </tr>
                                                 </c:when>
@@ -311,12 +307,11 @@
                         </div>
                     </div>
 
-                    <!-- PO details (optional) -->
                     <c:if test="${not empty gr.purchaseOrder && not empty gr.purchaseOrder.details}">
                         <div class="card mt-3">
                             <div class="card-header">
                                 <h5 class="card-title mb-0">
-                                    <i class="fas fa-file-invoice mr-2"></i>Chi Tiết Purchase Order
+                                    <i class="fas fa-file-invoice mr-2"></i>Purchase Order Details
                                     <span class="text-muted">(${gr.purchaseOrder.orderCode})</span>
                                 </h5>
                             </div>
@@ -326,11 +321,11 @@
                                         <thead class="thead-light">
                                         <tr>
                                             <th>#</th>
-                                            <th>Mã SP</th>
-                                            <th>Tên Sản Phẩm</th>
-                                            <th class="text-center">SL Đặt</th>
-                                            <th class="text-right">Đơn giá</th>
-                                            <th class="text-right">Thành tiền</th>
+                                            <th>Product Code</th>
+                                            <th>Product Name</th>
+                                            <th class="text-center">Ordered Qty</th>
+                                            <th class="text-right">Unit Price</th>
+                                            <th class="text-right">Total Amount</th>
                                         </tr>
                                         </thead>
                                         <tbody>
@@ -341,10 +336,10 @@
                                                 <td>${pod.product.name}</td>
                                                 <td class="text-center font-weight-bold">${pod.quantity}</td>
                                                 <td class="text-right">
-                                                    <fmt:formatNumber value="${pod.price}" type="number" groupingUsed="true"/> đ
+                                                    <fmt:formatNumber value="${pod.price}" type="number" groupingUsed="true"/> VND
                                                 </td>
                                                 <td class="text-right font-weight-bold">
-                                                    <fmt:formatNumber value="${pod.subTotal}" type="number" groupingUsed="true"/> đ
+                                                    <fmt:formatNumber value="${pod.subTotal}" type="number" groupingUsed="true"/> VND
                                                 </td>
                                             </tr>
                                         </c:forEach>
