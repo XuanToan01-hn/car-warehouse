@@ -244,7 +244,9 @@ public class GoodsReceiptDAO extends DBContext {
         String sql = "SELECT gr.ReceiptID, gr.ReceiptCode, gr.PurchaseOrderID, gr.LocationID, "
                 + "gr.ReceiptDate, gr.Status, gr.Note, "
                 + "po.OrderCode, po.Status AS POStatus, "
-                + "l.LocationName "
+                + "l.LocationName, "
+                + "COALESCE((SELECT SUM(d.QuantityExpected) FROM Goods_Receipt_Detail d WHERE d.ReceiptID = gr.ReceiptID), 0) AS TotalExpected, "
+                + "COALESCE((SELECT SUM(d.QuantityActual)   FROM Goods_Receipt_Detail d WHERE d.ReceiptID = gr.ReceiptID), 0) AS TotalActual "
                 + "FROM Goods_Receipt gr "
                 + "LEFT JOIN Purchase_Order po ON gr.PurchaseOrderID = po.PurchaseOrderID "
                 + "LEFT JOIN Location l ON gr.LocationID = l.LocationID "
@@ -270,6 +272,8 @@ public class GoodsReceiptDAO extends DBContext {
                     if (ts != null) {
                         gr.setReceiptDate(new java.util.Date(ts.getTime()));
                     }
+                    gr.setTotalExpected(rs.getInt("TotalExpected"));
+                    gr.setTotalActual(rs.getInt("TotalActual"));
 
                     PurchaseOrder po = new PurchaseOrder();
                     po.setId(rs.getInt("PurchaseOrderID"));
@@ -395,7 +399,8 @@ public class GoodsReceiptDAO extends DBContext {
                     if (d.getProductDetail() != null) {
                         pdId = d.getProductDetail().getId();
                     } else {
-                        // Tự map sang một ProductDetailID bất kỳ của Product để phù hợp với cấu trúc tồn kho
+                        // Tự map sang một ProductDetailID bất kỳ của Product để phù hợp với cấu trúc
+                        // tồn kho
                         pdId = findFirstProductDetailId(productId);
                     }
 
@@ -434,12 +439,14 @@ public class GoodsReceiptDAO extends DBContext {
                 + "SET QuantityActual = ? "
                 + "WHERE ReceiptDetailID = ? AND ReceiptID = ?";
 
-        String sqlUpdateHeader = "UPDATE Goods_Receipt "
-                + "SET Status = 2 "
-                + "WHERE ReceiptID = ? AND Status = 1";
-
         // For recalculating PO status
         String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode FROM Goods_Receipt WHERE ReceiptID = ?";
+
+        // Query to decide final status: 2 = Completed, 4 = Partially Received
+        String sqlQtyCheck = "SELECT "
+                + "COALESCE(SUM(QuantityExpected), 0) AS TotalExp, "
+                + "COALESCE(SUM(QuantityActual),   0) AS TotalAct "
+                + "FROM Goods_Receipt_Detail WHERE ReceiptID = ?";
 
         try {
             connection.setAutoCommit(false);
@@ -471,14 +478,33 @@ public class GoodsReceiptDAO extends DBContext {
                 psDetail.executeBatch();
             }
 
-            // 2. Update header status -> Completed (if still Draft)
+            // 2. Determine final status: Completed (2) if all actual >= expected, else
+            // Partially Received (4)
+            int finalStatus;
+            try (PreparedStatement psQty = connection.prepareStatement(sqlQtyCheck)) {
+                psQty.setInt(1, receiptId);
+                try (ResultSet rsQty = psQty.executeQuery()) {
+                    if (rsQty.next()) {
+                        int totExp = rsQty.getInt("TotalExp");
+                        int totAct = rsQty.getInt("TotalAct");
+                        finalStatus = (totExp > 0 && totAct >= totExp) ? 2 : 4;
+                    } else {
+                        finalStatus = 2; // fallback
+                    }
+                }
+            }
+
+            // 3. Update header status (Draft=1 or Partially Received=4 can be re-confirmed)
+            String sqlUpdateHeader = "UPDATE Goods_Receipt "
+                    + "SET Status = ? "
+                    + "WHERE ReceiptID = ? AND Status IN (1, 4)";
             int affectedHeader;
             try (PreparedStatement psHeader = connection.prepareStatement(sqlUpdateHeader)) {
-                psHeader.setInt(1, receiptId);
+                psHeader.setInt(1, finalStatus);
+                psHeader.setInt(2, receiptId);
                 affectedHeader = psHeader.executeUpdate();
             }
             if (affectedHeader == 0) {
-                // Not a draft anymore or not found
                 connection.rollback();
                 return false;
             }
@@ -546,7 +572,8 @@ public class GoodsReceiptDAO extends DBContext {
         }
 
         String sqlPod = "SELECT ProductID, Quantity FROM Purchase_Order_Detail WHERE PurchaseOrderID = ?";
-        // ProductDetailID để NULL ở cấp chi tiết; khi cập nhật tồn kho sẽ tự map sang ProductDetail phù hợp
+        // ProductDetailID để NULL ở cấp chi tiết; khi cập nhật tồn kho sẽ tự map sang
+        // ProductDetail phù hợp
         String sqlIns = "INSERT INTO Goods_Receipt_Detail "
                 + "(ReceiptID, ProductID, ProductDetailID, QuantityExpected, QuantityActual) "
                 + "VALUES (?, ?, NULL, ?, ?)";
@@ -561,8 +588,8 @@ public class GoodsReceiptDAO extends DBContext {
                     psIns.setInt(1, receiptId); // ReceiptID
                     psIns.setInt(2, productId); // ProductID
                     // VALUES (?, ?, NULL, ?, ?) -> chỉ có 4 tham số
-                    psIns.setInt(3, qty);       // QuantityExpected
-                    psIns.setInt(4, qty);       // QuantityActual
+                    psIns.setInt(3, qty); // QuantityExpected
+                    psIns.setInt(4, qty); // QuantityActual
                     psIns.executeUpdate();
                 }
             }
@@ -600,11 +627,11 @@ public class GoodsReceiptDAO extends DBContext {
 
         String sqlUpdateStock = "UPDATE Location_Product "
                 + "SET Quantity = Quantity + ? "
-                + "WHERE LocationID = ? AND (ProductDetailID = ? OR (ProductDetailID IS NULL AND ? IS NULL)) AND ProductID = ?";
+                + "WHERE LocationID = ? AND (ProductDetailID = ? OR (ProductDetailID IS NULL AND ? IS NULL))";
 
         String sqlInsertStock = "INSERT INTO Location_Product "
-                + "(LocationID, ProductDetailID, ProductID, Quantity) "
-                + "VALUES (?, ?, ?, ?)";
+                + "(LocationID, ProductDetailID, Quantity) "
+                + "VALUES (?, ?, ?)";
 
         String sqlTrans = "INSERT INTO Inventory_Transaction "
                 + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
@@ -627,8 +654,10 @@ public class GoodsReceiptDAO extends DBContext {
                         continue;
                     }
 
-                    // Nếu ProductDetailID đang null (dữ liệu cũ), cố gắng map sang một ProductDetail bất kỳ của Product.
-                    // Nếu vẫn không có ProductDetail → bỏ qua cập nhật tồn kho cho dòng này nhưng vẫn cho phép Confirm.
+                    // Nếu ProductDetailID đang null (dữ liệu cũ), cố gắng map sang một
+                    // ProductDetail bất kỳ của Product.
+                    // Nếu vẫn không có ProductDetail → bỏ qua cập nhật tồn kho cho dòng này nhưng
+                    // vẫn cho phép Confirm.
                     if (isPdIdNull) {
                         Integer fallbackPdId = findFirstProductDetailId(productId);
                         if (fallbackPdId != null) {
@@ -646,14 +675,12 @@ public class GoodsReceiptDAO extends DBContext {
                     psStockUpdate.setInt(2, locationId);
                     psStockUpdate.setInt(3, productDetailId);
                     psStockUpdate.setInt(4, productDetailId);
-                    psStockUpdate.setInt(5, productId);
                     int affected = psStockUpdate.executeUpdate();
 
                     if (affected == 0) {
                         psStockInsert.setInt(1, locationId);
                         psStockInsert.setInt(2, productDetailId);
-                        psStockInsert.setInt(3, productId);
-                        psStockInsert.setInt(4, qtyActual);
+                        psStockInsert.setInt(3, qtyActual);
                         psStockInsert.executeUpdate();
                     }
 
