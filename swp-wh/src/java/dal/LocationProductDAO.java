@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ *d
  * @author Asus
  */
 public class LocationProductDAO extends DBContext {
