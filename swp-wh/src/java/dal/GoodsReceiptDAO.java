@@ -7,7 +7,10 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import model.GoodsReceipt;
 import model.GoodsReceiptDetail;
 import model.Location;
@@ -467,7 +470,20 @@ public class GoodsReceiptDAO extends DBContext {
                 }
             }
 
-            // 1. Update detail actual quantities
+            // 1a. Đọc QuantityActual CŨ trước khi update (để tính delta sau này)
+            // Map: ReceiptDetailID -> QuantityActual cũ (đã nhập kho trước đó)
+            Map<Integer, Integer> previousQtyMap = new HashMap<>();
+            String sqlReadOldQty = "SELECT ReceiptDetailID, QuantityActual FROM Goods_Receipt_Detail WHERE ReceiptID = ?";
+            try (PreparedStatement psRead = connection.prepareStatement(sqlReadOldQty)) {
+                psRead.setInt(1, receiptId);
+                try (ResultSet rsOld = psRead.executeQuery()) {
+                    while (rsOld.next()) {
+                        previousQtyMap.put(rsOld.getInt("ReceiptDetailID"), rsOld.getInt("QuantityActual"));
+                    }
+                }
+            }
+
+            // 1b. Update detail actual quantities
             try (PreparedStatement psDetail = connection.prepareStatement(sqlUpdateDetail)) {
                 for (GoodsReceiptDetail d : updatedDetails) {
                     psDetail.setInt(1, d.getQuantityActual());
@@ -510,7 +526,7 @@ public class GoodsReceiptDAO extends DBContext {
             }
 
             // 3. Update stock & inventory transactions based on DB state after update
-            applyStockAndTransactions(locationId, receiptCode, receiptId);
+            applyStockAndTransactions(locationId, receiptCode, receiptId, previousQtyMap);
 
             // 4. Recalculate purchase order status based on cumulative received qty
             recalculatePurchaseOrderStatus(poId);
@@ -617,17 +633,23 @@ public class GoodsReceiptDAO extends DBContext {
     }
 
     /**
-     * Read back updated details from DB and:
-     * - increase Location_Product
-     * - insert Inventory_Transaction rows
+     * Đọc lại các detail từ DB và:
+     * - Cập nhật Location_Product theo DELTA (qty mới - qty đã nhập kho trước đó)
+     * - Chèn Inventory_Transaction chỉ với lượng delta thực tế tăng thêm
+     *
+     * previousQtyMap: map từ ReceiptDetailID -> QuantityActual CŨ (trước khi
+     * update).
+     * Nếu null (lần confirm đầu tiên), coi như QuantityActual cũ = 0.
      */
-    private void applyStockAndTransactions(int locationId, String receiptCode, int receiptId) throws SQLException {
-        String sqlFetchDetails = "SELECT ProductID, ProductDetailID, QuantityActual "
+    private void applyStockAndTransactions(int locationId, String receiptCode, int receiptId,
+            Map<Integer, Integer> previousQtyMap) throws SQLException {
+        // Lấy detail hiện tại (sau khi đã UPDATE QuantityActual)
+        String sqlFetchDetails = "SELECT ReceiptDetailID, ProductID, ProductDetailID, QuantityActual "
                 + "FROM Goods_Receipt_Detail WHERE ReceiptID = ?";
 
         String sqlUpdateStock = "UPDATE Location_Product "
                 + "SET Quantity = Quantity + ? "
-                + "WHERE LocationID = ? AND (ProductDetailID = ? OR (ProductDetailID IS NULL AND ? IS NULL))";
+                + "WHERE LocationID = ? AND ProductDetailID = ?";
 
         String sqlInsertStock = "INSERT INTO Location_Product "
                 + "(LocationID, ProductDetailID, Quantity) "
@@ -645,19 +667,27 @@ public class GoodsReceiptDAO extends DBContext {
             psFetch.setInt(1, receiptId);
             try (ResultSet rs = psFetch.executeQuery()) {
                 while (rs.next()) {
+                    int detailId = rs.getInt("ReceiptDetailID");
                     int productId = rs.getInt("ProductID");
                     int productDetailId = rs.getInt("ProductDetailID");
                     boolean isPdIdNull = rs.wasNull();
-                    int qtyActual = rs.getInt("QuantityActual");
+                    int qtyActualNew = rs.getInt("QuantityActual");
 
-                    if (qtyActual <= 0) {
+                    // Tính qty cũ đã được nhập kho trước đó (0 nếu là lần confirm đầu)
+                    int qtyActualOld = (previousQtyMap != null && previousQtyMap.containsKey(detailId))
+                            ? previousQtyMap.get(detailId)
+                            : 0;
+
+                    // Delta = phần tăng thêm thực sự cần cộng vào kho
+                    int delta = qtyActualNew - qtyActualOld;
+
+                    if (delta <= 0) {
+                        // Không có gì để thêm (số giảm hoặc không đổi)
                         continue;
                     }
 
                     // Nếu ProductDetailID đang null (dữ liệu cũ), cố gắng map sang một
                     // ProductDetail bất kỳ của Product.
-                    // Nếu vẫn không có ProductDetail → bỏ qua cập nhật tồn kho cho dòng này nhưng
-                    // vẫn cho phép Confirm.
                     if (isPdIdNull) {
                         Integer fallbackPdId = findFirstProductDetailId(productId);
                         if (fallbackPdId != null) {
@@ -671,23 +701,25 @@ public class GoodsReceiptDAO extends DBContext {
                         }
                     }
 
-                    psStockUpdate.setInt(1, qtyActual);
+                    // Cộng DELTA vào kho
+                    psStockUpdate.setInt(1, delta);
                     psStockUpdate.setInt(2, locationId);
                     psStockUpdate.setInt(3, productDetailId);
-                    psStockUpdate.setInt(4, productDetailId);
                     int affected = psStockUpdate.executeUpdate();
 
                     if (affected == 0) {
+                        // Chưa có record trong Location_Product → insert mới
                         psStockInsert.setInt(1, locationId);
                         psStockInsert.setInt(2, productDetailId);
-                        psStockInsert.setInt(3, qtyActual);
+                        psStockInsert.setInt(3, delta);
                         psStockInsert.executeUpdate();
                     }
 
+                    // Ghi transaction với lượng delta thực nhận thêm
                     psTrans.setInt(1, productId);
                     psTrans.setInt(2, productDetailId);
                     psTrans.setInt(3, locationId);
-                    psTrans.setInt(4, qtyActual);
+                    psTrans.setInt(4, delta);
                     psTrans.setString(5, receiptCode);
                     psTrans.addBatch();
                 }
@@ -713,14 +745,14 @@ public class GoodsReceiptDAO extends DBContext {
                 + "        JOIN Goods_Receipt_Detail grd ON gr.ReceiptID = grd.ReceiptID "
                 + "        WHERE gr.PurchaseOrderID = ? AND gr.Status = 2), 0) AS ReceivedQty";
 
-        int ordered  = 0;
+        int ordered = 0;
         int received = 0;
         try (PreparedStatement ps = connection.prepareStatement(sqlCheck)) {
             ps.setInt(1, poId);
             ps.setInt(2, poId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    ordered  = rs.getInt("OrderedQty");
+                    ordered = rs.getInt("OrderedQty");
                     received = rs.getInt("ReceivedQty");
                 }
             }
@@ -741,4 +773,3 @@ public class GoodsReceiptDAO extends DBContext {
         }
     }
 }
-
