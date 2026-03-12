@@ -67,6 +67,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             String[] productIds = request.getParameterValues("productId[]");
             String[] qtyExpected = request.getParameterValues("qtyExpected[]");
             String[] qtyActual  = request.getParameterValues("qtyActual[]");
+            String[] productDetailIds = request.getParameterValues("productDetailId[]");
 
             if (productIds == null || productIds.length == 0) {
                 request.setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
@@ -119,6 +120,17 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 Product p = new Product();
                 p.setId(Integer.parseInt(productIds[i]));
                 d.setProduct(p);
+
+                // Set ProductDetail nếu user đã chọn variant
+                if (productDetailIds != null && productDetailIds.length > i) {
+                    int pdId = Integer.parseInt(productDetailIds[i]);
+                    if (pdId > 0) {
+                        ProductDetail pd = new ProductDetail();
+                        pd.setId(pdId);
+                        d.setProductDetail(pd);
+                    }
+                }
+
                 int expected = Integer.parseInt(qtyExpected[i]);
                 d.setQuantityExpected(expected);
 

@@ -443,7 +443,7 @@ public class GoodsReceiptDAO extends DBContext {
                 + "WHERE ReceiptDetailID = ? AND ReceiptID = ?";
 
         // For recalculating PO status
-        String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode FROM Goods_Receipt WHERE ReceiptID = ?";
+        String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status FROM Goods_Receipt WHERE ReceiptID = ?";
 
         // Query to decide final status: 2 = Completed, 4 = Partially Received
         String sqlQtyCheck = "SELECT "
@@ -457,6 +457,7 @@ public class GoodsReceiptDAO extends DBContext {
             int poId;
             int locationId;
             String receiptCode;
+            int currentStatus;
             try (PreparedStatement psPo = connection.prepareStatement(sqlGetPoId)) {
                 psPo.setInt(1, receiptId);
                 try (ResultSet rs = psPo.executeQuery()) {
@@ -467,21 +468,27 @@ public class GoodsReceiptDAO extends DBContext {
                     poId = rs.getInt("PurchaseOrderID");
                     locationId = rs.getInt("LocationID");
                     receiptCode = rs.getString("ReceiptCode");
+                    currentStatus = rs.getInt("Status");
                 }
             }
 
-            // 1a. Đọc QuantityActual CŨ trước khi update (để tính delta sau này)
-            // Map: ReceiptDetailID -> QuantityActual cũ (đã nhập kho trước đó)
+            // 1a. Xác định previousQtyMap:
+            // - Nếu status hiện tại = 1 (Draft) → chưa từng confirm → chưa cộng vào kho lần nào → previous = 0
+            // - Nếu status = 4 (Partially Received) → đã confirm trước đó → đọc qty cũ để tính delta
             Map<Integer, Integer> previousQtyMap = new HashMap<>();
-            String sqlReadOldQty = "SELECT ReceiptDetailID, QuantityActual FROM Goods_Receipt_Detail WHERE ReceiptID = ?";
-            try (PreparedStatement psRead = connection.prepareStatement(sqlReadOldQty)) {
-                psRead.setInt(1, receiptId);
-                try (ResultSet rsOld = psRead.executeQuery()) {
-                    while (rsOld.next()) {
-                        previousQtyMap.put(rsOld.getInt("ReceiptDetailID"), rsOld.getInt("QuantityActual"));
+            if (currentStatus == 4) {
+                // Đã confirm lần trước, đọc lại qty cũ đã nhập kho
+                String sqlReadOldQty = "SELECT ReceiptDetailID, QuantityActual FROM Goods_Receipt_Detail WHERE ReceiptID = ?";
+                try (PreparedStatement psRead = connection.prepareStatement(sqlReadOldQty)) {
+                    psRead.setInt(1, receiptId);
+                    try (ResultSet rsOld = psRead.executeQuery()) {
+                        while (rsOld.next()) {
+                            previousQtyMap.put(rsOld.getInt("ReceiptDetailID"), rsOld.getInt("QuantityActual"));
+                        }
                     }
                 }
             }
+            // Nếu currentStatus == 1 (Draft), previousQtyMap rỗng => mọi delta = qty mới - 0 = qty mới (cộng full)
 
             // 1b. Update detail actual quantities
             try (PreparedStatement psDetail = connection.prepareStatement(sqlUpdateDetail)) {
@@ -647,10 +654,12 @@ public class GoodsReceiptDAO extends DBContext {
         String sqlFetchDetails = "SELECT ReceiptDetailID, ProductID, ProductDetailID, QuantityActual "
                 + "FROM Goods_Receipt_Detail WHERE ReceiptID = ?";
 
+        // UPDATE stock: cộng delta, match cả ProductID cho chắc chắn
         String sqlUpdateStock = "UPDATE Location_Product "
                 + "SET Quantity = Quantity + ? "
                 + "WHERE LocationID = ? AND ProductDetailID = ?";
 
+        // INSERT stock: chỉ (LocationID, ProductDetailID, Quantity) — ProductID lấy qua Product_Detail
         String sqlInsertStock = "INSERT INTO Location_Product "
                 + "(LocationID, ProductDetailID, Quantity) "
                 + "VALUES (?, ?, ?)";
@@ -673,7 +682,7 @@ public class GoodsReceiptDAO extends DBContext {
                     boolean isPdIdNull = rs.wasNull();
                     int qtyActualNew = rs.getInt("QuantityActual");
 
-                    // Tính qty cũ đã được nhập kho trước đó (0 nếu là lần confirm đầu)
+                    // Tính qty cũ đã được nhập kho trước đó (0 nếu là lần confirm đầu từ Draft)
                     int qtyActualOld = (previousQtyMap != null && previousQtyMap.containsKey(detailId))
                             ? previousQtyMap.get(detailId)
                             : 0;

@@ -37,6 +37,7 @@ public class PODetailsApiServlet extends HttpServlet {
             }
 
             // Build JSON manually (no Gson dependency needed)
+            dal.ProductDetailDAO pdDAO = new dal.ProductDetailDAO();
             StringBuilder sb = new StringBuilder();
             sb.append("{");
             sb.append("\"id\":").append(po.getId()).append(",");
@@ -55,7 +56,20 @@ public class PODetailsApiServlet extends HttpServlet {
                     sb.append("\"productId\":").append(d.getProduct().getId()).append(",");
                     sb.append("\"code\":\"").append(escapeJson(d.getProduct().getCode())).append("\",");
                     sb.append("\"name\":\"").append(escapeJson(d.getProduct().getName())).append("\",");
-                    sb.append("\"quantity\":").append(d.getQuantity());
+                    sb.append("\"quantity\":").append(d.getQuantity()).append(",");
+                    // Thêm danh sách variants (ProductDetail) cho product này
+                    sb.append("\"variants\":[");
+                    List<model.ProductDetail> variants = pdDAO.getAllDetailsByProductId(d.getProduct().getId());
+                    for (int j = 0; j < variants.size(); j++) {
+                        model.ProductDetail v = variants.get(j);
+                        if (j > 0) sb.append(",");
+                        sb.append("{");
+                        sb.append("\"pdId\":").append(v.getId()).append(",");
+                        sb.append("\"serial\":\"").append(escapeJson(v.getSerialNumber())).append("\",");
+                        sb.append("\"color\":\"").append(escapeJson(v.getColor())).append("\"");
+                        sb.append("}");
+                    }
+                    sb.append("]");
                     sb.append("}");
                 }
             }

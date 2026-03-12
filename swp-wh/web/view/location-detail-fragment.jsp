@@ -67,11 +67,22 @@
                                             <div class="pt-3">
                                                 <div class="info-label mb-3"
                                                     style="font-size: 0.75rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
-                                                    VIN List:</div>
-                                                <div class="d-flex flex-column" style="gap: 4px;">
+                                                    Variant Details:</div>
+                                                <div class="d-flex flex-column" style="gap: 6px;">
                                                     <c:forEach var="s" items="${g.serials}">
-                                                        <div class="vin-tag-v">
-                                                            <i class="ri-car-line mr-2 text-muted"></i> [ ${s} ]
+                                                        <div class="vin-tag-v d-flex align-items-center justify-content-between">
+                                                            <div class="d-flex align-items-center">
+                                                                <i class="ri-car-line mr-2 text-muted"></i>
+                                                                <span class="font-weight-bold">[ ${s.serial} ]</span>
+                                                                <c:if test="${not empty s.color}">
+                                                                    <span class="badge ml-2" style="background: #e2e8f0; color: #334155; font-size: 0.75rem; border-radius: 6px; padding: 2px 8px;">
+                                                                        ${s.color}
+                                                                    </span>
+                                                                </c:if>
+                                                            </div>
+                                                            <span class="badge badge-info ml-3" style="font-size: 0.82rem; border-radius: 6px; padding: 3px 10px;">
+                                                                ${s.qty} units
+                                                            </span>
                                                         </div>
                                                     </c:forEach>
                                                     <c:if test="${empty g.serials}">

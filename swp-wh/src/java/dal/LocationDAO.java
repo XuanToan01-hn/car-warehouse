@@ -129,11 +129,14 @@ public class LocationDAO extends DBContext {
         List<model.LocationProduct> list = new ArrayList<>();
         if (connection == null)
             return list;
-        String sql = "SELECT lp.*, p.Code, p.Name as ProductName, pd.SerialNumber " +
-                "FROM Location_Product lp " +
-                "JOIN Product p ON lp.ProductID = p.ProductID " +
-                "LEFT JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID " +
-                "WHERE lp.LocationID = ? AND lp.Quantity > 0";
+        // Location_Product chỉ có (LocationID, ProductDetailID, Quantity)
+        // Lấy ProductID qua Product_Detail → Product, kèm Color
+        String sql = "SELECT lp.LocationID, lp.ProductDetailID, lp.Quantity, "
+                + "pd.ProductID, p.Code, p.Name AS ProductName, pd.SerialNumber, pd.Color "
+                + "FROM Location_Product lp "
+                + "JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID "
+                + "JOIN Product p ON p.ProductID = pd.ProductID "
+                + "WHERE lp.LocationID = ? AND lp.Quantity > 0";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, locationId);
             ResultSet rs = ps.executeQuery();
@@ -150,6 +153,7 @@ public class LocationDAO extends DBContext {
                 model.ProductDetail pd = new model.ProductDetail();
                 pd.setId(rs.getInt("ProductDetailID"));
                 pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setColor(rs.getString("Color"));
                 lp.setProductDetail(pd);
 
                 list.add(lp);

@@ -172,6 +172,8 @@
                                                                         <span id="capacity-value">—</span>
                                                                     </div>
                                                                 </div>
+                                                                <!-- Vùng chứa thông báo capacity (cố định vị trí) -->
+                                                                <div id="capacity-warnings"></div>
                                                             </div>
                                                         </div>
 
@@ -211,16 +213,15 @@
                                                                     <th>#</th>
                                                                     <th>Product Code</th>
                                                                     <th>Product Name</th>
+                                                                    <th>Variant</th>
                                                                     <th class="text-center">Order quantity</th>
-                                                                    <th class="text-center">Actual quantity receivedspan
-                                                                        class="text-danger"></span>
-                                                                    </th>
+                                                                    <th class="text-center">Actual quantity received</th>
                                                                     <th class="text-center">Difference</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="product-tbody">
                                                                 <tr id="no-po-msg-row">
-                                                                    <td colspan="6" id="no-po-msg"><i
+                                                                    <td colspan="7" id="no-po-msg"><i
                                                                             class="fas fa-hand-point-up mr-2"></i>Please
                                                                         select Purchase Order to view the product.</td>
                                                                 </tr>
@@ -307,7 +308,7 @@
 
                         if (!poId) {
                             infoArea.classList.add('d-none');
-                            tbody.innerHTML = '<tr><td colspan="5" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="7" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
                             submitBtn.disabled = true;
                             return;
                         }
@@ -339,14 +340,28 @@
 
                         var html = '';
                         if (!details || details.length === 0) {
-                            html = '<tr><td colspan="6" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
+                            html = '<tr><td colspan="7" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
                             submitBtn.disabled = true;
                         } else {
                             details.forEach(function (d, idx) {
+                                // Build variant dropdown
+                                var variantHtml = '';
+                                if (d.variants && d.variants.length > 0) {
+                                    variantHtml = '<select class="form-control form-control-sm" name="productDetailId[]" form="groForm" style="min-width:140px;">';
+                                    d.variants.forEach(function (v) {
+                                        var label = v.serial;
+                                        if (v.color) label += ' (' + v.color + ')';
+                                        variantHtml += '<option value="' + v.pdId + '">' + label + '</option>';
+                                    });
+                                    variantHtml += '</select>';
+                                } else {
+                                    variantHtml = '<span class="text-muted">-</span><input type="hidden" name="productDetailId[]" form="groForm" value="0">';
+                                }
                                 html += '<tr>' +
                                     '<td>' + (idx + 1) + '</td>' +
                                     '<td><code>' + (d.code || d.productCode || '') + '</code></td>' +
                                     '<td>' + (d.name || d.productName || '') + '</td>' +
+                                    '<td>' + variantHtml + '</td>' +
                                     '<td class="text-center font-weight-bold">' + d.quantity + '</td>' +
                                     '<td class="text-center">' +
                                     '<input type="number" class="form-control qty-actual-input text-center" ' +
@@ -440,12 +455,11 @@
                                 badge.style.background = '#FEE2E2';
                                 badge.style.borderColor = '#FCA5A5';
                                 badge.style.color = '#DC2626';
-                                var warn = document.createElement('div');
-                                warn.id = 'location-full-warning';
-                                warn.className = 'alert alert-danger mt-2';
-                                warn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>'
-                                    + 'Kho <strong>' + opt.text + '</strong> đã đầy (<strong>' + stockNum + '/' + capNum + '</strong> units). Vui lòng chọn kho khác!';
-                                sel.closest('.form-group').appendChild(warn);
+                                var warnBox = document.getElementById('capacity-warnings');
+                                warnBox.innerHTML = '<div id="location-full-warning" class="alert alert-danger mt-2 mb-0" style="border-radius:10px;">'
+                                    + '<i class="fas fa-exclamation-triangle mr-2"></i>'
+                                    + 'Kho <strong>' + opt.text.trim() + '</strong> đã đầy (<strong>' + stockNum + ' / ' + capNum + '</strong> units). Vui lòng chọn kho khác!'
+                                    + '</div>';
                                 document.getElementById('submitBtn').disabled = true;
                             } else {
                                 badge.style.background = '#EFF6FF';
@@ -472,6 +486,8 @@
                     }
 
                     function checkQtyVsCapacity(remaining) {
+                        var warnBox = document.getElementById('capacity-warnings');
+                        // Xóa warning cũ (chỉ xóa qty-capacity, giữ full-warning nếu có)
                         var prevQtyWarn = document.getElementById('qty-capacity-warning');
                         if (prevQtyWarn) prevQtyWarn.remove();
 
@@ -481,13 +497,11 @@
                         if (items.length === 0) return; // no PO selected yet
 
                         if (remaining !== undefined && totalQty > remaining) {
-                            var warn = document.createElement('div');
-                            warn.id = 'qty-capacity-warning';
-                            warn.className = 'alert alert-warning mt-2';
-                            warn.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>'
+                            warnBox.innerHTML = '<div id="qty-capacity-warning" class="alert alert-warning mt-2 mb-0" style="border-radius:10px;">'
+                                + '<i class="fas fa-exclamation-circle mr-2"></i>'
                                 + 'Tổng số lượng nhận (<strong>' + totalQty + '</strong>) vượt quá sức chứa còn lại của kho (<strong>' + remaining + '</strong> units). '
-                                + 'Vui lòng giảm số lượng hoặc chọn kho khác.';
-                            document.getElementById('location-group').after(warn);
+                                + 'Vui lòng giảm số lượng hoặc chọn kho khác.'
+                                + '</div>';
                             submitBtn.disabled = true;
                         } else {
                             if (items.length > 0) submitBtn.disabled = false;
