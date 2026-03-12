@@ -142,6 +142,8 @@
                                                 </option>
                                                 <option value="4" ${statusFilter==4 ? 'selected' : '' }>Cancelled
                                                 </option>
+                                                <option value="5" ${statusFilter==5 ? 'selected' : '' }>Done
+                                                </option>
                                             </select>
                                         </div>
                                         <div class="col-md-4 d-flex gap-2">
@@ -195,10 +197,13 @@
                                                                     class="badge badge-primary badge-status">CONFIRMED</span>
                                                             </c:when>
                                                             <c:when test="${po.status == 3}"><span
-                                                                    class="badge badge-success badge-status">RECEIVED</span>
+                                                                    class="badge badge-info badge-status">RECEIVED</span>
                                                             </c:when>
                                                             <c:when test="${po.status == 4}"><span
                                                                     class="badge badge-danger badge-status">CANCELLED</span>
+                                                            </c:when>
+                                                            <c:when test="${po.status == 5}"><span
+                                                                    class="badge badge-success badge-status">DONE</span>
                                                             </c:when>
                                                         </c:choose>
                                                     </td>
@@ -211,7 +216,7 @@
                                                     </td>
                                                     <td class="font-weight-bold">
                                                         <fmt:formatNumber value="${po.totalAmount}" type="number"
-                                                            groupingUsed="true" /> đ
+                                                            groupingUsed="true" /> VND
                                                     </td>
                                                     <td class="text-right">
                                                         <a href="${pageContext.request.contextPath}/detail-purchase-order?id=${po.id}"

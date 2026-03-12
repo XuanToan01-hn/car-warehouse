@@ -35,7 +35,7 @@ public class TransferDAO extends DBContext {
             psOrder.setString(1, "TRF-" + System.currentTimeMillis());
             psOrder.setInt(2, order.getFromLocationId());
             psOrder.setInt(3, order.getToLocationId());
-            psOrder.setInt(4, order.getCreateBy());
+//            psOrder.setInt(4, order.getCreateBy());
             psOrder.executeUpdate();
 
             ResultSet rs = psOrder.getGeneratedKeys();

@@ -108,6 +108,8 @@ public class PurchaseOrder {
                 return "Received";
             case 4:
                 return "Cancelled";
+            case 5:
+                return "Done";
             default:
                 return "Unknown";
         }

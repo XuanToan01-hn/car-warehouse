@@ -713,25 +713,26 @@ public class GoodsReceiptDAO extends DBContext {
                 + "        JOIN Goods_Receipt_Detail grd ON gr.ReceiptID = grd.ReceiptID "
                 + "        WHERE gr.PurchaseOrderID = ? AND gr.Status = 2), 0) AS ReceivedQty";
 
-        int ordered = 0;
+        int ordered  = 0;
         int received = 0;
         try (PreparedStatement ps = connection.prepareStatement(sqlCheck)) {
             ps.setInt(1, poId);
             ps.setInt(2, poId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    ordered = rs.getInt("OrderedQty");
+                    ordered  = rs.getInt("OrderedQty");
                     received = rs.getInt("ReceivedQty");
                 }
             }
         }
 
         if (ordered <= 0) {
-            // Nothing to update; keep current status
-            return;
+            return; // nothing to update
         }
 
-        int newStatus = (received >= ordered) ? 3 : 2; // 3: Received, 2: Confirmed / Partially
+        // 5 = Done (fully received) → hidden from GRO creation
+        // 3 = Received (partially received, still needs GROs)
+        int newStatus = (received >= ordered) ? 5 : 3;
         String sqlUpdatePO = "UPDATE Purchase_Order SET Status = ? WHERE PurchaseOrderID = ?";
         try (PreparedStatement psUpdate = connection.prepareStatement(sqlUpdatePO)) {
             psUpdate.setInt(1, newStatus);
@@ -740,3 +741,4 @@ public class GoodsReceiptDAO extends DBContext {
         }
     }
 }
+

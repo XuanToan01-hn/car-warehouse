@@ -164,4 +164,38 @@ public class SupplierDAO extends DBContext {
         }
         return list;
     }
-}
+
+    // ===============================
+    // UPDATE
+    // ===============================
+    public boolean update(Supplier s) {
+        String sql = "UPDATE Supplier SET Name = ?, Address = ?, Phone = ?, Email = ? WHERE SupplierID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, s.getName());
+            ps.setString(2, s.getAddress());
+            ps.setString(3, s.getPhone());
+            ps.setString(4, s.getEmail());
+            ps.setInt(5, s.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // ===============================
+    // DELETE
+    // ===============================
+    public boolean delete(int id) {
+        String sql = "DELETE FROM Supplier WHERE SupplierID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+}

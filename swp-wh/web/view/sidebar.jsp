@@ -80,6 +80,13 @@
                             <span class="ml-4">Purchase Orders</span>
                         </a>
                     </li>
+
+                    <li>
+                        <a href="manage-suppliers" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/people.png">
+                            <span class="ml-4">Suppliers</span>
+                        </a>
+                    </li>
                 </c:if>
 
 
@@ -125,6 +132,13 @@
                         <a href="purchase-orders" class="svg-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
                             <span class="ml-4">Purchase Orders</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="manage-suppliers" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/people.png">
+                            <span class="ml-4">Suppliers</span>
                         </a>
                     </li>
                 </c:if>

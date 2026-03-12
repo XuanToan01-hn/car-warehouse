@@ -7,6 +7,7 @@ public class Location {
     private String locationCode;
     private String locationName;
     private Integer maxCapacity;
+    private int currentStock; // sum of qty in Location_Product
 
     public Location() {
     }
@@ -49,5 +50,13 @@ public class Location {
 
     public void setMaxCapacity(Integer maxCapacity) {
         this.maxCapacity = maxCapacity;
+    }
+
+    public int getCurrentStock() {
+        return currentStock;
+    }
+
+    public void setCurrentStock(int currentStock) {
+        this.currentStock = currentStock;
     }
 }

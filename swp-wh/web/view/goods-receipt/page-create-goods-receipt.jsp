@@ -40,14 +40,49 @@
                         box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, .25);
                         border-color: #28a745;
                     }
-                    .diff-ok { color: #28a745; font-weight: bold; }
-                    .diff-warn { color: #dc3545; font-weight: bold; }
+
+                    .diff-ok {
+                        color: #28a745;
+                        font-weight: bold;
+                    }
+
+                    .diff-warn {
+                        color: #dc3545;
+                        font-weight: bold;
+                    }
 
                     #no-po-msg {
                         color: #6c757d;
                         text-align: center;
                         padding: 40px 0;
                         font-size: 1rem;
+                    }
+
+                    /* ---- Capacity badge ---- */
+                    #location-group {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+
+                    #location-group select {
+                        flex: 1;
+                    }
+
+                    #capacity-badge {
+                        display: none;
+                        white-space: nowrap;
+                        padding: 5px 12px;
+                        border-radius: 8px;
+                        font-size: 0.82rem;
+                        font-weight: 600;
+                        background: #EFF6FF;
+                        border: 1px solid #BFDBFE;
+                        color: #1D4ED8;
+                    }
+
+                    #capacity-badge i {
+                        margin-right: 4px;
                     }
                 </style>
             </head>
@@ -68,13 +103,14 @@
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <div class="header-title">
                                                     <h4 class="card-title"><i
-                                                            class="fas fa-truck-loading mr-2 text-success"></i>Create Goods
+                                                            class="fas fa-truck-loading mr-2 text-success"></i>Create
+                                                        Goods
                                                         Receipt Order</h4>
                                                 </div>
                                                 <a href="${pageContext.request.contextPath}/goods-receipt"
                                                     class="btn btn-secondary">
-<%--                                                    <i class="fas fa-arrow-left mr-1"></i> --%>
-                                                    Back
+                                                    <%-- <i class="fas fa-arrow-left mr-1"></i> --%>
+                                                        Back
                                                 </a>
                                             </div>
                                             <div class="card-body">
@@ -114,15 +150,28 @@
                                                         <div class="col-md-6">
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold"><i
-                                                                        class="fas fa-map-marker-alt mr-1 text-danger"></i>Receiving Warehouse location<span
+                                                                        class="fas fa-map-marker-alt mr-1 text-danger"></i>Receiving
+                                                                    Warehouse location<span
                                                                         class="text-danger">*</span></label>
-                                                                <select name="locationId" class="form-control" required>
-                                                                    <option value="">-- Chọn Location --</option>
-                                                                    <c:forEach var="loc" items="${locations}">
-                                                                        <option value="${loc.id}">${loc.locationName}
-                                                                            (${loc.locationCode})</option>
-                                                                    </c:forEach>
-                                                                </select>
+                                                                <div id="location-group">
+                                                                    <select id="locationSelect" name="locationId"
+                                                                        class="form-control" required
+                                                                        onchange="updateCapacityBadge()">
+                                                                        <option value="">-- Chọn Location --</option>
+                                                                        <c:forEach var="loc" items="${locations}">
+                                                                            <option value="${loc.id}"
+                                                                                data-maxcapacity="${loc.maxCapacity}"
+                                                                                data-currentstock="${loc.currentStock}">
+                                                                                ${loc.locationName}
+                                                                                (${loc.locationCode})
+                                                                            </option>
+                                                                        </c:forEach>
+                                                                    </select>
+                                                                    <div id="capacity-badge">
+                                                                        <i class="fas fa-boxes"></i>
+                                                                        <span id="capacity-value">—</span>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
 
@@ -145,7 +194,8 @@
                                             <div class="card mt-3">
                                                 <div class="card-header">
                                                     <h5 class="card-title mb-0"><i
-                                                            class="fas fa-list mr-2 text-success"></i>Product Details to be Imported</h5>
+                                                            class="fas fa-list mr-2 text-success"></i>Product Details to
+                                                        be Imported</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <div id="po-info-box" class="po-info-box d-none">
@@ -162,7 +212,8 @@
                                                                     <th>Product Code</th>
                                                                     <th>Product Name</th>
                                                                     <th class="text-center">Order quantity</th>
-                                                                    <th class="text-center">Actual quantity receivedspan class="text-danger"></span>
+                                                                    <th class="text-center">Actual quantity receivedspan
+                                                                        class="text-danger"></span>
                                                                     </th>
                                                                     <th class="text-center">Difference</th>
                                                                 </tr>
@@ -170,7 +221,8 @@
                                                             <tbody id="product-tbody">
                                                                 <tr id="no-po-msg-row">
                                                                     <td colspan="6" id="no-po-msg"><i
-                                                                            class="fas fa-hand-point-up mr-2"></i>Please select Purchase Order to view the product.</td>
+                                                                            class="fas fa-hand-point-up mr-2"></i>Please
+                                                                        select Purchase Order to view the product.</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -312,6 +364,8 @@
                             input.addEventListener('input', updateDiffInRow);
                             input.addEventListener('change', updateDiffInRow);
                         });
+                        // Re-check capacity whenever PO products are loaded
+                        updateCapacityBadge();
                     }
 
                     function updateDiffInRow(e) {
@@ -330,6 +384,18 @@
                         var diff = expected - actual;
                         span.textContent = diff === 0 ? '0' : (diff > 0 ? diff : diff);
                         span.className = 'diff-display ' + (diff <= 0 ? 'diff-ok' : 'diff-warn');
+                        // Re-check qty vs capacity whenever actual qty changes
+                        var sel = document.getElementById('locationSelect');
+                        var opt = sel ? sel.options[sel.selectedIndex] : null;
+                        if (opt && opt.value) {
+                            var cap = opt.getAttribute('data-maxcapacity');
+                            var stock = opt.getAttribute('data-currentstock');
+                            var capNum = (cap !== null && cap !== '' && cap !== 'null') ? parseInt(cap, 10) : null;
+                            var stockNum = (stock !== null && stock !== '' && stock !== 'null') ? parseInt(stock, 10) : 0;
+                            if (capNum !== null) {
+                                checkQtyVsCapacity(capNum - stockNum);
+                            }
+                        }
                     }
 
                     // On page load: if preloaded PO exists, render it
@@ -346,6 +412,88 @@
                         document.getElementById('poSelect').addEventListener('change', loadPOProducts);
                     });
 
+                    // ---- Location capacity badge & full-validation ----
+                    function updateCapacityBadge() {
+                        var sel = document.getElementById('locationSelect');
+                        var badge = document.getElementById('capacity-badge');
+                        var valEl = document.getElementById('capacity-value');
+                        var opt = sel.options[sel.selectedIndex];
+
+                        // Remove any previous full-warning
+                        var prevWarn = document.getElementById('location-full-warning');
+                        if (prevWarn) prevWarn.remove();
+
+                        if (!opt || !opt.value) {
+                            badge.style.display = 'none';
+                            return;
+                        }
+                        var cap = opt.getAttribute('data-maxcapacity');
+                        var stock = opt.getAttribute('data-currentstock');
+                        var capNum = (cap !== null && cap !== '' && cap !== 'null') ? parseInt(cap, 10) : null;
+                        var stockNum = (stock !== null && stock !== '' && stock !== 'null') ? parseInt(stock, 10) : 0;
+
+                        if (capNum !== null) {
+                            valEl.textContent = stockNum.toLocaleString() + ' / ' + capNum.toLocaleString() + ' units';
+                            var remaining = capNum - stockNum;
+                            if (remaining <= 0) {
+                                // Location is completely full
+                                badge.style.background = '#FEE2E2';
+                                badge.style.borderColor = '#FCA5A5';
+                                badge.style.color = '#DC2626';
+                                var warn = document.createElement('div');
+                                warn.id = 'location-full-warning';
+                                warn.className = 'alert alert-danger mt-2';
+                                warn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>'
+                                    + 'Kho <strong>' + opt.text + '</strong> đã đầy (<strong>' + stockNum + '/' + capNum + '</strong> units). Vui lòng chọn kho khác!';
+                                sel.closest('.form-group').appendChild(warn);
+                                document.getElementById('submitBtn').disabled = true;
+                            } else {
+                                badge.style.background = '#EFF6FF';
+                                badge.style.borderColor = '#BFDBFE';
+                                badge.style.color = '#1D4ED8';
+                                checkQtyVsCapacity(remaining);
+                            }
+                        } else {
+                            valEl.textContent = stockNum.toLocaleString() + ' units (no limit)';
+                            badge.style.background = '#EFF6FF';
+                            badge.style.borderColor = '#BFDBFE';
+                            badge.style.color = '#1D4ED8';
+                        }
+                        badge.style.display = 'inline-flex';
+                        badge.style.alignItems = 'center';
+                    }
+
+                    function getTotalActualQty() {
+                        var total = 0;
+                        document.querySelectorAll('input[name="qtyActual[]"]').forEach(function (inp) {
+                            total += parseInt(inp.value, 10) || 0;
+                        });
+                        return total;
+                    }
+
+                    function checkQtyVsCapacity(remaining) {
+                        var prevQtyWarn = document.getElementById('qty-capacity-warning');
+                        if (prevQtyWarn) prevQtyWarn.remove();
+
+                        var totalQty = getTotalActualQty();
+                        var submitBtn = document.getElementById('submitBtn');
+                        var items = document.querySelectorAll('input[name="productId[]"]');
+                        if (items.length === 0) return; // no PO selected yet
+
+                        if (remaining !== undefined && totalQty > remaining) {
+                            var warn = document.createElement('div');
+                            warn.id = 'qty-capacity-warning';
+                            warn.className = 'alert alert-warning mt-2';
+                            warn.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>'
+                                + 'Tổng số lượng nhận (<strong>' + totalQty + '</strong>) vượt quá sức chứa còn lại của kho (<strong>' + remaining + '</strong> units). '
+                                + 'Vui lòng giảm số lượng hoặc chọn kho khác.';
+                            document.getElementById('location-group').after(warn);
+                            submitBtn.disabled = true;
+                        } else {
+                            if (items.length > 0) submitBtn.disabled = false;
+                        }
+                    }
+
                     // Form validation
                     document.getElementById('groForm').addEventListener('submit', function (e) {
                         var items = document.querySelectorAll('input[name="productId[]"]');
@@ -354,6 +502,7 @@
                             alert('Vui lòng chọn Purchase Order trước khi xác nhận!');
                         }
                     });
+
                 </script>
             </body>
 
