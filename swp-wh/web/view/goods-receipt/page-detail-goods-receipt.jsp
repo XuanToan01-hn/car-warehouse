@@ -433,8 +433,8 @@
                                                                             <th>#</th>
                                                                             <th>Product Code</th>
                                                                             <th>Product Name</th>
-                                                                            <th class="text-center">Expected Qty</th>
-                                                                            <th class="text-center">Actual Received Qty
+                                                                            <th class="text-center">Order quantity</th>
+                                                                            <th class="text-center">Actual quantity received
                                                                             </th>
                                                                             <th class="text-center">Difference</th>
                                                                         </tr>
@@ -456,13 +456,18 @@
                                                                                     varStatus="st">
                                                                                     <tr class="gr-detail-row">
                                                                                         <td>${st.index + 1}</td>
-                                                                                        <td><code
-                                                                                                class="mono">${d.product.code}</code>
+                                                                                        <td>
+                                                                                            <code
+                                                                                                class="mono">${d.product.code}
+                                                                                            </code>
                                                                                         </td>
-                                                                                        <td>${d.product.name}</td>
+                                                                                        <td>
+                                                                                            ${d.product.name}
+                                                                                        </td>
                                                                                         <td
                                                                                             class="text-center font-weight-bold expected-qty">
-                                                                                            ${d.quantityExpected}</td>
+                                                                                            ${d.quantityExpected}
+                                                                                        </td>
                                                                                         <td class="text-center">
                                                                                             <input type="hidden"
                                                                                                 name="detailId[]"

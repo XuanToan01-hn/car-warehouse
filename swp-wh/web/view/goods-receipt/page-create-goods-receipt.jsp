@@ -248,12 +248,21 @@
                                                     supplier: '${selectedPO.supplier.name}',
                                                         details: [
                                                             <c:forEach var="d" items="${selectedPO.details}" varStatus="st">
+                                                                <c:set var="vLbl" value="-" />
+                                                                <c:if test="${d.productDetail != null}">
+                                                                    <c:set var="vLbl" value="${d.productDetail.serialNumber}" />
+                                                                    <c:if test="${not empty d.productDetail.color}">
+                                                                        <c:set var="vLbl" value="${vLbl} (${d.productDetail.color})" />
+                                                                    </c:if>
+                                                                </c:if>
                                                                 {
                                                                     productId: ${d.product.id},
-                                                                code: '${d.product.code}',
-                                                                name: '${d.product.name}',
-                                                                quantity: ${d.quantity}
-                                    }<c:if test="${!st.last}">,</c:if>
+                                                                    code: '${d.product.code}',
+                                                                    name: '${d.product.name}',
+                                                                    quantity: ${d.quantity},
+                                                                    pdId: ${d.productDetail != null ? d.productDetail.id : 0},
+                                                                    variantLabel: '${vLbl}'
+                                                                }<c:if test="${!st.last}">,</c:if>
                                                             </c:forEach>
                                                         ]
                             };
@@ -344,16 +353,11 @@
                             submitBtn.disabled = true;
                         } else {
                             details.forEach(function (d, idx) {
-                                // Build variant dropdown
+                                // Build variant display
                                 var variantHtml = '';
-                                if (d.variants && d.variants.length > 0) {
-                                    variantHtml = '<select class="form-control form-control-sm" name="productDetailId[]" form="groForm" style="min-width:140px;">';
-                                    d.variants.forEach(function (v) {
-                                        var label = v.serial;
-                                        if (v.color) label += ' (' + v.color + ')';
-                                        variantHtml += '<option value="' + v.pdId + '">' + label + '</option>';
-                                    });
-                                    variantHtml += '</select>';
+                                if (d.pdId && d.pdId > 0) {
+                                    variantHtml = '<span class="text-primary font-weight-bold">' + (d.variantLabel || '') + '</span>' +
+                                                  '<input type="hidden" name="productDetailId[]" form="groForm" value="' + d.pdId + '">';
                                 } else {
                                     variantHtml = '<span class="text-muted">-</span><input type="hidden" name="productDetailId[]" form="groForm" value="0">';
                                 }
@@ -365,7 +369,7 @@
                                     '<td class="text-center font-weight-bold">' + d.quantity + '</td>' +
                                     '<td class="text-center">' +
                                     '<input type="number" class="form-control qty-actual-input text-center" ' +
-                                    'name="qtyActual[]" form="groForm" min="0" value="' + d.quantity + '" required style="width:100px;margin:auto;" data-min="0">' +
+                                    'name="qtyActual[]" form="groForm" min="0" max="' + d.quantity + '" value="' + d.quantity + '" required style="width:100px;margin:auto;" data-min="0">' +
                                     '<input type="hidden" name="productId[]" form="groForm" value="' + d.productId + '">' +
                                     '<input type="hidden" name="qtyExpected[]" form="groForm" value="' + d.quantity + '">' +
                                     '</td>' +
@@ -396,6 +400,10 @@
                             actualInput.value = 0;
                         }
                         var expected = parseInt(expectedInput.value, 10) || 0;
+                        if (actual > expected) {
+                            actual = expected;
+                            actualInput.value = expected;
+                        }
                         var diff = expected - actual;
                         span.textContent = diff === 0 ? '0' : (diff > 0 ? diff : diff);
                         span.className = 'diff-display ' + (diff <= 0 ? 'diff-ok' : 'diff-warn');
@@ -514,6 +522,29 @@
                         if (items.length === 0) {
                             e.preventDefault();
                             alert('Vui lòng chọn Purchase Order trước khi xác nhận!');
+                            return;
+                        }
+                        
+                        var invalid = false;
+                        document.querySelectorAll('#product-tbody tr').forEach(function (row) {
+                            var actualInput = row.querySelector('input[name="qtyActual[]"]');
+                            var expectedInput = row.querySelector('input[name="qtyExpected[]"]');
+                            if (!actualInput || !expectedInput) return;
+                            var expected = parseInt(expectedInput.value, 10) || 0;
+                            var actual = parseInt(actualInput.value, 10) || 0;
+                            if (actual > expected) {
+                                actualInput.style.borderColor = '#EF4444';
+                                actualInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,.2)';
+                                invalid = true;
+                            } else {
+                                actualInput.style.borderColor = '';
+                                actualInput.style.boxShadow = '';
+                            }
+                        });
+                        
+                        if (invalid) {
+                            e.preventDefault();
+                            alert('Actual Received Qty cannot exceed Expected Qty. Please correct the highlighted rows.');
                         }
                     });
 

@@ -448,11 +448,10 @@
             '</div>' +
             '</div>' +
             '</div>' +
-            '<div class="col-md-2">' +
-            '<label class="small font-weight-bold">Color *</label>' +
-            /* Thẻ select màu chỉ để trống mặc định ban đầu */
+            '<div class="col-md-3">' +
+            '<label class="small font-weight-bold">Variant (Color / Lot / Serial) *</label>' +
             '<select name="colorId[]" id="color_' + idx + '" class="form-control" required>' +
-            '<option value="">-- Select Color --</option>' +
+            '<option value="">-- Select Variant --</option>' +
             '</select>' +
             '</div>' +
             '<div class="col-md-1">' +
@@ -490,17 +489,17 @@
             const priceInput = document.getElementById('price_' + idx);
 
             if (prod && prod.details && prod.details.length > 0) {
-                let opts = '<option value="">-- Select Color --</option>';
-                let uniqueColors = []; // Lọc màu trùng
+                let opts = '<option value="">-- Select Variant --</option>';
                 prod.details.forEach(function(d) {
-                    if (d.color && !uniqueColors.includes(d.color)) {
-                        uniqueColors.push(d.color);
-                        opts += '<option value="' + d.color + '" data-price="' + d.price + '">' + d.color + '</option>';
+                    let label = d.color || 'No Color';
+                    if (d.lotNumber || d.serial) {
+                        label += ' (Lot: ' + (d.lotNumber || 'N/A') + ', Ser: ' + (d.serial || 'N/A') + ')';
                     }
+                    opts += '<option value="' + d.id + '" data-price="' + d.price + '">' + label + '</option>';
                 });
                 colorSel.innerHTML = opts;
             } else {
-                colorSel.innerHTML = '<option value="">-- No color information --</option>';
+                colorSel.innerHTML = '<option value="">-- No variants --</option>';
             }
             priceInput.value = 0;
             calcRow(idx);

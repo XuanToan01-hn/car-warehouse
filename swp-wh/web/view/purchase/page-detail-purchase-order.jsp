@@ -224,6 +224,7 @@
                                                                 <th>#</th>
                                                                 <th>Product Code</th>
                                                                 <th>Product Name</th>
+                                                                <th>Variant</th>
                                                                 <th>Quantity</th>
                                                                 <th>Unit Price</th>
                                                                 <th>Tax</th>
@@ -232,10 +233,32 @@
                                                         </thead>
                                                         <tbody>
                                                             <c:forEach var="d" items="${po.details}" varStatus="st">
-                                                                <tr>
+                                                                <tr data-product-id="${d.product.id}">
                                                                     <td>${st.index + 1}</td>
                                                                     <td><code>${d.product.code}</code></td>
                                                                     <td>${d.product.name}</td>
+                                                                    <td class="variant-cell" style="min-width:140px;">
+                                                                        <c:choose>
+                                                                            <c:when test="${d.productDetail != null}">
+                                                                                <div class="d-flex flex-column" style="gap:4px;">
+                                                                                    <div style="font-size:0.85rem;">
+                                                                                        <span class="font-weight-bold">
+                                                                                            Lot: ${not empty d.productDetail.lotNumber ? d.productDetail.lotNumber : '—'} | 
+                                                                                            Ser: ${not empty d.productDetail.serialNumber ? d.productDetail.serialNumber : '—'}
+                                                                                        </span>
+                                                                                        <c:if test="${not empty d.productDetail.color}">
+                                                                                            <div class="mt-1">
+                                                                                                <span class="badge" style="background:#e2e8f0;color:#334155;font-size:0.72rem;border-radius:5px;padding:2px 7px;">${d.productDetail.color}</span>
+                                                                                            </div>
+                                                                                        </c:if>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </c:when>
+                                                                            <c:otherwise>
+                                                                                <span class="text-muted">—</span>
+                                                                            </c:otherwise>
+                                                                        </c:choose>
+                                                                    </td>
                                                                     <td class="text-center">${d.quantity}</td>
                                                                     <td class="text-right">
                                                                         <fmt:formatNumber value="${d.price}"
@@ -263,7 +286,7 @@
                                                         </tbody>
                                                         <tfoot>
                                                             <tr class="table-warning">
-                                                                <td colspan="6" class="text-right font-weight-bold">
+                                                                <td colspan="7" class="text-right font-weight-bold">
                                                                     GRAND TOTAL:</td>
                                                                 <td class="text-right font-weight-bold text-primary h5">
                                                                     <fmt:formatNumber value="${po.totalAmount}"

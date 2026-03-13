@@ -9,6 +9,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import model.Product;
+import model.ProductDetail;
 import model.PurchaseOrder;
 import model.PurchaseOrderDetail;
 import model.Supplier;
@@ -187,11 +188,13 @@ public class PurchaseOrderDAO extends DBContext {
         List<PurchaseOrderDetail> list = new ArrayList<>();
         String sql = """
                     SELECT pod.PurchaseOrderDetailID, pod.PurchaseOrderID, pod.Quantity,
-                           pod.Price, pod.SubTotal, pod.ProductID, pod.TaxID,
-                           p.Name AS ProductName, p.Code AS ProductCode,
-                           t.TaxName, t.TaxRate
+                           pod.Price, pod.SubTotal, pod.TaxID, pod.ProductDetailID,
+                           p.Name AS ProductName, p.Code AS ProductCode, p.ProductID,
+                           t.TaxName, t.TaxRate,
+                           pd.LotNumber, pd.SerialNumber, pd.Color
                     FROM Purchase_Order_Detail pod
-                    LEFT JOIN Product p ON pod.ProductID = p.ProductID
+                    LEFT JOIN Product_Detail pd ON pod.ProductDetailID = pd.ProductDetailID
+                    LEFT JOIN Product p ON pd.ProductID = p.ProductID
                     LEFT JOIN Tax t ON pod.TaxID = t.TaxID
                     WHERE pod.PurchaseOrderID = ?
                 """;
@@ -207,11 +210,21 @@ public class PurchaseOrderDAO extends DBContext {
                 pod.setPrice(rs.getDouble("Price"));
                 pod.setSubTotal(rs.getDouble("SubTotal"));
 
-                Product p = new Product();
-                p.setId(rs.getInt("ProductID"));
-                p.setName(rs.getString("ProductName"));
-                p.setCode(rs.getString("ProductCode"));
-                pod.setProduct(p);
+                // Since ProductID might not exist if ProductDetailID is null (due to DB schema missing ProductID)
+                int productId = rs.getInt("ProductID");
+                if (!rs.wasNull()) {
+                    Product p = new Product();
+                    p.setId(productId);
+                    p.setName(rs.getString("ProductName"));
+                    p.setCode(rs.getString("ProductCode"));
+                    pod.setProduct(p);
+                } else {
+                    // Fallback to avoid NPE in UI if old corrupt data exists
+                    Product emptyProduct = new Product();
+                    emptyProduct.setName("Unknown Product");
+                    emptyProduct.setCode("Unknown");
+                    pod.setProduct(emptyProduct);
+                }
 
                 int taxId = rs.getInt("TaxID");
                 if (!rs.wasNull()) {
@@ -220,6 +233,16 @@ public class PurchaseOrderDAO extends DBContext {
                     t.setTaxName(rs.getString("TaxName"));
                     t.setTaxRate(rs.getDouble("TaxRate"));
                     pod.setTax(t);
+                }
+
+                int pdId = rs.getInt("ProductDetailID");
+                if (!rs.wasNull()) {
+                    ProductDetail pd = new ProductDetail();
+                    pd.setId(pdId);
+                    pd.setLotNumber(rs.getString("LotNumber"));
+                    pd.setSerialNumber(rs.getString("SerialNumber"));
+                    pd.setColor(rs.getString("Color"));
+                    pod.setProductDetail(pd);
                 }
 
                 list.add(pod);
@@ -264,21 +287,25 @@ public class PurchaseOrderDAO extends DBContext {
     // ===============================
     public void insertDetail(PurchaseOrderDetail pod) {
         String sql = """
-                    INSERT INTO Purchase_Order_Detail (PurchaseOrderID, ProductID, Quantity, Price, TaxID, SubTotal)
+                    INSERT INTO Purchase_Order_Detail (PurchaseOrderID, Quantity, Price, TaxID, SubTotal, ProductDetailID)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, pod.getPurchaseOrderId());
-            ps.setInt(2, pod.getProduct().getId());
-            ps.setInt(3, pod.getQuantity());
-            ps.setDouble(4, pod.getPrice());
+            ps.setInt(2, pod.getQuantity());
+            ps.setDouble(3, pod.getPrice());
             if (pod.getTax() != null) {
-                ps.setInt(5, pod.getTax().getId());
+                ps.setInt(4, pod.getTax().getId());
             } else {
-                ps.setNull(5, java.sql.Types.INTEGER);
+                ps.setNull(4, java.sql.Types.INTEGER);
             }
-            ps.setDouble(6, pod.getSubTotal());
+            ps.setDouble(5, pod.getSubTotal());
+            if (pod.getProductDetail() != null) {
+                ps.setInt(6, pod.getProductDetail().getId());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
+            }
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

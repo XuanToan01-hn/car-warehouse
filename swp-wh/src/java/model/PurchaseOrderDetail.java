@@ -8,8 +8,12 @@ public class PurchaseOrderDetail {
     private double price;
     private Tax tax;
     private double subTotal;
+    private ProductDetail productDetail;
 
     public PurchaseOrderDetail() {}
+
+    public ProductDetail getProductDetail() { return productDetail; }
+    public void setProductDetail(ProductDetail productDetail) { this.productDetail = productDetail; }
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }

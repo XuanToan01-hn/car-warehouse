@@ -304,8 +304,7 @@ public class GoodsReceiptDAO extends DBContext {
 
     /**
      * Get POs that are eligible for creating GRO.
-     * Chỉ PO đã "Mark Received" (Status = 3) mới được chọn để tạo phiếu nhập kho.
-     * Confirm (Status = 2) chỉ để khóa, không cho chỉnh sửa.
+     * Only POs with Status = 3 (Received) can be used.
      */
     public List<PurchaseOrder> getConfirmedPOs() {
         List<PurchaseOrder> list = new ArrayList<>();
@@ -330,9 +329,10 @@ public class GoodsReceiptDAO extends DBContext {
 
                 // Load details (for create page pre-load)
                 String sqlDetails = "SELECT pod.PurchaseOrderDetailID, pod.Quantity, "
-                        + "p.ProductID, p.Code AS ProductCode, p.Name AS ProductName "
+                        + "pd.ProductDetailID, pd.ProductID, p.Code AS ProductCode, p.Name AS ProductName "
                         + "FROM Purchase_Order_Detail pod "
-                        + "LEFT JOIN Product p ON pod.ProductID = p.ProductID "
+                        + "LEFT JOIN Product_Detail pd ON pod.ProductDetailID = pd.ProductDetailID "
+                        + "LEFT JOIN Product p ON pd.ProductID = p.ProductID "
                         + "WHERE pod.PurchaseOrderID = ?";
                 List<PurchaseOrderDetail> details = new ArrayList<>();
                 try (PreparedStatement ps2 = connection.prepareStatement(sqlDetails)) {
@@ -344,10 +344,25 @@ public class GoodsReceiptDAO extends DBContext {
                             d.setPurchaseOrderId(po.getId());
                             d.setQuantity(rs2.getInt("Quantity"));
                             Product p = new Product();
-                            p.setId(rs2.getInt("ProductID"));
-                            p.setCode(rs2.getString("ProductCode"));
-                            p.setName(rs2.getString("ProductName"));
+                            // Handle cases where ProductID might be missing in broken lines
+                            int productId = rs2.getInt("ProductID");
+                            if (!rs2.wasNull()) {
+                                p.setId(productId);
+                                p.setCode(rs2.getString("ProductCode"));
+                                p.setName(rs2.getString("ProductName"));
+                            } else {
+                                p.setName("Unknown Product");
+                                p.setCode("-");
+                            }
                             d.setProduct(p);
+                            
+                            int pdId = rs2.getInt("ProductDetailID");
+                            if (!rs2.wasNull()) {
+                                ProductDetail pd = new ProductDetail();
+                                pd.setId(pdId);
+                                d.setProductDetail(pd);
+                            }
+                            
                             details.add(d);
                         }
                     }
