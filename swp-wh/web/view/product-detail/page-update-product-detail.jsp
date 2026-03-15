@@ -43,9 +43,9 @@
                                                         value="${pd.serialNumber}" placeholder="Enter Serial Number">
                                                 </div>
                                                 <div class="col-md-4 form-group">
-                                                    <label>Price *</label>
+                                                    <label>Price * (Updated via Purchase)</label>
                                                     <input type="number" step="0.01" name="price" class="form-control"
-                                                        value="${pd.price}" min="0" required>
+                                                        value="${pd.price}" min="0" readonly required>
                                                 </div>
                                                 <div class="col-md-4 form-group">
                                                     <label>Color</label>

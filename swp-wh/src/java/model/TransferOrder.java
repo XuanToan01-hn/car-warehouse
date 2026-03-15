@@ -25,6 +25,14 @@ public class TransferOrder {
     private int productDetailId;
     private int quantity;
 
+    // Additional fields for display
+    private String fromLocationName;
+    private String toLocationName;
+    private int fromWarehouseId;
+    private int toWarehouseId;
+    private String fromWarehouseName;
+    private String toWarehouseName;
+
     public TransferOrder() {}
 
     public int getId() { return id; }
@@ -59,13 +67,27 @@ public class TransferOrder {
         this.note = note;
     }
 
-    public int getCreateBy() {
-        return createBy;
-    }
-
     public void setCreateBy(int createBy) {
         this.createBy = createBy;
     }
+
+    public String getFromLocationName() { return fromLocationName; }
+    public void setFromLocationName(String fromLocationName) { this.fromLocationName = fromLocationName; }
+
+    public String getToLocationName() { return toLocationName; }
+    public void setToLocationName(String toLocationName) { this.toLocationName = toLocationName; }
+
+    public int getFromWarehouseId() { return fromWarehouseId; }
+    public void setFromWarehouseId(int fromWarehouseId) { this.fromWarehouseId = fromWarehouseId; }
+
+    public int getToWarehouseId() { return toWarehouseId; }
+    public void setToWarehouseId(int toWarehouseId) { this.toWarehouseId = toWarehouseId; }
+
+    public String getFromWarehouseName() { return fromWarehouseName; }
+    public void setFromWarehouseName(String fromWarehouseName) { this.fromWarehouseName = fromWarehouseName; }
+
+    public String getToWarehouseName() { return toWarehouseName; }
+    public void setToWarehouseName(String toWarehouseName) { this.toWarehouseName = toWarehouseName; }
     
     
     

@@ -70,6 +70,7 @@ public class AddPurchaseOrderServlet extends HttpServlet {
             String[] prices = request.getParameterValues("price[]");
             String[] taxIds = request.getParameterValues("taxId[]");
             String[] subTotals = request.getParameterValues("subTotal[]");
+            String[] productDetailIds = request.getParameterValues("productDetailId[]");
 
             if (productIds == null || productIds.length == 0) {
                 request.setAttribute("error", "Cần thêm ít nhất 1 sản phẩm!");
@@ -114,6 +115,14 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 pod.setQuantity(Integer.parseInt(quantities[i]));
                 pod.setPrice(Double.parseDouble(prices[i]));
                 pod.setSubTotal(Double.parseDouble(subTotals[i]));
+
+                if (productDetailIds != null && i < productDetailIds.length && productDetailIds[i] != null && !productDetailIds[i].isEmpty()) {
+                    try {
+                        model.ProductDetail pd = new model.ProductDetail();
+                        pd.setId(Integer.parseInt(productDetailIds[i]));
+                        pod.setProductDetail(pd);
+                    } catch(Exception ignored) {}
+                }
 
                 if (taxIds != null && taxIds[i] != null && !taxIds[i].isEmpty() && !taxIds[i].equals("0")) {
                     Tax t = new Tax();

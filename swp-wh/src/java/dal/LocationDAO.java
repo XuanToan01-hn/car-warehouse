@@ -12,11 +12,16 @@ public class LocationDAO extends DBContext {
 
     public List<Location> getAll() {
         List<Location> list = new ArrayList<>();
-        if (connection == null) return list;
-        
-        String sql = "SELECT * FROM Location";
+        if (connection == null)
+            return list;
+
+        String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, "
+                + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
+                + "FROM Location l "
+                + "LEFT JOIN Location_Product lp ON l.LocationID = lp.LocationID "
+                + "GROUP BY l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity";
         try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                ResultSet rs = ps.executeQuery()) {
 
             while (rs.next()) {
                 Location l = new Location();
@@ -25,6 +30,7 @@ public class LocationDAO extends DBContext {
                 l.setLocationCode(rs.getString("LocationCode"));
                 l.setLocationName(rs.getString("LocationName"));
                 l.setMaxCapacity(rs.getObject("MaxCapacity") != null ? rs.getInt("MaxCapacity") : 0);
+                l.setCurrentStock(rs.getInt("CurrentStock"));
                 list.add(l);
             }
         } catch (SQLException e) {
@@ -52,7 +58,8 @@ public class LocationDAO extends DBContext {
 
     public List<Location> getByWarehouseId(int warehouseId) {
         List<Location> list = new ArrayList<>();
-        if (connection == null) return list;
+        if (connection == null)
+            return list;
         String sql = "SELECT * FROM Location WHERE WarehouseID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, warehouseId);
@@ -73,8 +80,14 @@ public class LocationDAO extends DBContext {
     }
 
     public Location getById(int id) {
-        if (connection == null) return null;
-        String sql = "SELECT * FROM Location WHERE LocationID = ?";
+        if (connection == null)
+            return null;
+        String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, "
+                + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
+                + "FROM Location l "
+                + "LEFT JOIN Location_Product lp ON l.LocationID = lp.LocationID "
+                + "WHERE l.LocationID = ? "
+                + "GROUP BY l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
@@ -84,7 +97,8 @@ public class LocationDAO extends DBContext {
                 l.setWarehouseId(rs.getInt("WarehouseID"));
                 l.setLocationCode(rs.getString("LocationCode"));
                 l.setLocationName(rs.getString("LocationName"));
-                l.setMaxCapacity(rs.getObject("MaxCapacity") != null ? rs.getInt("MaxCapacity") : 0);
+                l.setMaxCapacity(rs.getObject("MaxCapacity") != null ? rs.getInt("MaxCapacity") : null);
+                l.setCurrentStock(rs.getInt("CurrentStock"));
                 return l;
             }
         } catch (SQLException e) {
@@ -113,30 +127,35 @@ public class LocationDAO extends DBContext {
 
     public List<model.LocationProduct> getProductsByLocation(int locationId) {
         List<model.LocationProduct> list = new ArrayList<>();
-        if (connection == null) return list;
-        String sql = "SELECT lp.*, p.Code, p.Name as ProductName, pd.SerialNumber " +
-                     "FROM Location_Product lp " +
-                     "JOIN Product p ON lp.ProductID = p.ProductID " +
-                     "LEFT JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID " +
-                     "WHERE lp.LocationID = ? AND lp.Quantity > 0";
+        if (connection == null)
+            return list;
+        // Location_Product chỉ có (LocationID, ProductDetailID, Quantity)
+        // Lấy ProductID qua Product_Detail → Product, kèm Color
+        String sql = "SELECT lp.LocationID, lp.ProductDetailID, lp.Quantity, "
+                + "pd.ProductID, p.Code, p.Name AS ProductName, pd.SerialNumber, pd.Color "
+                + "FROM Location_Product lp "
+                + "JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID "
+                + "JOIN Product p ON p.ProductID = pd.ProductID "
+                + "WHERE lp.LocationID = ? AND lp.Quantity > 0";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, locationId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 model.LocationProduct lp = new model.LocationProduct();
                 lp.setQuantity(rs.getInt("Quantity"));
-                
+
                 model.Product p = new model.Product();
                 p.setId(rs.getInt("ProductID"));
                 p.setCode(rs.getString("Code"));
                 p.setName(rs.getString("ProductName"));
                 lp.setProduct(p);
-                
+
                 model.ProductDetail pd = new model.ProductDetail();
                 pd.setId(rs.getInt("ProductDetailID"));
                 pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setColor(rs.getString("Color"));
                 lp.setProductDetail(pd);
-                
+
                 list.add(lp);
             }
         } catch (SQLException e) {
@@ -146,7 +165,8 @@ public class LocationDAO extends DBContext {
     }
 
     public void delete(int id) {
-        if (connection == null) return;
+        if (connection == null)
+            return;
         String sql = "DELETE FROM Location WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);

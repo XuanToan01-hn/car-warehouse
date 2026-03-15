@@ -10,7 +10,15 @@ import java.util.List;
 import model.Supplier;
 
 public class SupplierDAO extends DBContext {
-    
+
+    public static void main(String[] args) {
+        SupplierDAO s = new SupplierDAO();
+        List<Supplier> g = s.getAll();
+        for (Supplier c : g) {
+            System.out.println(c.getId() + " /");
+        }
+    }
+
     // ===============================
     // GET ALL
     // ===============================
@@ -51,10 +59,10 @@ public class SupplierDAO extends DBContext {
                 s.setAddress(rs.getString("Address"));
                 s.setPhone(rs.getString("Phone"));
                 s.setEmail(rs.getString("Email"));
-//                int pid = rs.getInt("ProductID");
-//                if (!rs.wasNull()) {
-//                    s.setProductId(pid);
-//                }
+                // int pid = rs.getInt("ProductID");
+                // if (!rs.wasNull()) {
+                // s.setProductId(pid);
+                // }
                 return s;
             }
         } catch (SQLException e) {
@@ -65,10 +73,9 @@ public class SupplierDAO extends DBContext {
 
 
     public int insert(Supplier s) {
-        // Đã xóa ProductID khỏi câu lệnh INSERT
+        // ProductID để NULL vì supplier có thể chưa có product khi mới tạo
         String sql = "INSERT INTO Supplier (Name, Address, Phone, Email) VALUES (?, ?, ?, ?)";
         try {
-            // Lưu ý: với SQL Server, để lấy ID vừa tạo, bạn cần truyền mảng tên cột khóa chính hoặc Statement.RETURN_GENERATED_KEYS
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, s.getName());
             ps.setString(2, s.getAddress());
@@ -77,8 +84,6 @@ public class SupplierDAO extends DBContext {
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
             if (rs.next()) {
-                // Với SQL Server (tuỳ driver), getInt(1) có thể lỗi nếu dùng RETURN_GENERATED_KEYS chung chung.
-                // Thường RS sẽ trả về cột ID.
                 return rs.getInt(1);
             }
         } catch (SQLException e) {
@@ -87,23 +92,16 @@ public class SupplierDAO extends DBContext {
         return -1;
     }
 
+    // ===============================
+    // UPDATE ProductID sau khi tạo Product mới
+    // ===============================
+    // updateProductId removed as Supplier no longer has ProductID column
 
-    public void updateProductId(int supplierId, int productId) {
-        String sql = "UPDATE Supplier SET ProductID = ? WHERE SupplierID = ?";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setInt(1, productId);
-            ps.setInt(2, supplierId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-
+    // ===============================
+    // SEARCH by name (for autocomplete)
+    // ===============================
     public List<Supplier> searchByName(String keyword) {
         List<Supplier> list = new ArrayList<>();
-        // MSSQL dùng SELECT TOP n thay vì LIMIT n ở cuối
         String sql = "SELECT TOP 20 SupplierID, Name, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY Name";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -123,32 +121,34 @@ public class SupplierDAO extends DBContext {
         return list;
     }
 
-
+    // ===============================
+    // COUNT
+    // ===============================
     public int count(String keyword) {
         String sql = "SELECT COUNT(*) FROM Supplier WHERE Name LIKE ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, "%" + keyword + "%");
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1);
+            if (rs.next())
+                return rs.getInt(1);
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return 0;
     }
 
+    // ===============================
+    // SEARCH + PAGINATE
+    // ===============================
     public List<Supplier> searchAndPaginate(String keyword, int offset, int limit) {
         List<Supplier> list = new ArrayList<>();
-        // Cú pháp phân trang chuẩn của SQL Server 2012 trở lên
-        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier "
-                + "WHERE Name LIKE ? "
-                + "ORDER BY SupplierID " // Bắt buộc phải có ORDER BY khi dùng OFFSET
-                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+        String sql = "SELECT SupplierID, Name, Address, Phone, Email FROM Supplier WHERE Name LIKE ? ORDER BY SupplierID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, "%" + keyword + "%");
-            ps.setInt(2, offset); // Vị trí bắt đầu
-            ps.setInt(3, limit);  // Số lượng lấy
+            ps.setInt(2, offset);
+            ps.setInt(3, limit);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 Supplier s = new Supplier();
@@ -165,58 +165,37 @@ public class SupplierDAO extends DBContext {
         return list;
     }
 
-    public static void main(String[] args) {
-        SupplierDAO dao = new SupplierDAO();
-
-        System.out.println("=== 1. TEST INSERT ===");
-        Supplier newSupplier = new Supplier();
-        newSupplier.setName("Công ty TNHH Vật Tư Test");
-        newSupplier.setAddress("123 Đường ABC, Hà Nội");
-        newSupplier.setPhone("0987654321");
-        newSupplier.setEmail("contact@testvattu.com");
-
-        int generatedId = dao.insert(newSupplier);
-        if (generatedId != -1) {
-            System.out.println("✅ Đã thêm Supplier mới thành công với ID: " + generatedId);
-        } else {
-            System.out.println("❌ Thêm Supplier thất bại!");
+    // ===============================
+    // UPDATE
+    // ===============================
+    public boolean update(Supplier s) {
+        String sql = "UPDATE Supplier SET Name = ?, Address = ?, Phone = ?, Email = ? WHERE SupplierID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, s.getName());
+            ps.setString(2, s.getAddress());
+            ps.setString(3, s.getPhone());
+            ps.setString(4, s.getEmail());
+            ps.setInt(5, s.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-
-        System.out.println("\n=== 2. TEST GET ALL ===");
-        List<Supplier> allSuppliers = dao.getAll();
-        System.out.println("Tổng số nhà cung cấp hiện có: " + allSuppliers.size());
-        for (Supplier s : allSuppliers) {
-            System.out.println("ID: " + s.getId() + " | Name: " + s.getName() + " | Phone: " + s.getPhone());
-        }
-
-        if (generatedId != -1) {
-            System.out.println("\n=== 3. TEST GET BY ID ===");
-            Supplier foundSupplier = dao.getById(generatedId);
-            if (foundSupplier != null) {
-                System.out.println("✅ Tìm thấy Supplier: " + foundSupplier.getName() + " - " + foundSupplier.getEmail());
-            }
-
-            // ĐÃ XÓA BƯỚC 4: TEST UPDATE PRODUCT ID vì bảng Supplier không có ProductID
-        }
-
-        System.out.println("\n=== 5. TEST SEARCH BY NAME ===");
-        String keyword = "Test";
-        List<Supplier> searchResult = dao.searchByName(keyword);
-        System.out.println("Kết quả tìm kiếm cho từ khóa '" + keyword + "': " + searchResult.size() + " dòng");
-        for (Supplier s : searchResult) {
-            System.out.println("- " + s.getName() + " (" + s.getEmail() + ")");
-        }
-
-        System.out.println("\n=== 6. TEST COUNT ===");
-        int count = dao.count(keyword);
-        System.out.println("✅ Tổng số lượng Supplier chứa từ khóa '" + keyword + "': " + count);
-
-        System.out.println("\n=== 7. TEST SEARCH & PAGINATE ===");
-        // Lấy trang 1, mỗi trang tối đa 5 bản ghi (offset = 0, limit = 5)
-        List<Supplier> paginatedList = dao.searchAndPaginate(keyword, 0, 5);
-        System.out.println("Kết quả phân trang (limit 5, offset 0):");
-        for (Supplier s : paginatedList) {
-            System.out.println("- ID: " + s.getId() + " | " + s.getName());
-        }
+        return false;
     }
-}
+
+    // ===============================
+    // DELETE
+    // ===============================
+    public boolean delete(int id) {
+        String sql = "DELETE FROM Supplier WHERE SupplierID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+}

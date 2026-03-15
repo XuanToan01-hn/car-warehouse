@@ -12,6 +12,8 @@ public class PurchaseOrder {
     private double totalAmount;
     private User createBy;
     private List<PurchaseOrderDetail> details;
+    private int orderedQty;
+    private int receivedQty;
 
     public PurchaseOrder() {
     }
@@ -80,6 +82,22 @@ public class PurchaseOrder {
         this.details = details;
     }
 
+    public int getOrderedQty() {
+        return orderedQty;
+    }
+
+    public void setOrderedQty(int orderedQty) {
+        this.orderedQty = orderedQty;
+    }
+
+    public int getReceivedQty() {
+        return receivedQty;
+    }
+
+    public void setReceivedQty(int receivedQty) {
+        this.receivedQty = receivedQty;
+    }
+
     public String getStatusLabel() {
         switch (status) {
             case 1:
@@ -90,6 +108,8 @@ public class PurchaseOrder {
                 return "Received";
             case 4:
                 return "Cancelled";
+            case 5:
+                return "Done";
             default:
                 return "Unknown";
         }

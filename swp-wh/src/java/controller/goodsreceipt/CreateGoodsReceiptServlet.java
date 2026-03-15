@@ -51,6 +51,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
         GoodsReceiptDAO grDAO = new GoodsReceiptDAO();
         PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
+        LocationDAO locationDAO = new LocationDAO();
         User currentUser = (User) request.getSession().getAttribute("user");
         // DEV fallback: nếu chưa đăng nhập, dùng mock user ID=1
         if (currentUser == null) {
@@ -62,6 +63,42 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             int poId = Integer.parseInt(request.getParameter("poId"));
             int locationId = Integer.parseInt(request.getParameter("locationId"));
             String note = request.getParameter("note");
+
+            String[] productIds = request.getParameterValues("productId[]");
+            String[] qtyExpected = request.getParameterValues("qtyExpected[]");
+            String[] qtyActual  = request.getParameterValues("qtyActual[]");
+            String[] productDetailIds = request.getParameterValues("productDetailId[]");
+
+            if (productIds == null || productIds.length == 0) {
+                request.setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
+                doGet(request, response);
+                return;
+            }
+
+            // ---- Validate location capacity ----
+            Location location = locationDAO.getById(locationId);
+            if (location != null && location.getMaxCapacity() != null && location.getMaxCapacity() > 0) {
+                int totalActualQty = 0;
+                if (qtyActual != null) {
+                    for (String qa : qtyActual) {
+                        if (qa != null && !qa.isEmpty()) {
+                            totalActualQty += Integer.parseInt(qa);
+                        }
+                    }
+                }
+                int remaining = location.getMaxCapacity() - location.getCurrentStock();
+                if (totalActualQty > remaining) {
+                    String locName = location.getLocationName();
+                    request.setAttribute("error",
+                        "Kho \"" + locName + "\" đã đầy hoặc không đủ chỗ! "
+                        + "Sức chứa còn lại: " + remaining + " units, "
+                        + "số lượng cần nhập: " + totalActualQty + " units. "
+                        + "Vui lòng chọn kho khác hoặc giảm số lượng nhận.");
+                    doGet(request, response);
+                    return;
+                }
+            }
+            // ---- End capacity validation ----
 
             // Build GoodsReceipt header
             GoodsReceipt gr = new GoodsReceipt();
@@ -77,35 +114,32 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             gr.setCreateBy(currentUser);
 
             // Build detail list từ form
-            String[] productIds = request.getParameterValues("productId[]");
-            String[] qtyExpected = request.getParameterValues("qtyExpected[]");
-            // qtActual không cần thiết khi tạo draft, lấy mảng về chỉ đễ phòng hờ
-            String[] qtyActual = request.getParameterValues("qtyActual[]");
-
             List<GoodsReceiptDetail> details = new java.util.ArrayList<>();
-            if (productIds == null || productIds.length == 0) {
-                request.setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
-                doGet(request, response);
-                return;
-            }
-            if (productIds != null) {
-                for (int i = 0; i < productIds.length; i++) {
-                    GoodsReceiptDetail d = new GoodsReceiptDetail();
-                    Product p = new Product();
-                    p.setId(Integer.parseInt(productIds[i]));
-                    d.setProduct(p);
-                    int expected = Integer.parseInt(qtyExpected[i]);
-                    d.setQuantityExpected(expected);
+            for (int i = 0; i < productIds.length; i++) {
+                GoodsReceiptDetail d = new GoodsReceiptDetail();
+                Product p = new Product();
+                p.setId(Integer.parseInt(productIds[i]));
+                d.setProduct(p);
 
-                    // Lấy actual từ form nếu có, nếu không thì bằng expected
-                    if (qtyActual != null && qtyActual.length > i && qtyActual[i] != null && !qtyActual[i].isEmpty()) {
-                        d.setQuantityActual(Integer.parseInt(qtyActual[i]));
-                    } else {
-                        d.setQuantityActual(expected);
+                // Set ProductDetail nếu user đã chọn variant
+                if (productDetailIds != null && productDetailIds.length > i) {
+                    int pdId = Integer.parseInt(productDetailIds[i]);
+                    if (pdId > 0) {
+                        ProductDetail pd = new ProductDetail();
+                        pd.setId(pdId);
+                        d.setProductDetail(pd);
                     }
-
-                    details.add(d);
                 }
+
+                int expected = Integer.parseInt(qtyExpected[i]);
+                d.setQuantityExpected(expected);
+
+                if (qtyActual != null && qtyActual.length > i && qtyActual[i] != null && !qtyActual[i].isEmpty()) {
+                    d.setQuantityActual(Integer.parseInt(qtyActual[i]));
+                } else {
+                    d.setQuantityActual(expected);
+                }
+                details.add(d);
             }
 
             int receiptId = grDAO.createDraft(gr, details);

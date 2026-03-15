@@ -60,17 +60,33 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
             int currentRole = currentUser.getRole().getId();
 
             // Authorization logic:
-            // - Draft (status 1) -> Confirmed (status 2): Only Manager (role 2) can do Confirm/Cancel
-            // - Confirmed (status 2) -> Received (status 3) or Cancelled (status 4): Only Staff (role 3) can do Mark Received/Cancel
+            // Draft (status 1):
+            // - Confirm (-> status 2): Warehouse Manager (role 2) only
+            // - Cancel (-> status 4): Warehouse Manager (role 2) OR Purchasing Staff (role
+            // 5)
+            // Confirmed (status 2):
+            // - Mark Received (-> status 3): Inventory Staff (role 3) only
+            // - Cancel (-> status 4): Warehouse Manager (role 2) OR Purchasing Staff (role
+            // 5)
 
             boolean authorized = false;
 
             if (po.getStatus() == 1) {
-                // Draft: only manager can approve or cancel
-                authorized = (currentRole == 2);
+                if (newStatus == 2) {
+                    // Confirm: only Warehouse Manager
+                    authorized = (currentRole == 2);
+                } else if (newStatus == 4) {
+                    // Cancel from Draft: Manager or Purchasing Staff
+                    authorized = (currentRole == 2 || currentRole == 5);
+                }
             } else if (po.getStatus() == 2) {
-                // Confirmed: only staff can mark received or cancel
-                authorized = (currentRole == 3);
+                if (newStatus == 3) {
+                    // Mark Received: only Inventory Staff
+                    authorized = (currentRole == 3);
+                } else if (newStatus == 4) {
+                    // Cancel from Confirmed: only Manager (PO already approved, Purchasing Staff cannot cancel)
+                    authorized = (currentRole == 2);
+                }
             }
 
             if (!authorized) {

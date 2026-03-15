@@ -40,14 +40,49 @@
                         box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, .25);
                         border-color: #28a745;
                     }
-                    .diff-ok { color: #28a745; font-weight: bold; }
-                    .diff-warn { color: #dc3545; font-weight: bold; }
+
+                    .diff-ok {
+                        color: #28a745;
+                        font-weight: bold;
+                    }
+
+                    .diff-warn {
+                        color: #dc3545;
+                        font-weight: bold;
+                    }
 
                     #no-po-msg {
                         color: #6c757d;
                         text-align: center;
                         padding: 40px 0;
                         font-size: 1rem;
+                    }
+
+                    /* ---- Capacity badge ---- */
+                    #location-group {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+
+                    #location-group select {
+                        flex: 1;
+                    }
+
+                    #capacity-badge {
+                        display: none;
+                        white-space: nowrap;
+                        padding: 5px 12px;
+                        border-radius: 8px;
+                        font-size: 0.82rem;
+                        font-weight: 600;
+                        background: #EFF6FF;
+                        border: 1px solid #BFDBFE;
+                        color: #1D4ED8;
+                    }
+
+                    #capacity-badge i {
+                        margin-right: 4px;
                     }
                 </style>
             </head>
@@ -70,13 +105,14 @@
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <div class="header-title">
                                                     <h4 class="card-title"><i
-                                                            class="fas fa-truck-loading mr-2 text-success"></i>Create Goods
+                                                            class="fas fa-truck-loading mr-2 text-success"></i>Create
+                                                        Goods
                                                         Receipt Order</h4>
                                                 </div>
                                                 <a href="${pageContext.request.contextPath}/goods-receipt"
                                                     class="btn btn-secondary">
-<%--                                                    <i class="fas fa-arrow-left mr-1"></i> --%>
-                                                    Back
+                                                    <%-- <i class="fas fa-arrow-left mr-1"></i> --%>
+                                                        Back
                                                 </a>
                                             </div>
                                             <div class="card-body">
@@ -116,15 +152,30 @@
                                                         <div class="col-md-6">
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold"><i
-                                                                        class="fas fa-map-marker-alt mr-1 text-danger"></i>Receiving Warehouse location<span
+                                                                        class="fas fa-map-marker-alt mr-1 text-danger"></i>Receiving
+                                                                    Warehouse location<span
                                                                         class="text-danger">*</span></label>
-                                                                <select name="locationId" class="form-control" required>
-                                                                    <option value="">-- Chọn Location --</option>
-                                                                    <c:forEach var="loc" items="${locations}">
-                                                                        <option value="${loc.id}">${loc.locationName}
-                                                                            (${loc.locationCode})</option>
-                                                                    </c:forEach>
-                                                                </select>
+                                                                <div id="location-group">
+                                                                    <select id="locationSelect" name="locationId"
+                                                                        class="form-control" required
+                                                                        onchange="updateCapacityBadge()">
+                                                                        <option value="">-- Chọn Location --</option>
+                                                                        <c:forEach var="loc" items="${locations}">
+                                                                            <option value="${loc.id}"
+                                                                                data-maxcapacity="${loc.maxCapacity}"
+                                                                                data-currentstock="${loc.currentStock}">
+                                                                                ${loc.locationName}
+                                                                                (${loc.locationCode})
+                                                                            </option>
+                                                                        </c:forEach>
+                                                                    </select>
+                                                                    <div id="capacity-badge">
+                                                                        <i class="fas fa-boxes"></i>
+                                                                        <span id="capacity-value">—</span>
+                                                                    </div>
+                                                                </div>
+                                                                <!-- Vùng chứa thông báo capacity (cố định vị trí) -->
+                                                                <div id="capacity-warnings"></div>
                                                             </div>
                                                         </div>
 
@@ -147,7 +198,8 @@
                                             <div class="card mt-3">
                                                 <div class="card-header">
                                                     <h5 class="card-title mb-0"><i
-                                                            class="fas fa-list mr-2 text-success"></i>Product Details to be Imported</h5>
+                                                            class="fas fa-list mr-2 text-success"></i>Product Details to
+                                                        be Imported</h5>
                                                 </div>
                                                 <div class="card-body">
                                                     <div id="po-info-box" class="po-info-box d-none">
@@ -163,16 +215,17 @@
                                                                     <th>#</th>
                                                                     <th>Product Code</th>
                                                                     <th>Product Name</th>
+                                                                    <th>Variant</th>
                                                                     <th class="text-center">Order quantity</th>
-                                                                    <th class="text-center">Actual quantity receivedspan class="text-danger"></span>
-                                                                    </th>
+                                                                    <th class="text-center">Actual quantity received</th>
                                                                     <th class="text-center">Difference</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="product-tbody">
                                                                 <tr id="no-po-msg-row">
-                                                                    <td colspan="6" id="no-po-msg"><i
-                                                                            class="fas fa-hand-point-up mr-2"></i>Please select Purchase Order to view the product.</td>
+                                                                    <td colspan="7" id="no-po-msg"><i
+                                                                            class="fas fa-hand-point-up mr-2"></i>Please
+                                                                        select Purchase Order to view the product.</td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -197,12 +250,21 @@
                                                     supplier: '${selectedPO.supplier.name}',
                                                         details: [
                                                             <c:forEach var="d" items="${selectedPO.details}" varStatus="st">
+                                                                <c:set var="vLbl" value="-" />
+                                                                <c:if test="${d.productDetail != null}">
+                                                                    <c:set var="vLbl" value="${d.productDetail.serialNumber}" />
+                                                                    <c:if test="${not empty d.productDetail.color}">
+                                                                        <c:set var="vLbl" value="${vLbl} (${d.productDetail.color})" />
+                                                                    </c:if>
+                                                                </c:if>
                                                                 {
                                                                     productId: ${d.product.id},
-                                                                code: '${d.product.code}',
-                                                                name: '${d.product.name}',
-                                                                quantity: ${d.quantity}
-                                    }<c:if test="${!st.last}">,</c:if>
+                                                                    code: '${d.product.code}',
+                                                                    name: '${d.product.name}',
+                                                                    quantity: ${d.quantity},
+                                                                    pdId: ${d.productDetail != null ? d.productDetail.id : 0},
+                                                                    variantLabel: '${vLbl}'
+                                                                }<c:if test="${!st.last}">,</c:if>
                                                             </c:forEach>
                                                         ]
                             };
@@ -257,7 +319,7 @@
 
                         if (!poId) {
                             infoArea.classList.add('d-none');
-                            tbody.innerHTML = '<tr><td colspan="5" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="7" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
                             submitBtn.disabled = true;
                             return;
                         }
@@ -289,18 +351,27 @@
 
                         var html = '';
                         if (!details || details.length === 0) {
-                            html = '<tr><td colspan="6" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
+                            html = '<tr><td colspan="7" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
                             submitBtn.disabled = true;
                         } else {
                             details.forEach(function (d, idx) {
+                                // Build variant display
+                                var variantHtml = '';
+                                if (d.pdId && d.pdId > 0) {
+                                    variantHtml = '<span class="text-primary font-weight-bold">' + (d.variantLabel || '') + '</span>' +
+                                                  '<input type="hidden" name="productDetailId[]" form="groForm" value="' + d.pdId + '">';
+                                } else {
+                                    variantHtml = '<span class="text-muted">-</span><input type="hidden" name="productDetailId[]" form="groForm" value="0">';
+                                }
                                 html += '<tr>' +
                                     '<td>' + (idx + 1) + '</td>' +
                                     '<td><code>' + (d.code || d.productCode || '') + '</code></td>' +
                                     '<td>' + (d.name || d.productName || '') + '</td>' +
+                                    '<td>' + variantHtml + '</td>' +
                                     '<td class="text-center font-weight-bold">' + d.quantity + '</td>' +
                                     '<td class="text-center">' +
                                     '<input type="number" class="form-control qty-actual-input text-center" ' +
-                                    'name="qtyActual[]" form="groForm" min="0" value="' + d.quantity + '" required style="width:100px;margin:auto;" data-min="0">' +
+                                    'name="qtyActual[]" form="groForm" min="0" max="' + d.quantity + '" value="' + d.quantity + '" required style="width:100px;margin:auto;" data-min="0">' +
                                     '<input type="hidden" name="productId[]" form="groForm" value="' + d.productId + '">' +
                                     '<input type="hidden" name="qtyExpected[]" form="groForm" value="' + d.quantity + '">' +
                                     '</td>' +
@@ -314,6 +385,8 @@
                             input.addEventListener('input', updateDiffInRow);
                             input.addEventListener('change', updateDiffInRow);
                         });
+                        // Re-check capacity whenever PO products are loaded
+                        updateCapacityBadge();
                     }
 
                     function updateDiffInRow(e) {
@@ -329,9 +402,25 @@
                             actualInput.value = 0;
                         }
                         var expected = parseInt(expectedInput.value, 10) || 0;
+                        if (actual > expected) {
+                            actual = expected;
+                            actualInput.value = expected;
+                        }
                         var diff = expected - actual;
                         span.textContent = diff === 0 ? '0' : (diff > 0 ? diff : diff);
                         span.className = 'diff-display ' + (diff <= 0 ? 'diff-ok' : 'diff-warn');
+                        // Re-check qty vs capacity whenever actual qty changes
+                        var sel = document.getElementById('locationSelect');
+                        var opt = sel ? sel.options[sel.selectedIndex] : null;
+                        if (opt && opt.value) {
+                            var cap = opt.getAttribute('data-maxcapacity');
+                            var stock = opt.getAttribute('data-currentstock');
+                            var capNum = (cap !== null && cap !== '' && cap !== 'null') ? parseInt(cap, 10) : null;
+                            var stockNum = (stock !== null && stock !== '' && stock !== 'null') ? parseInt(stock, 10) : 0;
+                            if (capNum !== null) {
+                                checkQtyVsCapacity(capNum - stockNum);
+                            }
+                        }
                     }
 
                     // On page load: if preloaded PO exists, render it
@@ -348,14 +437,119 @@
                         document.getElementById('poSelect').addEventListener('change', loadPOProducts);
                     });
 
+                    // ---- Location capacity badge & full-validation ----
+                    function updateCapacityBadge() {
+                        var sel = document.getElementById('locationSelect');
+                        var badge = document.getElementById('capacity-badge');
+                        var valEl = document.getElementById('capacity-value');
+                        var opt = sel.options[sel.selectedIndex];
+
+                        // Remove any previous full-warning
+                        var prevWarn = document.getElementById('location-full-warning');
+                        if (prevWarn) prevWarn.remove();
+
+                        if (!opt || !opt.value) {
+                            badge.style.display = 'none';
+                            return;
+                        }
+                        var cap = opt.getAttribute('data-maxcapacity');
+                        var stock = opt.getAttribute('data-currentstock');
+                        var capNum = (cap !== null && cap !== '' && cap !== 'null') ? parseInt(cap, 10) : null;
+                        var stockNum = (stock !== null && stock !== '' && stock !== 'null') ? parseInt(stock, 10) : 0;
+
+                        if (capNum !== null) {
+                            valEl.textContent = stockNum.toLocaleString() + ' / ' + capNum.toLocaleString() + ' units';
+                            var remaining = capNum - stockNum;
+                            if (remaining <= 0) {
+                                // Location is completely full
+                                badge.style.background = '#FEE2E2';
+                                badge.style.borderColor = '#FCA5A5';
+                                badge.style.color = '#DC2626';
+                                var warnBox = document.getElementById('capacity-warnings');
+                                warnBox.innerHTML = '<div id="location-full-warning" class="alert alert-danger mt-2 mb-0" style="border-radius:10px;">'
+                                    + '<i class="fas fa-exclamation-triangle mr-2"></i>'
+                                    + 'Kho <strong>' + opt.text.trim() + '</strong> đã đầy (<strong>' + stockNum + ' / ' + capNum + '</strong> units). Vui lòng chọn kho khác!'
+                                    + '</div>';
+                                document.getElementById('submitBtn').disabled = true;
+                            } else {
+                                badge.style.background = '#EFF6FF';
+                                badge.style.borderColor = '#BFDBFE';
+                                badge.style.color = '#1D4ED8';
+                                checkQtyVsCapacity(remaining);
+                            }
+                        } else {
+                            valEl.textContent = stockNum.toLocaleString() + ' units (no limit)';
+                            badge.style.background = '#EFF6FF';
+                            badge.style.borderColor = '#BFDBFE';
+                            badge.style.color = '#1D4ED8';
+                        }
+                        badge.style.display = 'inline-flex';
+                        badge.style.alignItems = 'center';
+                    }
+
+                    function getTotalActualQty() {
+                        var total = 0;
+                        document.querySelectorAll('input[name="qtyActual[]"]').forEach(function (inp) {
+                            total += parseInt(inp.value, 10) || 0;
+                        });
+                        return total;
+                    }
+
+                    function checkQtyVsCapacity(remaining) {
+                        var warnBox = document.getElementById('capacity-warnings');
+                        // Xóa warning cũ (chỉ xóa qty-capacity, giữ full-warning nếu có)
+                        var prevQtyWarn = document.getElementById('qty-capacity-warning');
+                        if (prevQtyWarn) prevQtyWarn.remove();
+
+                        var totalQty = getTotalActualQty();
+                        var submitBtn = document.getElementById('submitBtn');
+                        var items = document.querySelectorAll('input[name="productId[]"]');
+                        if (items.length === 0) return; // no PO selected yet
+
+                        if (remaining !== undefined && totalQty > remaining) {
+                            warnBox.innerHTML = '<div id="qty-capacity-warning" class="alert alert-warning mt-2 mb-0" style="border-radius:10px;">'
+                                + '<i class="fas fa-exclamation-circle mr-2"></i>'
+                                + 'Tổng số lượng nhận (<strong>' + totalQty + '</strong>) vượt quá sức chứa còn lại của kho (<strong>' + remaining + '</strong> units). '
+                                + 'Vui lòng giảm số lượng hoặc chọn kho khác.'
+                                + '</div>';
+                            submitBtn.disabled = true;
+                        } else {
+                            if (items.length > 0) submitBtn.disabled = false;
+                        }
+                    }
+
                     // Form validation
                     document.getElementById('groForm').addEventListener('submit', function (e) {
                         var items = document.querySelectorAll('input[name="productId[]"]');
                         if (items.length === 0) {
                             e.preventDefault();
                             alert('Vui lòng chọn Purchase Order trước khi xác nhận!');
+                            return;
+                        }
+                        
+                        var invalid = false;
+                        document.querySelectorAll('#product-tbody tr').forEach(function (row) {
+                            var actualInput = row.querySelector('input[name="qtyActual[]"]');
+                            var expectedInput = row.querySelector('input[name="qtyExpected[]"]');
+                            if (!actualInput || !expectedInput) return;
+                            var expected = parseInt(expectedInput.value, 10) || 0;
+                            var actual = parseInt(actualInput.value, 10) || 0;
+                            if (actual > expected) {
+                                actualInput.style.borderColor = '#EF4444';
+                                actualInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,.2)';
+                                invalid = true;
+                            } else {
+                                actualInput.style.borderColor = '';
+                                actualInput.style.boxShadow = '';
+                            }
+                        });
+                        
+                        if (invalid) {
+                            e.preventDefault();
+                            alert('Actual Received Qty cannot exceed Expected Qty. Please correct the highlighted rows.');
                         }
                     });
+
                 </script>
             </body>
 

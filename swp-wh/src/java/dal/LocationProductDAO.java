@@ -3,13 +3,15 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package dal;
+
 import context.DBContext;
 import model.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+
 /**
- *
+ *d
  * @author Asus
  */
 public class LocationProductDAO extends DBContext {
@@ -20,7 +22,7 @@ public class LocationProductDAO extends DBContext {
         List<LocationProduct> list = new ArrayList<>();
         String sql = "SELECT * FROM Location_Product";
         try (PreparedStatement ps = connection.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+                ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
                 list.add(mapRow(rs));
             }
@@ -29,16 +31,20 @@ public class LocationProductDAO extends DBContext {
         }
         return list;
     }
+
     public int getStockAtLocation(int locId, int pdId) {
-    String sql = "SELECT Quantity FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setInt(1, locId);
-        ps.setInt(2, pdId);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) return rs.getInt(1);
-    } catch (SQLException e) { e.printStackTrace(); }
-    return 0;
-}
+        String sql = "SELECT Quantity FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, locId);
+            ps.setInt(2, pdId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
 
     public int getStockQuantity(int productDetailId) {
         String sql = "SELECT SUM(Quantity) FROM Location_Product WHERE ProductDetailID = ?";
@@ -53,13 +59,15 @@ public class LocationProductDAO extends DBContext {
         }
         return 0;
     }
+
     public LocationProduct getByCompositeId(int locationId, int productDetailId) {
         String sql = "SELECT * FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, locationId);
             ps.setInt(2, productDetailId);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return mapRow(rs);
+            if (rs.next())
+                return mapRow(rs);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -77,12 +85,11 @@ public class LocationProductDAO extends DBContext {
     }
 
     private void insert(LocationProduct lp) {
-        String sql = "INSERT INTO Location_Product (LocationID, ProductDetailID, ProductID, Quantity) VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO Location_Product (LocationID, ProductDetailID, Quantity) VALUES (?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, lp.getLocation().getId());
             ps.setInt(2, lp.getProductDetail().getId());
-            ps.setInt(3, lp.getProductDetail().getProduct().getId());
-            ps.setInt(4, lp.getQuantity());
+            ps.setInt(3, lp.getQuantity());
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

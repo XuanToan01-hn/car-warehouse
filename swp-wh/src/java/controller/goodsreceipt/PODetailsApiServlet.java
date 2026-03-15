@@ -37,6 +37,7 @@ public class PODetailsApiServlet extends HttpServlet {
             }
 
             // Build JSON manually (no Gson dependency needed)
+            dal.ProductDetailDAO pdDAO = new dal.ProductDetailDAO();
             StringBuilder sb = new StringBuilder();
             sb.append("{");
             sb.append("\"id\":").append(po.getId()).append(",");
@@ -55,7 +56,23 @@ public class PODetailsApiServlet extends HttpServlet {
                     sb.append("\"productId\":").append(d.getProduct().getId()).append(",");
                     sb.append("\"code\":\"").append(escapeJson(d.getProduct().getCode())).append("\",");
                     sb.append("\"name\":\"").append(escapeJson(d.getProduct().getName())).append("\",");
-                    sb.append("\"quantity\":").append(d.getQuantity());
+                    sb.append("\"quantity\":").append(d.getQuantity()).append(",");
+
+                    if (d.getProductDetail() != null) {
+                        sb.append("\"pdId\":").append(d.getProductDetail().getId()).append(",");
+                        String label = d.getProductDetail().getSerialNumber();
+                        if (d.getProductDetail().getLotNumber() != null
+                                && !d.getProductDetail().getLotNumber().isEmpty()) {
+                            label = "Lot: " + d.getProductDetail().getLotNumber() + " | Ser: " + label;
+                        }
+                        if (d.getProductDetail().getColor() != null && !d.getProductDetail().getColor().isEmpty()) {
+                            label += " (" + d.getProductDetail().getColor() + ")";
+                        }
+                        sb.append("\"variantLabel\":\"").append(escapeJson(label)).append("\"");
+                    } else {
+                        sb.append("\"pdId\":0,");
+                        sb.append("\"variantLabel\":\"-\"");
+                    }
                     sb.append("}");
                 }
             }

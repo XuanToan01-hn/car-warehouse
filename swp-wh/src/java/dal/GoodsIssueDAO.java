@@ -13,9 +13,59 @@ public class GoodsIssueDAO extends DBContext {
     private final LocationDAO locationDAO = new LocationDAO();
 
 
+    public static void main(String[] args) {
+        System.out.println("hehe");
+//        GoodsIssueDAO dao = new GoodsIssueDAO();
+//
+//        // 1. Tạo đối tượng GoodsIssue giả lập
+//        GoodsIssue gi = new GoodsIssue();
+//        gi.setIssueCode("TEST-GIN-" + System.currentTimeMillis());
+//
+//        // Giả sử SalesOrder ID = 1
+//        SalesOrder so = new SalesOrder();
+//        so.setId(1);
+//        so.setStatus(2); // Giả lập trạng thái hiện tại là 2
+//        gi.setSalesOrder(so);
+//
+//        // Giả sử Location ID = 1
+//        Location loc = new Location();
+//        loc.setId(1);
+//        gi.setLocation(loc);
+//
+//        // Giả sử User ID = 1 (Người tạo)
+//        User u = new User();
+//        u.setId(1);
+//        gi.setCreateBy(u);
+//
+//        gi.setStatus(1); // Trạng thái phiếu xuất: Created
+//
+//        // 2. Tạo danh sách chi tiết GoodsIssueDetail
+//        List<GoodsIssueDetail> details = new ArrayList<>();
+//
+//        // Giả sử ProductDetail ID = 1, xuất 4 cái, nợ cũ là 5
+//        GoodsIssueDetail d1 = new GoodsIssueDetail();
+//        ProductDetail pd1 = new ProductDetail();
+//        pd1.setId(1);
+//        d1.setProductDetail(pd1);
+//        d1.setQuantityActual(4);
+//        d1.setQuantityExpected(5);
+//
+//        details.add(d1);
+//
+//        // 3. Thực hiện gọi hàm confirm
+//        System.out.println("--- BẮT ĐẦU TEST INSERT ---");
+//        boolean result = dao.confirmIssue(gi, details);
+//
+//        if (result) {
+//            System.out.println("SUCCESS: Đã lưu phiếu xuất, trừ kho và ghi log thành công!");
+//        } else {
+//            System.err.println("FAILED: Có lỗi xảy ra. Kiểm tra console ở trên để xem StackTrace SQL!");
+//        }
+    }
+
     public List<SalesOrder> getOrdersForIssue() {
         List<SalesOrder> list = new ArrayList<>();
-        // Logic: Get orders with status 1 (Created) or 2 (Partially Delivered) 
+        // Logic: Get orders with status 1 (Created) or 2 (Partially Delivered)
         // focus on cumulative quantity check
         String sql = "SELECT * FROM ("
                 + "SELECT so.*, "
@@ -79,103 +129,108 @@ public class GoodsIssueDAO extends DBContext {
         return uiDetails;
     }
 
-public boolean confirmIssue(GoodsIssue gi, List<GoodsIssueDetail> details) {
+    public boolean confirmIssue(GoodsIssue gi, List<GoodsIssueDetail> details) {
 
-    String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, CreateBy) "
-                 + "VALUES (?, ?, ?, GETDATE(), ?, ?)";
+        String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, CreateBy) "
+                + "VALUES (?, ?, ?, GETDATE(), ?, ?)";
 
-    String sqlGID = "INSERT INTO Goods_Issue_Detail "
-                  + "(IssueID, ProductDetailID, QuantityExpected, QuantityActual) "
-                  + "VALUES (?, ?, ?, ?)";
+        String sqlGID = "INSERT INTO Goods_Issue_Detail "
+                + "(IssueID, ProductDetailID, QuantityExpected, QuantityActual) "
+                + "VALUES (?, ?, ?, ?)";
 
-    String sqlUpdateStock = "UPDATE Location_Product "
-                          + "SET Quantity = Quantity - ? "
-                          + "WHERE LocationID = ? AND ProductDetailID = ?";
+        String sqlUpdateStock = "UPDATE Location_Product "
+                + "SET Quantity = Quantity - ? "
+                + "WHERE LocationID = ? AND ProductDetailID = ?";
 
-    // ✅ LOG ĐÚNG THEO SCHEMA
-    String sqlLog = "INSERT INTO Inventory_Transaction "
-                  + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) "
-                  + "VALUES ((SELECT ProductID FROM Product_Detail WHERE ProductDetailID=?), ?, ?, 2, ?, ?)";
+        // ✅ LOG ĐÚNG THEO SCHEMA
+        String sqlLog = "INSERT INTO Inventory_Transaction "
+                + "(ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) "
+                + "VALUES (?, ?, 2, ?, ?)";
 
-    try {
-        connection.setAutoCommit(false);
+        try {
+            connection.setAutoCommit(false);
 
-        int issueId = -1;
+            int issueId = -1;
 
-        // ===== 1. INSERT HEADER =====
-        try (PreparedStatement psGI = connection.prepareStatement(sqlGI, Statement.RETURN_GENERATED_KEYS)) {
+            // ===== 1. INSERT HEADER =====
+            try (PreparedStatement psGI = connection.prepareStatement(sqlGI, Statement.RETURN_GENERATED_KEYS)) {
 
-            psGI.setString(1, gi.getIssueCode());
-            psGI.setInt(2, gi.getSalesOrder().getId());
-            psGI.setInt(3, gi.getLocation().getId());
-            psGI.setInt(4, gi.getStatus());
-            psGI.setInt(5, gi.getCreateBy().getId());
+                psGI.setString(1, gi.getIssueCode());
+                psGI.setInt(2, gi.getSalesOrder().getId());
+                psGI.setInt(3, gi.getLocation().getId());
+                psGI.setInt(4, gi.getStatus());
+                psGI.setInt(5, gi.getCreateBy().getId());
 
-            psGI.executeUpdate();
+                psGI.executeUpdate();
 
-            ResultSet rs = psGI.getGeneratedKeys();
-            if (rs.next()) {
-                issueId = rs.getInt(1);
+                ResultSet rs = psGI.getGeneratedKeys();
+                if (rs.next()) {
+                    issueId = rs.getInt(1);
+                }
+            }
+
+            // ===== 2. DETAIL + STOCK + LOG =====
+            try (PreparedStatement psGID = connection.prepareStatement(sqlGID);
+                    PreparedStatement psStock = connection.prepareStatement(sqlUpdateStock);
+                    PreparedStatement psLog = connection.prepareStatement(sqlLog)) {
+
+                for (GoodsIssueDetail d : details) {
+                    int pdId = d.getProductDetail().getId();
+                    int qty = d.getQuantityActual();
+
+                    // 2.1 Insert detail
+                    psGID.setInt(1, issueId);
+                    psGID.setInt(2, pdId);
+                    psGID.setInt(3, d.getQuantityExpected());
+                    psGID.setInt(4, qty);
+                    psGID.executeUpdate();
+
+                    // 2.2 Trừ kho
+                    psStock.setInt(1, qty);
+                    psStock.setInt(2, gi.getLocation().getId());
+                    psStock.setInt(3, pdId);
+
+                    int affected = psStock.executeUpdate();
+                    if (affected == 0) {
+                        throw new SQLException("Không tìm thấy dòng tồn kho cho ProductDetailID: " + pdId
+                                + " tại Location: " + gi.getLocation().getId());
+                    }
+
+                    // 2.3 Ghi log inventory
+                    // Lưu ý: Cẩn thận thứ tự tham số (?)
+                    psLog.setInt(1, pdId); // Cho cột ProductDetailID
+                    psLog.setInt(2, gi.getLocation().getId()); // Cho cột LocationID
+                    psLog.setInt(3, qty); // Cho cột Quantity
+                    psLog.setString(4, gi.getIssueCode()); // Cho cột ReferenceCode
+
+                    int logAffected = psLog.executeUpdate();
+                    if (logAffected == 0) {
+                        System.err.println("CẢNH BÁO: Không thể ghi Log cho SP ID: " + pdId);
+                    }
+                }
+            }
+
+            // ===== 3. UPDATE SALES ORDER STATUS =====
+            updateSalesOrderStatus(gi.getSalesOrder().getId());
+
+            connection.commit();
+            return true;
+
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (Exception ex) {
+            }
+            e.printStackTrace();
+            return false;
+
+        } finally {
+            try {
+                connection.setAutoCommit(true);
+            } catch (Exception e) {
             }
         }
-
-        // ===== 2. DETAIL + STOCK + LOG =====
-     try (PreparedStatement psGID = connection.prepareStatement(sqlGID);
-     PreparedStatement psStock = connection.prepareStatement(sqlUpdateStock);
-     PreparedStatement psLog = connection.prepareStatement(sqlLog)) {
-
-    for (GoodsIssueDetail d : details) {
-        int pdId = d.getProductDetail().getId();
-        int qty = d.getQuantityActual();
-
-        // 2.1 Insert detail
-        psGID.setInt(1, issueId);
-        psGID.setInt(2, pdId);
-        psGID.setInt(3, d.getQuantityExpected());
-        psGID.setInt(4, qty);
-        psGID.executeUpdate();
-
-        // 2.2 Trừ kho
-        psStock.setInt(1, qty);
-        psStock.setInt(2, gi.getLocation().getId());
-        psStock.setInt(3, pdId);
-
-        int affected = psStock.executeUpdate();
-        if (affected == 0) {
-            throw new SQLException("Không tìm thấy dòng tồn kho cho ProductDetailID: " + pdId + " tại Location: " + gi.getLocation().getId());
-        }
-
-        // 2.3 Ghi log inventory
-        // Lưu ý: Cẩn thận thứ tự tham số (?)
-        psLog.setInt(1, pdId); // Cho Subquery (SELECT ProductID...)
-        psLog.setInt(2, pdId); // Cho cột ProductDetailID
-        psLog.setInt(3, gi.getLocation().getId()); // Cho cột LocationID
-        psLog.setInt(4, qty);  // Cho cột Quantity
-        psLog.setString(5, gi.getIssueCode()); // Cho cột ReferenceCode
-
-        int logAffected = psLog.executeUpdate();
-        if (logAffected == 0) {
-            System.err.println("CẢNH BÁO: Không thể ghi Log cho SP ID: " + pdId);
-        }
     }
-}
-
-        // ===== 3. UPDATE SALES ORDER STATUS =====
-        updateSalesOrderStatus(gi.getSalesOrder().getId());
-
-        connection.commit();
-        return true;
-
-    } catch (SQLException e) {
-        try { connection.rollback(); } catch (Exception ex) {}
-        e.printStackTrace();
-        return false;
-
-    } finally {
-        try { connection.setAutoCommit(true); } catch (Exception e) {}
-    }
-}
-
 
     private void updateSalesOrderStatus(int soId) throws SQLException {
         String sqlCheck = "SELECT "

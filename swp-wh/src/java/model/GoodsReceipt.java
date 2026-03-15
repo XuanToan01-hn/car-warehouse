@@ -21,6 +21,8 @@ public class GoodsReceipt {
     private String note;
     private User createBy;
     private List<GoodsReceiptDetail> details;
+    private int totalExpected;
+    private int totalActual;
 
     public GoodsReceipt() {
     }
@@ -97,6 +99,22 @@ public class GoodsReceipt {
         this.details = details;
     }
 
+    public int getTotalExpected() {
+        return totalExpected;
+    }
+
+    public void setTotalExpected(int totalExpected) {
+        this.totalExpected = totalExpected;
+    }
+
+    public int getTotalActual() {
+        return totalActual;
+    }
+
+    public void setTotalActual(int totalActual) {
+        this.totalActual = totalActual;
+    }
+
     public String getStatusLabel() {
         switch (status) {
             case 1:
@@ -105,6 +123,8 @@ public class GoodsReceipt {
                 return "Completed";
             case 3:
                 return "Cancelled";
+            case 4:
+                return "Partially Received";
             default:
                 return "Unknown";
         }
