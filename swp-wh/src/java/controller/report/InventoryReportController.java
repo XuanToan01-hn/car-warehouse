@@ -13,13 +13,14 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.List;
 
 /**
  *
  * @author Asus
  */
-@WebServlet(name="ReportController", urlPatterns={"/report"})
-public class ReportController extends HttpServlet {
+@WebServlet(name="InventoryReportController", urlPatterns={"/inventory-report"})
+public class InventoryReportController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -36,10 +37,10 @@ public class ReportController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet ReportController</title>");  
+            out.println("<title>Servlet InventoryReportController</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet ReportController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet InventoryReportController at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -53,12 +54,34 @@ public class ReportController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-    throws ServletException, IOException {
-        ReportDAO rd = new ReportDAO();
-        
-    } 
+@Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    ReportDAO rd = new ReportDAO();
+    dal.WarehouseDAO wd = new dal.WarehouseDAO();
+    dal.LocationDAO ld = new dal.LocationDAO(); // Cần có DAO này để lấy list Location
+
+    String pName = request.getParameter("productName");
+    String wName = request.getParameter("warehouseName");
+    String locIdStr = request.getParameter("locationId");
+    String pageStr = request.getParameter("page");
+    
+    Integer locationId = (locIdStr == null || locIdStr.isEmpty()) ? 0 : Integer.parseInt(locIdStr);
+    int page = (pageStr == null || pageStr.isEmpty()) ? 1 : Integer.parseInt(pageStr);
+    int pageSize = 10;
+
+    // Truyền thêm locationId vào DAO
+    List<model.LocationProduct> list = rd.getCurrentStock(pName, wName, locationId, page, pageSize, "lp.Quantity", "DESC");
+    int totalRecords = rd.countCurrentStock(pName, wName, locationId);
+    int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+    request.setAttribute("stockList", list);
+    request.setAttribute("warehouses", wd.getAll()); 
+    request.setAttribute("locations", ld.getAll()); // Đẩy danh sách location sang JSP
+    request.setAttribute("totalPages", totalPages);
+    request.setAttribute("currentPage", page);
+    
+    request.getRequestDispatcher("/view/report/inventoryReport.jsp").forward(request, response);
+}
 
     /** 
      * Handles the HTTP <code>POST</code> method.

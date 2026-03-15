@@ -34,7 +34,7 @@ public class SalesOrderServlet extends HttpServlet {
             case "create":
                 showCreateForm(request, response);
                 break;
-            case "getDetailsByProduct": // Thêm action này
+            case "getDetailsByProduct":
             getDetailsByProduct(request, response);
             break;
             case "warehouse-list":

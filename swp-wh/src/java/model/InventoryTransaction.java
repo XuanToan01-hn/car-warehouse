@@ -53,4 +53,3 @@ public class InventoryTransaction {
     public Date getTransactionDate() { return transactionDate; }
     public void setTransactionDate(Date transactionDate) { this.transactionDate = transactionDate; }
 }
-
