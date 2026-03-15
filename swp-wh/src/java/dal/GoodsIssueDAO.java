@@ -93,14 +93,14 @@ public class GoodsIssueDAO extends DBContext {
 
     public List<Object[]> getDetailsForUI(int soId, int locationId) {
         List<Object[]> uiDetails = new ArrayList<>();
-        // Thêm pd.Color vào cuối câu SELECT
+        // Thêm pd.Color và sod.Price
         String sql = "SELECT p.Name, pd.LotNumber, pd.SerialNumber, sod.Quantity as Ordered, "
                 + "ISNULL((SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = sod.SalesOrderID AND gid.ProductDetailID = sod.ProductDetailID), 0) as Delivered, "
                 + "ISNULL((SELECT lp.Quantity FROM Location_Product lp WHERE lp.ProductDetailID = sod.ProductDetailID AND lp.LocationID = ?), 0) as Stock, "
                 + "sod.ProductDetailID, "
-                + "pd.Color "
-                + // Cột mới ở đây (vị trí index 7)
-                "FROM Sales_Order_Detail sod "
+                + "pd.Color, "
+                + "sod.Price "
+                + "FROM Sales_Order_Detail sod "
                 + "JOIN Product_Detail pd ON sod.ProductDetailID = pd.ProductDetailID "
                 + "JOIN Product p ON pd.ProductID = p.ProductID "
                 + "WHERE sod.SalesOrderID = ?";
@@ -110,7 +110,7 @@ public class GoodsIssueDAO extends DBContext {
             ps.setInt(2, soId);
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
-                Object[] row = new Object[8]; // Tăng kích thước mảng lên 8
+                Object[] row = new Object[9]; // Tăng kích thước mảng lên 9
                 row[0] = rs.getString("Name");
                 row[1] = rs.getString("LotNumber") != null ? rs.getString("LotNumber") : rs.getString("SerialNumber");
                 row[2] = rs.getInt("Ordered");
@@ -118,7 +118,8 @@ public class GoodsIssueDAO extends DBContext {
                 row[4] = rs.getInt("Ordered") - rs.getInt("Delivered");
                 row[5] = rs.getInt("Stock");
                 row[6] = rs.getInt("ProductDetailID");
-                row[7] = rs.getString("Color"); // Gán giá trị màu
+                row[7] = rs.getString("Color");
+                row[8] = rs.getDouble("Price");
                 uiDetails.add(row);
             }
         } catch (SQLException e) {

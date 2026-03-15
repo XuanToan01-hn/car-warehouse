@@ -93,7 +93,8 @@
                 </div>
                 <div class="wrapper">
                     <%@ include file="../sidebar.jsp" %>
-                        <div class="content-page">
+                    <jsp:include page="../header.jsp" />
+                    <div class="content-page">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-sm-12">
@@ -215,7 +216,8 @@
                                                                     <th>Product Name</th>
                                                                     <th>Variant</th>
                                                                     <th class="text-center">Order quantity</th>
-                                                                    <th class="text-center">Actual quantity received</th>
+                                                                    <th class="text-center">Actual quantity received
+                                                                    </th>
                                                                     <th class="text-center">Difference</th>
                                                                 </tr>
                                                             </thead>
@@ -257,15 +259,15 @@
                                                                 </c:if>
                                                                 {
                                                                     productId: ${d.product.id},
-                                                                    code: '${d.product.code}',
-                                                                    name: '${d.product.name}',
-                                                                    quantity: ${d.quantity},
-                                                                    pdId: ${d.productDetail != null ? d.productDetail.id : 0},
-                                                                    variantLabel: '${vLbl}'
-                                                                }<c:if test="${!st.last}">,</c:if>
+                                                                code: '${d.product.code}',
+                                                                name: '${d.product.name}',
+                                                                quantity: ${d.quantity},
+                                                                pdId: ${d.productDetail != null ? d.productDetail.id : 0},
+                                                                variantLabel: '${vLbl}'
+                                                            }<c:if test="${!st.last}">,</c:if>
                                                             </c:forEach>
                                                         ]
-                            };
+                                                };
                                             </script>
                                         </c:if>
 
@@ -357,7 +359,7 @@
                                 var variantHtml = '';
                                 if (d.pdId && d.pdId > 0) {
                                     variantHtml = '<span class="text-primary font-weight-bold">' + (d.variantLabel || '') + '</span>' +
-                                                  '<input type="hidden" name="productDetailId[]" form="groForm" value="' + d.pdId + '">';
+                                        '<input type="hidden" name="productDetailId[]" form="groForm" value="' + d.pdId + '">';
                                 } else {
                                     variantHtml = '<span class="text-muted">-</span><input type="hidden" name="productDetailId[]" form="groForm" value="0">';
                                 }
@@ -466,7 +468,7 @@
                                 var warnBox = document.getElementById('capacity-warnings');
                                 warnBox.innerHTML = '<div id="location-full-warning" class="alert alert-danger mt-2 mb-0" style="border-radius:10px;">'
                                     + '<i class="fas fa-exclamation-triangle mr-2"></i>'
-                                    + 'Kho <strong>' + opt.text.trim() + '</strong> đã đầy (<strong>' + stockNum + ' / ' + capNum + '</strong> units). Vui lòng chọn kho khác!'
+                                    + 'Kho <strong> ' + opt.text.trim() + '</strong>  đã đầy (<strong>' + stockNum + ' / ' + capNum + '</strong> units). Vui lòng chọn kho khác!'
                                     + '</div>';
                                 document.getElementById('submitBtn').disabled = true;
                             } else {
@@ -524,7 +526,7 @@
                             alert('Vui lòng chọn Purchase Order trước khi xác nhận!');
                             return;
                         }
-                        
+
                         var invalid = false;
                         document.querySelectorAll('#product-tbody tr').forEach(function (row) {
                             var actualInput = row.querySelector('input[name="qtyActual[]"]');
@@ -541,7 +543,7 @@
                                 actualInput.style.boxShadow = '';
                             }
                         });
-                        
+
                         if (invalid) {
                             e.preventDefault();
                             alert('Actual Received Qty cannot exceed Expected Qty. Please correct the highlighted rows.');

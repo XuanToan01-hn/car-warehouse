@@ -169,8 +169,9 @@
 
             <body>
                 <div class="wrapper">
-                    <%@ include file="../sidebar.jsp" %>
-                        <div class="content-page">
+                    <jsp:include page="../sidebar.jsp" />
+                    <jsp:include page="../header.jsp" />
+                    <div class="content-page">
                             <div class="container-fluid">
 
                                 <!-- Page Header -->

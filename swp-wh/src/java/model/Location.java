@@ -8,8 +8,17 @@ public class Location {
     private String locationName;
     private Integer maxCapacity;
     private int currentStock; // sum of qty in Location_Product
+    private String warehouseName;
 
     public Location() {
+    }
+
+    public String getWarehouseName() {
+        return warehouseName;
+    }
+
+    public void setWarehouseName(String warehouseName) {
+        this.warehouseName = warehouseName;
     }
 
     public int getId() {

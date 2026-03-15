@@ -18,15 +18,14 @@ import model.TransferOrder;
 public class TransferDAO extends DBContext {
 
     // Status Constants
-    public static final int APPROVED = 1;
-    public static final int IN_TRANSIT = 2;
-    public static final int COMPLETED = 3;
+    public static final int PENDING = 0; // Yêu cầu chuyển kho
+    public static final int APPROVED = 1; // Đã duyệt (Phiếu bộ bộ)
+    public static final int IN_TRANSIT = 2; // Đang chuyển (Đã xuất)
+    public static final int COMPLETED = 3; // Đã nhập (Hoàn thành)
+    public static final int CANCELLED = 4; // Đã hủy
 
     public boolean createTransferRequest(TransferOrder order) {
-        // ... (existing code but using constants)
-        // Actually I'll keep it as is to avoid breaking changes if '1' meant something else before.
-        // But the user said 'Approved' is what they want to start with.
-        String sqlOrder = "INSERT INTO Transfer_Order (TransferCode, FromLocationID, ToLocationID, Status, CreateBy) VALUES (?, ?, ?, 1, ?)";
+        String sqlOrder = "INSERT INTO Transfer_Order (TransferCode, FromLocationID, ToLocationID, Status, CreateBy, Note) VALUES (?, ?, ?, 0, ?, ?)";
         String sqlDetail = "INSERT INTO Transfer_Order_Detail (TransferOrderID, ProductDetailID, Quantity) VALUES (?, ?, ?)";
 
         try {
@@ -35,7 +34,8 @@ public class TransferDAO extends DBContext {
             psOrder.setString(1, "TRF-" + System.currentTimeMillis());
             psOrder.setInt(2, order.getFromLocationId());
             psOrder.setInt(3, order.getToLocationId());
-//            psOrder.setInt(4, order.getCreateBy());
+            psOrder.setInt(4, order.getCreateBy());
+            psOrder.setString(5, order.getNote());
             psOrder.executeUpdate();
 
             ResultSet rs = psOrder.getGeneratedKeys();
@@ -64,39 +64,82 @@ public class TransferDAO extends DBContext {
         }
     }
 
+    public boolean approveRequest(int transferId) {
+        String sql = "UPDATE Transfer_Order SET Status = ? WHERE TransferOrderID = ? AND Status = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, APPROVED);
+            ps.setInt(2, transferId);
+            ps.setInt(3, PENDING);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean cancelRequest(int transferId) {
+        String sql = "UPDATE Transfer_Order SET Status = ? WHERE TransferOrderID = ? AND Status = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, CANCELLED);
+            ps.setInt(2, transferId);
+            ps.setInt(3, PENDING);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public TransferOrder getById(int id) {
+        List<TransferOrder> list = getTransfers(null, null, null);
+        for (TransferOrder t : list) {
+            if (t.getId() == id)
+                return t;
+        }
+        return null;
+    }
+
     public List<TransferOrder> getPendingTransfers() {
-        return getTransfers(null, 1, null);
+        return getTransfers(null, PENDING, null);
+    }
+
+    public List<TransferOrder> getApprovedTransfers() {
+        return getTransfers(null, APPROVED, null);
     }
 
     public List<TransferOrder> getTransfers(String code, Integer status, Integer warehouseId) {
         List<TransferOrder> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-            "SELECT t.TransferOrderID, t.TransferCode, t.FromLocationID, t.ToLocationID, t.Status, t.TransferDate, " +
-            "fl.LocationName as FromLocationName, tl.LocationName as ToLocationName, " +
-            "fl.WarehouseID as FromWarehouseID, tl.WarehouseID as ToWarehouseID, " +
-            "fw.WarehouseName as FromWarehouseName, tw.WarehouseName as ToWarehouseName, " +
-            "d.ProductDetailID, d.Quantity " +
-            "FROM Transfer_Order t " +
-            "JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
-            "JOIN Location fl ON t.FromLocationID = fl.LocationID " +
-            "JOIN Location tl ON t.ToLocationID = tl.LocationID " +
-            "JOIN Warehouse fw ON fl.WarehouseID = fw.WarehouseID " +
-            "JOIN Warehouse tw ON tl.WarehouseID = tw.WarehouseID " +
-            "WHERE 1=1 "
-        );
+                "SELECT t.TransferOrderID, t.TransferCode, t.FromLocationID, t.ToLocationID, t.Status, t.TransferDate, t.Note, "
+                        +
+                        "fl.LocationName as FromLocationName, tl.LocationName as ToLocationName, " +
+                        "fl.WarehouseID as FromWarehouseID, tl.WarehouseID as ToWarehouseID, " +
+                        "fw.WarehouseName as FromWarehouseName, tw.WarehouseName as ToWarehouseName, " +
+                        "d.ProductDetailID as ProductDetailID, d.Quantity " +
+                        "FROM Transfer_Order t " +
+                        "LEFT JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
+                        "JOIN Location fl ON t.FromLocationID = fl.LocationID " +
+                        "JOIN Location tl ON t.ToLocationID = tl.LocationID " +
+                        "JOIN Warehouse fw ON fl.WarehouseID = fw.WarehouseID " +
+                        "JOIN Warehouse tw ON tl.WarehouseID = tw.WarehouseID " +
+                        "WHERE 1=1 ");
 
-        if (code != null && !code.isEmpty()) sql.append(" AND t.TransferCode LIKE ? ");
-        if (status != null) sql.append(" AND t.Status = ? ");
+        if (code != null && !code.isEmpty())
+            sql.append(" AND t.TransferCode LIKE ? ");
+        if (status != null)
+            sql.append(" AND t.Status = ? ");
         if (warehouseId != null) {
             sql.append(" AND (fl.WarehouseID = ? OR tl.WarehouseID = ?) ");
         }
-        
+
         sql.append(" ORDER BY t.TransferDate DESC");
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             int paramIndex = 1;
-            if (code != null && !code.isEmpty()) ps.setString(paramIndex++, "%" + code + "%");
-            if (status != null) ps.setInt(paramIndex++, status);
+            if (code != null && !code.isEmpty())
+                ps.setString(paramIndex++, "%" + code + "%");
+            if (status != null)
+                ps.setInt(paramIndex++, status);
             if (warehouseId != null) {
                 ps.setInt(paramIndex++, warehouseId);
                 ps.setInt(paramIndex++, warehouseId);
@@ -118,7 +161,7 @@ public class TransferDAO extends DBContext {
                 to.setStatus(rs.getInt("Status"));
                 to.setProductDetailId(rs.getInt("ProductDetailID"));
                 to.setQuantity(rs.getInt("Quantity"));
-                // to.setTransferDate(rs.getTimestamp("TransferDate")); // Add getter if needed
+                to.setNote(rs.getString("Note"));
                 list.add(to);
             }
         } catch (SQLException e) {
@@ -129,8 +172,8 @@ public class TransferDAO extends DBContext {
 
     public boolean transferOut(int transferId) {
         String sqlGet = "SELECT t.FromLocationID, d.ProductDetailID, d.Quantity, t.TransferCode, t.Status " +
-                        "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
-                        "WHERE t.TransferOrderID = ?";
+                "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
+                "WHERE t.TransferOrderID = ?";
         String sqlSub = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
         String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) VALUES (?,?,?,?,?)";
         String sqlUpdateStatus = "UPDATE Transfer_Order SET Status = ? WHERE TransferOrderID = ?";
@@ -143,7 +186,7 @@ public class TransferDAO extends DBContext {
 
             if (rs.next()) {
                 if (rs.getInt("Status") != APPROVED) {
-                    return false; // Already processed or not approved
+                    return false; // Only Approved can be shipped
                 }
                 int fromLoc = rs.getInt("FromLocationID");
                 int pdId = rs.getInt("ProductDetailID");
@@ -157,11 +200,11 @@ public class TransferDAO extends DBContext {
                 psSub.setInt(3, pdId);
                 psSub.executeUpdate();
 
-                // Log Out
+                // Log Out (TransactionType 3 for Transfer Out)
                 PreparedStatement psLog = connection.prepareStatement(sqlLog);
                 psLog.setInt(1, pdId);
                 psLog.setInt(2, fromLoc);
-                psLog.setInt(3, 3); // TRANSFER_OUT
+                psLog.setInt(3, 3);
                 psLog.setInt(4, -qty);
                 psLog.setString(5, code);
                 psLog.executeUpdate();
@@ -176,23 +219,29 @@ public class TransferDAO extends DBContext {
                 return true;
             }
         } catch (SQLException e) {
-            try { connection.rollback(); } catch (SQLException ex) {}
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+            }
             e.printStackTrace();
         } finally {
-            try { connection.setAutoCommit(true); } catch (SQLException e) {}
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+            }
         }
         return false;
     }
 
     public boolean transferIn(int transferId) {
         String sqlGet = "SELECT t.ToLocationID, d.ProductDetailID, d.Quantity, t.TransferCode, t.Status " +
-                        "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
-                        "WHERE t.TransferOrderID = ?";
+                "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
+                "WHERE t.TransferOrderID = ?";
         String sqlAdd = "MERGE INTO Location_Product AS target " +
-                        "USING (SELECT ? AS LocationID, ? AS ProductDetailID, ? AS Qty) AS source " +
-                        "ON (target.LocationID = source.LocationID AND target.ProductDetailID = source.ProductDetailID) " +
-                        "WHEN MATCHED THEN UPDATE SET Quantity = target.Quantity + source.Qty " +
-                        "WHEN NOT MATCHED THEN INSERT (LocationID, ProductDetailID, Quantity) VALUES (source.LocationID, source.ProductDetailID, source.Qty);";
+                "USING (SELECT ? AS LocationID, ? AS ProductDetailID, ? AS Qty) AS source " +
+                "ON (target.LocationID = source.LocationID AND target.ProductDetailID = source.ProductDetailID) " +
+                "WHEN MATCHED THEN UPDATE SET Quantity = target.Quantity + source.Qty " +
+                "WHEN NOT MATCHED THEN INSERT (LocationID, ProductDetailID, Quantity) VALUES (source.LocationID, source.ProductDetailID, source.Qty);";
         String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) VALUES (?,?,?,?,?)";
         String sqlUpdateStatus = "UPDATE Transfer_Order SET Status = ? WHERE TransferOrderID = ?";
 
@@ -204,7 +253,7 @@ public class TransferDAO extends DBContext {
 
             if (rs.next()) {
                 if (rs.getInt("Status") != IN_TRANSIT) {
-                    return false; // Not in transit
+                    return false; // Must be In Transit to be received
                 }
                 int toLoc = rs.getInt("ToLocationID");
                 int pdId = rs.getInt("ProductDetailID");
@@ -218,11 +267,11 @@ public class TransferDAO extends DBContext {
                 psAdd.setInt(3, qty);
                 psAdd.executeUpdate();
 
-                // Log In
+                // Log In (TransactionType 4 for Transfer In)
                 PreparedStatement psLog = connection.prepareStatement(sqlLog);
                 psLog.setInt(1, pdId);
                 psLog.setInt(2, toLoc);
-                psLog.setInt(3, 4); // TRANSFER_IN
+                psLog.setInt(3, 4);
                 psLog.setInt(4, qty);
                 psLog.setString(5, code);
                 psLog.executeUpdate();
@@ -237,10 +286,16 @@ public class TransferDAO extends DBContext {
                 return true;
             }
         } catch (SQLException e) {
-            try { connection.rollback(); } catch (SQLException ex) {}
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+            }
             e.printStackTrace();
         } finally {
-            try { connection.setAutoCommit(true); } catch (SQLException e) {}
+            try {
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+            }
         }
         return false;
     }
@@ -335,5 +390,35 @@ public class TransferDAO extends DBContext {
             }
         }
         return false;
+    }
+
+    public int getReservedQuantity(int locId, int pdId) {
+        String sql = "SELECT SUM(d.Quantity) as Reserved FROM Transfer_Order t " +
+                "JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
+                "WHERE t.FromLocationID = ? AND d.ProductDetailID = ? AND t.Status = 1"; // Status 1: APPROVED
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, locId);
+            ps.setInt(2, pdId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                return rs.getInt("Reserved");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    public int getPhysicalQuantity(int locId, int pdId) {
+        String sql = "SELECT Quantity FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, locId);
+            ps.setInt(2, pdId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next())
+                return rs.getInt("Quantity");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 }

@@ -22,17 +22,17 @@ import model.User;
  *
  * @author Asus
  */
-@WebServlet(name = "CreateTransferServlet", urlPatterns = {"/create-transfer"})
+@WebServlet(name = "CreateTransferServlet", urlPatterns = { "/create-transfer" })
 public class CreateTransferServlet extends HttpServlet {
 
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -51,17 +51,19 @@ public class CreateTransferServlet extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
+    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the
+    // + sign on the left to edit the code.">
     /**
      * Handles the HTTP <code>GET</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         // Load dữ liệu cho các ô Select
         LocationDAO locDAO = new LocationDAO();
         ProductDetailDAO pdDAO = new ProductDetailDAO();
@@ -70,19 +72,20 @@ public class CreateTransferServlet extends HttpServlet {
         request.setAttribute("locations", locDAO.getAll());
         request.setAttribute("productDetails", pdDAO.getAll());
         request.setAttribute("pendingList", transDAO.getPendingTransfers());
-        
-        request.getRequestDispatcher("/view/internal-transfer.jsp").forward(request, response);
+
+        request.getRequestDispatcher("/view/create-transfer.jsp").forward(request, response);
     }
 
     /**
      * Handles the HTTP <code>POST</code> method.
      *
-     * @param request servlet request
+     * @param request  servlet request
      * @param response servlet response
      * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
+     * @throws IOException      if an I/O error occurs
      */
-protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String action = request.getParameter("action");
         TransferDAO dao = new TransferDAO();
 
@@ -94,14 +97,14 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response) 
             o.setQuantity(Integer.parseInt(request.getParameter("qty")));
             o.setCreateBy(1); // Giả sử user ID đăng nhập là 1
 
-            if(dao.createTransferRequest(o)) 
+            if (dao.createTransferRequest(o))
                 request.getSession().setAttribute("msg", "Tạo yêu cầu thành công!");
-            else 
+            else
                 request.getSession().setAttribute("err", "Lỗi tạo yêu cầu!");
 
         } else if ("approve".equals(action)) {
             int id = Integer.parseInt(request.getParameter("transferId"));
-            if(dao.executeTransfer(id))
+            if (dao.executeTransfer(id))
                 request.getSession().setAttribute("msg", "Đã phê duyệt và cập nhật tồn kho!");
             else
                 request.getSession().setAttribute("err", "Thất bại! Kiểm tra lại tồn kho.");

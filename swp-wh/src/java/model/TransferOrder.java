@@ -67,6 +67,10 @@ public class TransferOrder {
         this.note = note;
     }
 
+    public int getCreateBy() {
+        return createBy;
+    }
+
     public void setCreateBy(int createBy) {
         this.createBy = createBy;
     }
@@ -85,6 +89,17 @@ public class TransferOrder {
 
     public String getFromWarehouseName() { return fromWarehouseName; }
     public void setFromWarehouseName(String fromWarehouseName) { this.fromWarehouseName = fromWarehouseName; }
+
+    public String getStatusLabel() {
+        switch (status) {
+            case 0: return "Pending";
+            case 1: return "Approved";
+            case 2: return "In-Transit";
+            case 3: return "Completed";
+            case 4: return "Cancelled";
+            default: return "Unknown";
+        }
+    }
 
     public String getToWarehouseName() { return toWarehouseName; }
     public void setToWarehouseName(String toWarehouseName) { this.toWarehouseName = toWarehouseName; }
