@@ -53,7 +53,6 @@ public SalesOrder getWarehouseOrderById(int id) {
     return null;
 }
     
-    // Sửa lại hàm getDetailsByOrderId để lấy thêm DeliveredQty từ các phiếu Goods Issue
 public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
     List<SalesOrderDetail> list = new ArrayList<>();
     String sql = "SELECT sod.*, " +
@@ -70,7 +69,7 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
             d.setQuantity(rs.getInt("Quantity"));
             d.setPrice(rs.getDouble("Price"));
             d.setSubTotal(rs.getDouble("SubTotal"));
-            d.setDeliveredQty(rs.getInt("DeliveredQty")); // Bạn cần thêm field này vào model SalesOrderDetail
+            d.setDeliveredQty(rs.getInt("DeliveredQty"));
             d.setProductDetail(pdd.getById(rs.getInt("ProductDetailID")));
             list.add(d);
         }

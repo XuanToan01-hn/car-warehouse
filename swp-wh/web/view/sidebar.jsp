@@ -59,7 +59,7 @@
                             <span class="ml-4">Product Detail</span>
                         </a>
                     </li>
-                    
+
                     <li>
                         <a href="purchase-orders" class="svg-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
@@ -69,7 +69,7 @@
 
                     <li>
                         <a href="warehouses" class="svg-icon">
-                            <img src="${pageContext.request.contextPath}/assets/images/icon/location.png">
+<img src="${pageContext.request.contextPath}/assets/images/icon/location.png">
                             <span class="ml-4">Warehouses</span>
                         </a>
                     </li>
@@ -95,7 +95,7 @@
                         </a>
                     </li>
 
-                    
+
 
                     <li>
                         <a href="manage-suppliers" class="svg-icon">
@@ -107,7 +107,7 @@
 
 
                 <!-- ================= INVENTORY STAFF ================= -->
-                <c:if test="${ roleId == 3 }">
+                <c:if test="${roleId == 3}">
                     <li>
                         <a href="purchase-orders" class="svg-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
@@ -119,6 +119,12 @@
                         <a href="goods-receipt" class="svg-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                             <span class="ml-4">Goods Receipt</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="goods-issue" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
+                            <span class="ml-4">Goods Issue</span>
                         </a>
                     </li>
 
@@ -160,7 +166,7 @@
                             <span class="ml-4">Sales Order</span>
                         </a>
                     </li>
-                        
+
                 </c:if>
 
 
@@ -172,7 +178,7 @@
                             <span class="ml-4">Purchase Orders</span>
                         </a>
                     </li>
-                    
+
                     <li>
                         <a href="goods-receipt" class="svg-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
