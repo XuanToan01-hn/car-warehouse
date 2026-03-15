@@ -433,8 +433,10 @@
                                                                             <th>#</th>
                                                                             <th>Product Code</th>
                                                                             <th>Product Name</th>
+                                                                            <th>Variant</th>
                                                                             <th class="text-center">Order quantity</th>
-                                                                            <th class="text-center">Actual quantity received
+                                                                            <th class="text-center">Actual quantity
+                                                                                received
                                                                             </th>
                                                                             <th class="text-center">Difference</th>
                                                                         </tr>
@@ -443,7 +445,7 @@
                                                                         <c:choose>
                                                                             <c:when test="${empty gr.details}">
                                                                                 <tr>
-                                                                                    <td colspan="6"
+                                                                                    <td colspan="7"
                                                                                         class="text-center text-muted py-5">
                                                                                         <i
                                                                                             class="fas fa-inbox mr-1"></i>
@@ -457,12 +459,34 @@
                                                                                     <tr class="gr-detail-row">
                                                                                         <td>${st.index + 1}</td>
                                                                                         <td>
-                                                                                            <code
-                                                                                                class="mono">${d.product.code}
+                                                                                            <code class="mono">${d.product.code}
                                                                                             </code>
                                                                                         </td>
                                                                                         <td>
                                                                                             ${d.product.name}
+                                                                                        </td>
+                                                                                        <td>
+                                                                                            <c:if
+                                                                                                test="${not empty d.productDetail}">
+                                                                                                <small
+                                                                                                    class="text-info font-weight-bold">
+                                                                                                    <c:if
+                                                                                                        test="${not empty d.productDetail.lotNumber && d.productDetail.lotNumber != 'N/A'}">
+                                                                                                        Lot:
+                                                                                                        ${d.productDetail.lotNumber}
+                                                                                                        |
+                                                                                                    </c:if>
+                                                                                                    Ser:
+                                                                                                    ${d.productDetail.serialNumber}
+                                                                                                    <c:if
+                                                                                                        test="${not empty d.productDetail.color}">
+                                                                                                        (${d.productDetail.color})
+                                                                                                    </c:if>
+                                                                                                </small>
+                                                                                            </c:if>
+                                                                                            <c:if
+                                                                                                test="${empty d.productDetail}">
+                                                                                                —</c:if>
                                                                                         </td>
                                                                                         <td
                                                                                             class="text-center font-weight-bold expected-qty">
@@ -501,6 +525,7 @@
                                                                             <th>#</th>
                                                                             <th>Product Code</th>
                                                                             <th>Product Name</th>
+                                                                            <th>Variant</th>
                                                                             <th class="text-center">Expected Qty</th>
                                                                             <th class="text-center">Actual Received Qty
                                                                             </th>
@@ -520,6 +545,29 @@
                                                                                                 class="mono">${pod.product.code}</code>
                                                                                         </td>
                                                                                         <td>${pod.product.name}</td>
+                                                                                        <td>
+                                                                                            <c:if
+                                                                                                test="${not empty pod.productDetail}">
+                                                                                                <small
+                                                                                                    class="text-info font-weight-bold">
+                                                                                                    <c:if
+                                                                                                        test="${not empty pod.productDetail.lotNumber && pod.productDetail.lotNumber != 'N/A'}">
+                                                                                                        Lot:
+                                                                                                        ${pod.productDetail.lotNumber}
+                                                                                                        |
+                                                                                                    </c:if>
+                                                                                                    Ser:
+                                                                                                    ${pod.productDetail.serialNumber}
+                                                                                                    <c:if
+                                                                                                        test="${not empty pod.productDetail.color}">
+                                                                                                        (${pod.productDetail.color})
+                                                                                                    </c:if>
+                                                                                                </small>
+                                                                                            </c:if>
+                                                                                            <c:if
+                                                                                                test="${empty pod.productDetail}">
+                                                                                                —</c:if>
+                                                                                        </td>
                                                                                         <td
                                                                                             class="text-center font-weight-bold">
                                                                                             ${pod.quantity}</td>
@@ -534,7 +582,7 @@
                                                                             </c:when>
                                                                             <c:when test="${empty gr.details}">
                                                                                 <tr>
-                                                                                    <td colspan="6"
+                                                                                    <td colspan="7"
                                                                                         class="text-center text-muted py-5">
                                                                                         <i
                                                                                             class="fas fa-inbox mr-1"></i>No
@@ -553,6 +601,29 @@
                                                                                                 class="mono">${d.product.code}</code>
                                                                                         </td>
                                                                                         <td>${d.product.name}</td>
+                                                                                        <td>
+                                                                                            <c:if
+                                                                                                test="${not empty d.productDetail}">
+                                                                                                <small
+                                                                                                    class="text-info font-weight-bold">
+                                                                                                    <c:if
+                                                                                                        test="${not empty d.productDetail.lotNumber && d.productDetail.lotNumber != 'N/A'}">
+                                                                                                        Lot:
+                                                                                                        ${d.productDetail.lotNumber}
+                                                                                                        |
+                                                                                                    </c:if>
+                                                                                                    Ser:
+                                                                                                    ${d.productDetail.serialNumber}
+                                                                                                    <c:if
+                                                                                                        test="${not empty d.productDetail.color}">
+                                                                                                        (${d.productDetail.color})
+                                                                                                    </c:if>
+                                                                                                </small>
+                                                                                            </c:if>
+                                                                                            <c:if
+                                                                                                test="${empty d.productDetail}">
+                                                                                                —</c:if>
+                                                                                        </td>
                                                                                         <td
                                                                                             class="text-center font-weight-bold">
                                                                                             ${d.quantityExpected}</td>
@@ -594,6 +665,7 @@
                                                                 <th>#</th>
                                                                 <th>Product Code</th>
                                                                 <th>Product Name</th>
+                                                                <th>Variant</th>
                                                                 <th class="text-center">Ordered Qty</th>
                                                                 <th class="text-right">Unit Price</th>
                                                                 <th class="text-right">Total Amount</th>
@@ -607,6 +679,23 @@
                                                                     <td><code class="mono">${pod.product.code}</code>
                                                                     </td>
                                                                     <td>${pod.product.name}</td>
+                                                                    <td>
+                                                                        <c:if test="${not empty pod.productDetail}">
+                                                                            <small class="text-info font-weight-bold">
+                                                                                <c:if
+                                                                                    test="${not empty pod.productDetail.lotNumber && pod.productDetail.lotNumber != 'N/A'}">
+                                                                                    Lot: ${pod.productDetail.lotNumber}
+                                                                                    |
+                                                                                </c:if>
+                                                                                Ser: ${pod.productDetail.serialNumber}
+                                                                                <c:if
+                                                                                    test="${not empty pod.productDetail.color}">
+                                                                                    (${pod.productDetail.color})
+                                                                                </c:if>
+                                                                            </small>
+                                                                        </c:if>
+                                                                        <c:if test="${empty pod.productDetail}">—</c:if>
+                                                                    </td>
                                                                     <td class="text-center font-weight-bold">
                                                                         ${pod.quantity}</td>
                                                                     <td class="text-right">

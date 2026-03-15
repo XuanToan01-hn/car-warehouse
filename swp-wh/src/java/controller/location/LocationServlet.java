@@ -8,7 +8,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import model.Location;
 import model.Warehouse;
 @WebServlet(name = "LocationServlet", urlPatterns = {"/locations"})
@@ -50,13 +53,13 @@ public class LocationServlet extends HttpServlet {
                         java.util.Map<String, Object> group = new java.util.HashMap<>();
                         group.put("product", lp.getProduct());
                         group.put("totalQty", 0);
-                        group.put("serials", new java.util.ArrayList<java.util.Map<String, Object>>());
+                        group.put("serials", new ArrayList<Map<String, Object>>());
                         groupedMap.put(pid, group);
                     }
                     java.util.Map<String, Object> group = groupedMap.get(pid);
                     group.put("totalQty", (int)group.get("totalQty") + lp.getQuantity());
                     if (lp.getProductDetail() != null && lp.getProductDetail().getSerialNumber() != null) {
-                        java.util.Map<String, Object> serialInfo = new java.util.HashMap<>();
+                        Map<String, Object> serialInfo = new HashMap<>();
                         serialInfo.put("serial", lp.getProductDetail().getSerialNumber());
                         serialInfo.put("qty", lp.getQuantity());
                         serialInfo.put("color", lp.getProductDetail().getColor() != null ? lp.getProductDetail().getColor() : "");

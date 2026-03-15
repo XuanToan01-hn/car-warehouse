@@ -49,6 +49,8 @@ public class GetSupplierProductsServlet extends HttpServlet {
                     json.append("{");
                     json.append("\"id\":").append(pd.getId()).append(",");
                     json.append("\"color\":\"").append(escapeJson(pd.getColor())).append("\",");
+                    json.append("\"lotNumber\":\"").append(escapeJson(pd.getLotNumber())).append("\",");
+                    json.append("\"serial\":\"").append(escapeJson(pd.getSerialNumber())).append("\",");
                     json.append("\"price\":").append(pd.getPrice());
                     json.append("}");
                 }

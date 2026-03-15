@@ -140,11 +140,13 @@ public class GoodsReceiptDAO extends DBContext {
         }
 
         // Load details
-        String sqlDetail = "SELECT d.ReceiptDetailID, d.ProductID, d.ProductDetailID, "
+        String sqlDetail = "SELECT d.ReceiptDetailID, pd.ProductID, d.ProductDetailID, "
                 + "d.QuantityExpected, d.QuantityActual, "
-                + "p.Code AS ProductCode, p.Name AS ProductName "
+                + "p.Code AS ProductCode, p.Name AS ProductName, "
+                + "pd.LotNumber, pd.SerialNumber, pd.Color "
                 + "FROM Goods_Receipt_Detail d "
-                + "LEFT JOIN Product p ON d.ProductID = p.ProductID "
+                + "JOIN Product_Detail pd ON d.ProductDetailID = pd.ProductDetailID "
+                + "JOIN Product p ON pd.ProductID = p.ProductID "
                 + "WHERE d.ReceiptID = ?";
         List<GoodsReceiptDetail> details = new ArrayList<>();
         try (PreparedStatement ps = connection.prepareStatement(sqlDetail)) {
@@ -165,6 +167,9 @@ public class GoodsReceiptDAO extends DBContext {
                     if (!rs.wasNull()) {
                         ProductDetail pd = new ProductDetail();
                         pd.setId(pdId);
+                        pd.setLotNumber(rs.getString("LotNumber"));
+                        pd.setSerialNumber(rs.getString("SerialNumber"));
+                        pd.setColor(rs.getString("Color"));
                         d.setProductDetail(pd);
                     }
 
@@ -182,9 +187,11 @@ public class GoodsReceiptDAO extends DBContext {
         if (gr.getPurchaseOrder() != null) {
             int poId = gr.getPurchaseOrder().getId();
             String sqlPoDetails = "SELECT pod.PurchaseOrderDetailID, pod.Quantity, pod.Price, pod.SubTotal, "
-                    + "p.ProductID, p.Name AS ProductName, p.Code AS ProductCode "
+                    + "pd.ProductID, p.Name AS ProductName, p.Code AS ProductCode, "
+                    + "pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, pd.Color "
                     + "FROM Purchase_Order_Detail pod "
-                    + "LEFT JOIN Product p ON pod.ProductID = p.ProductID "
+                    + "LEFT JOIN Product_Detail pd ON pod.ProductDetailID = pd.ProductDetailID "
+                    + "LEFT JOIN Product p ON pd.ProductID = p.ProductID "
                     + "WHERE pod.PurchaseOrderID = ?";
             List<PurchaseOrderDetail> poDetails = new ArrayList<>();
             try (PreparedStatement ps = connection.prepareStatement(sqlPoDetails)) {
@@ -203,6 +210,16 @@ public class GoodsReceiptDAO extends DBContext {
                         p.setName(rs.getString("ProductName"));
                         p.setCode(rs.getString("ProductCode"));
                         pod.setProduct(p);
+
+                        int pdId = rs.getInt("ProductDetailID");
+                        if (!rs.wasNull()) {
+                            ProductDetail pd = new ProductDetail();
+                            pd.setId(pdId);
+                            pd.setLotNumber(rs.getString("LotNumber"));
+                            pd.setSerialNumber(rs.getString("SerialNumber"));
+                            pd.setColor(rs.getString("Color"));
+                            pod.setProductDetail(pd);
+                        }
 
                         poDetails.add(pod);
                     }
@@ -355,14 +372,14 @@ public class GoodsReceiptDAO extends DBContext {
                                 p.setCode("-");
                             }
                             d.setProduct(p);
-                            
+
                             int pdId = rs2.getInt("ProductDetailID");
                             if (!rs2.wasNull()) {
                                 ProductDetail pd = new ProductDetail();
                                 pd.setId(pdId);
                                 d.setProductDetail(pd);
                             }
-                            
+
                             details.add(d);
                         }
                     }
@@ -488,8 +505,10 @@ public class GoodsReceiptDAO extends DBContext {
             }
 
             // 1a. Xác định previousQtyMap:
-            // - Nếu status hiện tại = 1 (Draft) → chưa từng confirm → chưa cộng vào kho lần nào → previous = 0
-            // - Nếu status = 4 (Partially Received) → đã confirm trước đó → đọc qty cũ để tính delta
+            // - Nếu status hiện tại = 1 (Draft) → chưa từng confirm → chưa cộng vào kho lần
+            // nào → previous = 0
+            // - Nếu status = 4 (Partially Received) → đã confirm trước đó → đọc qty cũ để
+            // tính delta
             Map<Integer, Integer> previousQtyMap = new HashMap<>();
             if (currentStatus == 4) {
                 // Đã confirm lần trước, đọc lại qty cũ đã nhập kho
@@ -503,7 +522,8 @@ public class GoodsReceiptDAO extends DBContext {
                     }
                 }
             }
-            // Nếu currentStatus == 1 (Draft), previousQtyMap rỗng => mọi delta = qty mới - 0 = qty mới (cộng full)
+            // Nếu currentStatus == 1 (Draft), previousQtyMap rỗng => mọi delta = qty mới -
+            // 0 = qty mới (cộng full)
 
             // 1b. Update detail actual quantities
             try (PreparedStatement psDetail = connection.prepareStatement(sqlUpdateDetail)) {
@@ -548,7 +568,7 @@ public class GoodsReceiptDAO extends DBContext {
             }
 
             // 3. Update stock & inventory transactions based on DB state after update
-            applyStockAndTransactions(locationId, receiptCode, receiptId, previousQtyMap);
+            applyStockAndTransactions(locationId, receiptCode, receiptId, previousQtyMap, poId);
 
             // 4. Recalculate purchase order status based on cumulative received qty
             recalculatePurchaseOrderStatus(poId);
@@ -609,25 +629,28 @@ public class GoodsReceiptDAO extends DBContext {
             return false;
         }
 
-        String sqlPod = "SELECT ProductID, Quantity FROM Purchase_Order_Detail WHERE PurchaseOrderID = ?";
-        // ProductDetailID để NULL ở cấp chi tiết; khi cập nhật tồn kho sẽ tự map sang
-        // ProductDetail phù hợp
+        String sqlPod = "SELECT ProductID, ProductDetailID, Quantity FROM Purchase_Order_Detail WHERE PurchaseOrderID = ?";
         String sqlIns = "INSERT INTO Goods_Receipt_Detail "
                 + "(ReceiptID, ProductID, ProductDetailID, QuantityExpected, QuantityActual) "
-                + "VALUES (?, ?, NULL, ?, ?)";
+                + "VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement psSel = connection.prepareStatement(sqlPod);
                 PreparedStatement psIns = connection.prepareStatement(sqlIns)) {
             psSel.setInt(1, poId);
             try (ResultSet rs = psSel.executeQuery()) {
                 while (rs.next()) {
                     int productId = rs.getInt("ProductID");
+                    int productDetailId = rs.getInt("ProductDetailID");
                     int qty = rs.getInt("Quantity");
 
-                    psIns.setInt(1, receiptId); // ReceiptID
-                    psIns.setInt(2, productId); // ProductID
-                    // VALUES (?, ?, NULL, ?, ?) -> chỉ có 4 tham số
-                    psIns.setInt(3, qty); // QuantityExpected
-                    psIns.setInt(4, qty); // QuantityActual
+                    psIns.setInt(1, receiptId);
+                    psIns.setInt(2, productId);
+                    if (rs.wasNull()) {
+                        psIns.setNull(3, java.sql.Types.INTEGER);
+                    } else {
+                        psIns.setInt(3, productDetailId);
+                    }
+                    psIns.setInt(4, qty);
+                    psIns.setInt(5, qty);
                     psIns.executeUpdate();
                 }
             }
@@ -664,17 +687,20 @@ public class GoodsReceiptDAO extends DBContext {
      * Nếu null (lần confirm đầu tiên), coi như QuantityActual cũ = 0.
      */
     private void applyStockAndTransactions(int locationId, String receiptCode, int receiptId,
-            Map<Integer, Integer> previousQtyMap) throws SQLException {
+            Map<Integer, Integer> previousQtyMap, int poId) throws SQLException {
         // Lấy detail hiện tại (sau khi đã UPDATE QuantityActual)
-        String sqlFetchDetails = "SELECT ReceiptDetailID, ProductID, ProductDetailID, QuantityActual "
-                + "FROM Goods_Receipt_Detail WHERE ReceiptID = ?";
+        String sqlFetchDetails = "SELECT d.ReceiptDetailID, pd.ProductID, d.ProductDetailID, d.QuantityActual "
+                + "FROM Goods_Receipt_Detail d "
+                + "JOIN Product_Detail pd ON d.ProductDetailID = pd.ProductDetailID "
+                + "WHERE d.ReceiptID = ?";
 
         // UPDATE stock: cộng delta, match cả ProductID cho chắc chắn
         String sqlUpdateStock = "UPDATE Location_Product "
                 + "SET Quantity = Quantity + ? "
                 + "WHERE LocationID = ? AND ProductDetailID = ?";
 
-        // INSERT stock: chỉ (LocationID, ProductDetailID, Quantity) — ProductID lấy qua Product_Detail
+        // INSERT stock: chỉ (LocationID, ProductDetailID, Quantity) — ProductID lấy qua
+        // Product_Detail
         String sqlInsertStock = "INSERT INTO Location_Product "
                 + "(LocationID, ProductDetailID, Quantity) "
                 + "VALUES (?, ?, ?)";
@@ -683,10 +709,20 @@ public class GoodsReceiptDAO extends DBContext {
                 + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
                 + "VALUES (?, ?, ?, 1, ?, ?, GETDATE())";
 
+        String sqlOldInfo = "SELECT p.Price, COALESCE((SELECT SUM(Quantity) FROM Location_Product "
+                + "WHERE ProductDetailID = p.ProductDetailID), 0) AS TotalStock "
+                + "FROM Product_Detail p WHERE p.ProductDetailID = ?";
+        String sqlIncoming = "SELECT TOP 1 Price FROM Purchase_Order_Detail "
+                + "WHERE PurchaseOrderID = ? AND ProductDetailID = ?";
+        String sqlUpdatePrice = "UPDATE Product_Detail SET Price = ? WHERE ProductDetailID = ?";
+
         try (PreparedStatement psFetch = connection.prepareStatement(sqlFetchDetails);
                 PreparedStatement psStockUpdate = connection.prepareStatement(sqlUpdateStock);
                 PreparedStatement psStockInsert = connection.prepareStatement(sqlInsertStock);
-                PreparedStatement psTrans = connection.prepareStatement(sqlTrans)) {
+                PreparedStatement psTrans = connection.prepareStatement(sqlTrans);
+                PreparedStatement psOldInfo = connection.prepareStatement(sqlOldInfo);
+                PreparedStatement psIncoming = connection.prepareStatement(sqlIncoming);
+                PreparedStatement psUpdatePrice = connection.prepareStatement(sqlUpdatePrice)) {
 
             psFetch.setInt(1, receiptId);
             try (ResultSet rs = psFetch.executeQuery()) {
@@ -724,6 +760,36 @@ public class GoodsReceiptDAO extends DBContext {
                             continue;
                         }
                     }
+
+                    // Cập nhật giá nhập trung bình
+                    double oldPrice = 0.0;
+                    int currentTotalStock = 0;
+                    psOldInfo.setInt(1, productDetailId);
+                    try (ResultSet rsOld = psOldInfo.executeQuery()) {
+                        if (rsOld.next()) {
+                            oldPrice = rsOld.getDouble("Price");
+                            currentTotalStock = rsOld.getInt("TotalStock");
+                        }
+                    }
+                    if (currentTotalStock < 0)
+                        currentTotalStock = 0;
+
+                    double incomingPrice = 0.0;
+                    psIncoming.setInt(1, poId);
+                    psIncoming.setInt(2, productDetailId);
+                    try (ResultSet rsInc = psIncoming.executeQuery()) {
+                        if (rsInc.next()) {
+                            incomingPrice = rsInc.getDouble("Price");
+                        } else {
+                            incomingPrice = oldPrice;
+                        }
+                    }
+
+                    double newPrice = ((oldPrice * currentTotalStock) + (incomingPrice * delta))
+                            / (currentTotalStock + delta);
+                    psUpdatePrice.setDouble(1, newPrice);
+                    psUpdatePrice.setInt(2, productDetailId);
+                    psUpdatePrice.executeUpdate();
 
                     // Cộng DELTA vào kho
                     psStockUpdate.setInt(1, delta);

@@ -42,17 +42,13 @@
                                                     <input type="text" name="serialNumber" class="form-control"
                                                         placeholder="Enter Serial Number">
                                                 </div>
-                                                <div class="col-md-4 form-group">
-                                                    <label>Price *</label>
-                                                    <input type="number" step="0.01" name="price" class="form-control"
-                                                        min="0" required>
-                                                </div>
-                                                <div class="col-md-4 form-group">
+                                                <input type="hidden" name="price" value="0">
+                                                <div class="col-md-6 form-group">
                                                     <label>Color</label>
                                                     <input type="text" name="color" class="form-control"
                                                         placeholder="e.g. Red, Blue">
                                                 </div>
-                                                <div class="col-md-4 form-group">
+                                                <div class="col-md-6 form-group">
                                                     <label>Manufacture Date *</label>
                                                     <input type="date" name="mfdDate" class="form-control" required>
                                                 </div>

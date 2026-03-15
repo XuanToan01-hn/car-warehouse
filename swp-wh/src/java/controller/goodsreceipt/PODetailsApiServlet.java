@@ -57,10 +57,14 @@ public class PODetailsApiServlet extends HttpServlet {
                     sb.append("\"code\":\"").append(escapeJson(d.getProduct().getCode())).append("\",");
                     sb.append("\"name\":\"").append(escapeJson(d.getProduct().getName())).append("\",");
                     sb.append("\"quantity\":").append(d.getQuantity()).append(",");
-                    
+
                     if (d.getProductDetail() != null) {
                         sb.append("\"pdId\":").append(d.getProductDetail().getId()).append(",");
                         String label = d.getProductDetail().getSerialNumber();
+                        if (d.getProductDetail().getLotNumber() != null
+                                && !d.getProductDetail().getLotNumber().isEmpty()) {
+                            label = "Lot: " + d.getProductDetail().getLotNumber() + " | Ser: " + label;
+                        }
                         if (d.getProductDetail().getColor() != null && !d.getProductDetail().getColor().isEmpty()) {
                             label += " (" + d.getProductDetail().getColor() + ")";
                         }
