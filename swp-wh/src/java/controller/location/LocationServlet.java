@@ -72,24 +72,6 @@ public class LocationServlet extends HttpServlet {
                 request.getRequestDispatcher("/view/location-detail-fragment.jsp").forward(request, response);
                 return;
             }
-        } else if ("getDetailJson".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null) {
-                int id = Integer.parseInt(idStr);
-                Location l = locationDAO.getById(id);
-                if (l != null) {
-                    response.setContentType("application/json");
-                    response.setCharacterEncoding("UTF-8");
-                    String codeJson = l.getLocationCode() != null ? l.getLocationCode().replace("\"", "\\\"") : "";
-                    String nameJson = l.getLocationName() != null ? l.getLocationName().replace("\"", "\\\"") : "";
-                    int capJson = l.getMaxCapacity() != null ? l.getMaxCapacity() : 0;
-
-                    String json = String.format("{\"id\": %d, \"whId\": %d, \"code\": \"%s\", \"name\": \"%s\", \"capacity\": %d}",
-                        l.getId(), l.getWarehouseId(), codeJson, nameJson, capJson);
-                    response.getWriter().write(json);
-                    return;
-                }
-            }
         }
 
         List<Location> locations = locationDAO.getAll();

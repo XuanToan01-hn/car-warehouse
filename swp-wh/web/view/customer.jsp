@@ -255,7 +255,13 @@
                                                         <td><span class="text-secondary">${c.address}</span></td>
                                                         <td class="text-right">
                                                             <button class="btn-action btn-edit mr-2"
-                                                                onclick="prepareEdit('${c.id}')">
+                                                                data-id="${c.id}"
+                                                                data-code="${c.customerCode}"
+                                                                data-name="${c.name}"
+                                                                data-phone="${c.phone}"
+                                                                data-email="${c.email}"
+                                                                data-address="${c.address}"
+                                                                onclick="prepareEdit(this)">
                                                                 <i class="ri-pencil-line"></i> Edit
                                                             </button>
                                                             <a href="customers?action=delete&id=${c.id}"
@@ -348,25 +354,17 @@
                     document.getElementById('f-code').value = "";
                 }
 
-                function prepareEdit(id) {
-                    fetch('customers?action=getDetailJson&id=' + id)
-                        .then(r => r.json())
-                        .then(data => {
-                            document.getElementById('form-title').innerText = "Edit Customer";
-                            document.getElementById('form-action').value = "update";
-                            document.getElementById('c-id').value = data.id;
-                            document.getElementById('f-code').value = data.customerCode || '';
-                            document.getElementById('f-code').readOnly = true;
-                            document.getElementById('f-name').value = data.name || '';
-                            document.getElementById('f-phone').value = data.phone || '';
-                            document.getElementById('f-email').value = data.email || '';
-                            document.getElementById('f-address').value = data.address || '';
-                            $('#customerModal').modal('show');
-                        })
-                        .catch(err => {
-                            console.error('Error loading customer:', err);
-                            alert('Error loading customer data');
-                        });
+                function prepareEdit(btn) {
+                    document.getElementById('form-title').innerText = "Edit Customer";
+                    document.getElementById('form-action').value = "update";
+                    document.getElementById('c-id').value = btn.getAttribute('data-id');
+                    document.getElementById('f-code').value = btn.getAttribute('data-code') || '';
+                    document.getElementById('f-code').readOnly = true;
+                    document.getElementById('f-name').value = btn.getAttribute('data-name') || '';
+                    document.getElementById('f-phone').value = btn.getAttribute('data-phone') || '';
+                    document.getElementById('f-email').value = btn.getAttribute('data-email') || '';
+                    document.getElementById('f-address').value = btn.getAttribute('data-address') || '';
+                    $('#customerModal').modal('show');
                 }
 
                 // Client-side validation before submit

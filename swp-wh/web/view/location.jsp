@@ -246,7 +246,12 @@
                                                                 <i class="ri-eye-line"></i> View
                                                             </button>
                                                             <button class="btn-action btn-edit mr-2"
-                                                                onclick="prepareEdit('${l.id}')">
+                                                                data-id="${l.id}"
+                                                                data-wh="${l.warehouseId}"
+                                                                data-code="${l.locationCode}"
+                                                                data-name="${l.locationName}"
+                                                                data-capacity="${l.maxCapacity}"
+                                                                onclick="prepareEdit(this)">
                                                                 <i class="ri-pencil-line"></i> Edit
                                                             </button>
                                                             <a href="locations?action=delete&id=${l.id}"
@@ -360,23 +365,15 @@
                     document.getElementById('loc-id').value = "";
                 }
 
-                function prepareEdit(id) {
-                    fetch('locations?action=getDetailJson&id=' + id)
-                        .then(r => r.json())
-                        .then(data => {
-                            document.getElementById('form-title').innerText = "Edit Location";
-                            document.getElementById('form-action').value = "update";
-                            document.getElementById('loc-id').value = data.id;
-                            document.getElementById('f-warehouse').value = data.whId;
-                            document.getElementById('f-code').value = data.code;
-                            document.getElementById('f-name').value = data.name;
-                            document.getElementById('f-capacity').value = data.capacity;
-                            $('#locationModal').modal('show');
-                        })
-                        .catch(err => {
-                            console.error('Error loading location:', err);
-                            alert('Error loading location data');
-                        });
+                function prepareEdit(btn) {
+                    document.getElementById('form-title').innerText = "Edit Location";
+                    document.getElementById('form-action').value = "update";
+                    document.getElementById('loc-id').value = btn.getAttribute('data-id');
+                    document.getElementById('f-warehouse').value = btn.getAttribute('data-wh');
+                    document.getElementById('f-code').value = btn.getAttribute('data-code');
+                    document.getElementById('f-name').value = btn.getAttribute('data-name');
+                    document.getElementById('f-capacity').value = btn.getAttribute('data-capacity');
+                    $('#locationModal').modal('show');
                 }
 
                 function viewDetail(id) {

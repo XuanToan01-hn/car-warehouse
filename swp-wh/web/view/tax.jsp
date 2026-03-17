@@ -265,7 +265,12 @@
                                                                 </td>
                                                                 <td class="text-right">
                                                                     <button class="btn-action btn-edit mr-2"
-                                                                        onclick="prepareEdit('${t.id}')">
+                                                                        data-id="${t.id}"
+                                                                        data-name="${t.taxName}"
+                                                                        data-rate="${t.taxRate}"
+                                                                        data-effective="${t.effectiveFrom}"
+                                                                        data-expired="${t.expiredDate}"
+                                                                        onclick="prepareEdit(this)">
                                                                         <i class="ri-pencil-line"></i> Edit
                                                                     </button>
                                                                     <a href="taxes?action=delete&id=${t.id}"
@@ -354,23 +359,17 @@
                         document.getElementById('t-id').value = "";
                     }
 
-                    function prepareEdit(id) {
-                        fetch('taxes?action=getDetailJson&id=' + id)
-                            .then(r => r.json())
-                            .then(data => {
-                                document.getElementById('form-title').innerText = "Update Tax";
-                                document.getElementById('form-action').value = "update";
-                                document.getElementById('t-id').value = data.id;
-                                document.getElementById('f-name').value = data.taxName || '';
-                                document.getElementById('f-rate').value = data.taxRate || '';
-                                document.getElementById('f-effective').value = data.effectiveFrom || '';
-                                document.getElementById('f-expired').value = data.expiredDate || '';
-                                $('#taxModal').modal('show');
-                            })
-                            .catch(err => {
-                                console.error('Error loading tax:', err);
-                                alert('Error loading tax data');
-                            });
+                    function prepareEdit(btn) {
+                        document.getElementById('form-title').innerText = "Update Tax";
+                        document.getElementById('form-action').value = "update";
+                        
+                        document.getElementById('t-id').value = btn.getAttribute('data-id');
+                        document.getElementById('f-name').value = btn.getAttribute('data-name');
+                        document.getElementById('f-rate').value = btn.getAttribute('data-rate');
+                        document.getElementById('f-effective').value = btn.getAttribute('data-effective') || '';
+                        document.getElementById('f-expired').value = btn.getAttribute('data-expired') || '';
+                        
+                        $('#taxModal').modal('show');
                     }
 
                     // Search logic

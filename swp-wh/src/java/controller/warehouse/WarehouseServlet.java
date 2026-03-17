@@ -29,29 +29,6 @@ public class WarehouseServlet extends HttpServlet {
             }
             response.sendRedirect(request.getContextPath() + "/warehouses");
             return;
-        } else if ("getDetailJson".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null) {
-                try {
-                    int id = Integer.parseInt(idStr);
-                    WarehouseDAO warehouseDAO = new WarehouseDAO();
-                    Warehouse w = warehouseDAO.getById(id);
-                    if (w != null) {
-                        response.setContentType("application/json");
-                        response.setCharacterEncoding("UTF-8");
-                        String codeJson = w.getWarehouseCode() != null ? w.getWarehouseCode().replace("\"", "\\\"") : "";
-                        String nameJson = w.getWarehouseName() != null ? w.getWarehouseName().replace("\"", "\\\"") : "";
-                        String addrJson = w.getAddress() != null ? w.getAddress().replace("\"", "\\\"") : "";
-                        String descJson = w.getDescription() != null ? w.getDescription().replace("\"", "\\\"") : "";
-
-                        String json = String.format("{\"id\": %d, \"code\": \"%s\", \"name\": \"%s\", \"address\": \"%s\", \"description\": \"%s\"}",
-                            w.getId(), codeJson, nameJson, addrJson, descJson);
-                        response.getWriter().write(json);
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                }
-            }
         }
 
         WarehouseDAO warehouseDAO = new WarehouseDAO();
