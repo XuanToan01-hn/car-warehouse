@@ -81,12 +81,6 @@
                             </a>
                         </li>
 
-                        <li>
-                            <a href="internal-transfer" class="svg-icon">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
-                                <span class="ml-4">Internal Transfer</span>
-                            </a>
-                        </li>
 
                         <li>
                             <a href="external-transfer" class="svg-icon">
@@ -142,12 +136,6 @@
                             </a>
                         </li>
 
-                        <li>
-                            <a href="internal-transfer" class="svg-icon">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
-                                <span class="ml-4">Internal Transfer</span>
-                            </a>
-                        </li>
 
                         <li>
                             <a href="external-transfer" class="svg-icon">
