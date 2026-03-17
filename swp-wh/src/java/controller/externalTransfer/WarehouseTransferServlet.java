@@ -61,7 +61,7 @@ public class WarehouseTransferServlet extends HttpServlet {
                     if (!whMap.containsKey(l.getWarehouseId())) {
                         Warehouse w = new Warehouse();
                         w.setId(l.getWarehouseId());
-                        w.setName(l.getWarehouseName());
+                        w.setWarehouseName(l.getWarehouseName());
                         whMap.put(l.getWarehouseId(), w);
                     }
                 }
@@ -75,7 +75,7 @@ public class WarehouseTransferServlet extends HttpServlet {
             for (Warehouse w : whMap.values()) {
                 json.append("{");
                 json.append("\"id\":").append(w.getId()).append(",");
-                json.append("\"name\":\"").append(w.getName() != null ? w.getName().replace("\"", "\\\"") : "Unknown").append("\"");
+                json.append("\"name\":\"").append(w.getWarehouseName() != null ? w.getWarehouseName().replace("\"", "\\\"") : "Unknown").append("\"");
                 json.append("}");
                 if (++count < whMap.size()) json.append(",");
             }

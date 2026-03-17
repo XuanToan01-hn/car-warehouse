@@ -90,7 +90,7 @@
                                         <select name="toWh" id="toWh" class="form-control form-control-custom" required onchange="onDestWarehouseChange()">
                                             <option value="">-- Select Destination Warehouse --</option>
                                             <c:forEach var="wh" items="${warehouses}">
-                                                <option value="${wh.id}">${wh.name}</option>
+                                                <option value="${wh.id}">${wh.warehouseName}</option>
                                             </c:forEach>
                                         </select>
                                         <div id="loadingDestLoc" class="loading-spinner">
