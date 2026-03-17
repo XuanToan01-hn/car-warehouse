@@ -93,8 +93,8 @@ public class ListProduct extends HttpServlet {
         }
 
         // 4. Lấy danh sách sản phẩm có lọc + phân trang
-        List<Product> productList = productDAO.getFilteredProducts(search, categoryId, unitId, page, pageSize);
-        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId, supplierId);
+        List<Product> productList = productDAO.getFilteredProducts(search, categoryId, supplierId, page, pageSize);
+        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, null, supplierId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         // 5. Tính toán dải phân trang
@@ -116,7 +116,6 @@ public class ListProduct extends HttpServlet {
         // Giữ lại các giá trị search để hiển thị lại trên form
         request.setAttribute("search", search);
         request.setAttribute("categoryId", categoryId);
-        request.setAttribute("unitId", unitId);
         request.setAttribute("supplierId", supplierId);
 
         request.getRequestDispatcher("view/product/page-list-product.jsp").forward(request, response);
@@ -188,8 +187,8 @@ public class ListProduct extends HttpServlet {
         }
 
         // Get filtered and paginated products
-        List<Product> productList = productDAO.getFilteredProducts(search, categoryId, unitId, page, pageSize);
-        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, unitId, supplierId);
+        List<Product> productList = productDAO.getFilteredProducts(search, categoryId, supplierId, page, pageSize);
+        int totalProducts = productDAO.getTotalFilteredProducts(search, categoryId, null, supplierId);
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
 
         // Calculate pagination

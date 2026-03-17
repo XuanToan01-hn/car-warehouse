@@ -21,7 +21,7 @@ public class ProductDAO extends DBContext {
     // ===============================
     // 1. GET FILTERED PRODUCTS
     // ===============================
-    public List<Product> getFilteredProducts(String search, String categoryId, String unitId, int page, int pageSize) {
+    public List<Product> getFilteredProducts(String search, String categoryId, String supplierId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
@@ -37,9 +37,9 @@ public class ProductDAO extends DBContext {
             params.add(Integer.parseInt(categoryId));
         }
 
-        if (unitId != null && !unitId.isEmpty()) {
-            sql.append(" AND UnitID = ?");
-            params.add(Integer.parseInt(unitId));
+        if (supplierId != null && !supplierId.isEmpty()) {
+            sql.append(" AND SupplierID = ?");
+            params.add(Integer.parseInt(supplierId));
         }
 
         sql.append(" ORDER BY ProductID DESC");

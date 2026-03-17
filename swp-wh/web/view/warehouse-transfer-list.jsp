@@ -468,9 +468,9 @@
                                                                         <input type="hidden" name="warehouseId"
                                                                             value="${selectedWarehouse}">
                                                                         <button type="submit" class="btn-action btn-out"
-                                                                            onclick="return confirm('Ghi nhận XUẤT thực tế cho phiếu ${t.transferCode}?')">
+                                                                            onclick="return confirm('Confirm Export for ${t.transferCode}?')">
                                                                             <i class="ri-logout-box-r-line"></i>
-                                                                            Ghi nhận XUẤT
+                                                                            Confirm Export
                                                                         </button>
                                                                     </form>
                                                                 </c:if>
@@ -531,7 +531,7 @@
                     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title font-weight-bold">Chi tiết vận đơn kho</h5>
+                                <h5 class="modal-title font-weight-bold">Detail Transfer</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
@@ -539,20 +539,20 @@
                             <div class="modal-body">
                                 <div id="loadingDetail" class="text-center py-4">
                                     <div class="spinner-border text-primary" role="status"></div>
-                                    <p class="mt-2 text-muted">Đang tải thông tin...</p>
+                                    <p class="mt-2 text-muted">Loading...</p>
                                 </div>
                                 <div id="detailContent" style="display: none;">
                                     <!-- Header Info -->
                                     <div class="row mb-3">
                                         <div class="col-md-7">
-                                            <span class="detail-label text-primary">Mã vận đơn</span>
+                                            <span class="detail-label text-primary">Transfer Code</span>
                                             <span id="dtCode" class="detail-value h5 font-weight-bold mb-0"></span>
                                         </div>
                                         <div class="col-md-5 text-md-right border-left pl-4">
-                                            <span class="detail-label">Số lượng vận chuyển</span>
+                                            <span class="detail-label">Total Quantity</span>
                                             <div class="d-flex align-items-baseline justify-content-md-end">
                                                 <span id="dtQty" class="text-dark font-weight-bold h3 mb-0"></span>
-                                                <span class="text-muted ml-1" style="font-size: 1rem;">chiếc</span>
+                                                <span class="text-muted ml-1" style="font-size: 1rem;">pcs</span>
                                             </div>
                                         </div>
                                     </div>
@@ -561,12 +561,12 @@
                                         <!-- Left Column: Product & Note -->
                                         <div class="col-md-6">
                                             <div class="product-banner mb-3">
-                                                <span class="detail-label text-primary">Xe / Sản phẩm</span>
+                                                <span class="detail-label text-primary">Car / Product</span>
                                                 <div id="dtProduct" class="detail-value font-weight-bold truncate-2"
                                                     style="font-size: 1.15rem;"></div>
                                             </div>
                                             <div class="info-section mb-0" style="padding: 1rem;">
-                                                <span class="detail-label">Lý do / Ghi chú</span>
+                                                <span class="detail-label">Reason / Note</span>
                                                 <div class="p-2 border rounded bg-white text-muted"
                                                     style="min-height: 80px;">
                                                     <span id="dtNote"
@@ -578,14 +578,14 @@
                                         <!-- Right Column: Route -->
                                         <div class="col-md-6">
                                             <div class="info-section h-100 mb-0">
-                                                <span class="detail-label">Lộ trình vận chuyển</span>
+                                                <span class="detail-label">Transfer Route</span>
                                                 <div class="d-flex flex-column gap-3 mt-2">
                                                     <div class="route-node">
                                                         <i class="ri-map-pin-2-fill text-danger mr-3"
                                                             style="font-size: 1.2rem;"></i>
                                                         <div style="line-height: 1.3;">
                                                             <small class="text-muted d-block"
-                                                                style="font-size: 0.75rem;">XUẤT (NGUỒN)</small>
+                                                                style="font-size: 0.75rem;">EXPORT (SOURCE)</small>
                                                             <span id="dtFrom" style="font-size: 1rem;"></span>
                                                         </div>
                                                     </div>
@@ -597,7 +597,7 @@
                                                             style="font-size: 1.2rem;"></i>
                                                         <div style="line-height: 1.3;">
                                                             <small class="text-muted d-block"
-                                                                style="font-size: 0.75rem;">NHẬP (ĐÍCH)</small>
+                                                                style="font-size: 0.75rem;">IMPORT (DESTINATION)</small>
                                                             <span id="dtTo" style="font-size: 1rem;"></span>
                                                         </div>
                                                     </div>
@@ -645,8 +645,8 @@
                                             <input type="hidden" name="action" value="transferOut">
                                             <input type="hidden" name="transferId" value="${data.id}">
                                             <button type="submit" class="btn btn-outline-warning px-4 rounded-xl font-weight-bold" 
-                                                    onclick="return confirm('Ghi nhận XUẤT thực tế cho phiếu này?')">
-                                                <i class="ri-logout-box-r-line mr-1"></i> Ghi nhận XUẤT
+                                                    onclick="return confirm('Confirm Export for ${data.code}?')">
+                                                <i class="ri-logout-box-r-line mr-1"></i> Confirm Export
                                             </button>
                                         </form>
                                     `;
@@ -656,8 +656,8 @@
                                             <input type="hidden" name="action" value="transferIn">
                                             <input type="hidden" name="transferId" value="${data.id}">
                                             <button type="submit" class="btn btn-success px-5 rounded-xl font-weight-bold shadow-sm" 
-                                                    onclick="return confirm('Ghi nhận NHẬP thực tế cho phiếu này?')">
-                                                <i class="ri-login-box-r-line mr-1"></i> Ghi nhận NHẬP ngay
+                                                    onclick="return confirm('Confirm Import for ${data.code}?')">
+                                                <i class="ri-login-box-r-line mr-1"></i> Confirm Import
                                             </button>
                                         </form>
                                     `;
@@ -671,7 +671,7 @@
                             })
                             .catch(err => {
                                 console.error(err);
-                                alert('Lỗi khi tải dữ liệu chi tiết');
+                                alert('Error loading detail');
                                 $('#detailModal').modal('hide');
                             });
                     }
