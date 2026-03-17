@@ -145,8 +145,16 @@ public class TransferController extends HttpServlet {
             out.flush();
             return;
         } else {
-            // Hiển thị danh sách yêu cầu chờ duyệt
-            request.setAttribute("pendingList", transDAO.getPendingTransfers());
+            // Hiển thị danh sách yêu cầu chờ duyệt nội bộ
+            List<TransferOrder> allPending = transDAO.getPendingTransfers();
+            List<TransferOrder> internalPending = new java.util.ArrayList<>();
+            for (TransferOrder t : allPending) {
+                if (t.getFromWarehouseId() == t.getToWarehouseId()) {
+                    internalPending.add(t);
+                }
+            }
+            request.setAttribute("pendingList", internalPending);
+            // Default `isExternal` is implicitly false/null
             request.getRequestDispatcher("/view/transfer-list.jsp").forward(request, response);
         }
     }

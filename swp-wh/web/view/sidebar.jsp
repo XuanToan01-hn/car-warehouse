@@ -89,6 +89,13 @@
                         </li>
 
                         <li>
+                            <a href="external-transfer" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
+                                <span class="ml-4">External Transfer</span>
+                            </a>
+                        </li>
+
+                        <li>
                             <a href="warehouse-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Warehouse Ops</span>
@@ -139,6 +146,13 @@
                             <a href="internal-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
                                 <span class="ml-4">Internal Transfer</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="external-transfer" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
+                                <span class="ml-4">External Transfer</span>
                             </a>
                         </li>
 

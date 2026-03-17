@@ -6,7 +6,7 @@
         <head>
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-            <title>Internal Transfers | InventoryPro</title>
+            <title>${isExternal ? 'External' : 'Internal'} Transfers | InventoryPro</title>
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css">
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
@@ -173,13 +173,13 @@
                         <div class="container-fluid">
                             <div class="page-header">
                                 <div>
-                                    <h1 class="font-weight-bold h2">Internal Transfers</h1>
+                                    <h1 class="font-weight-bold h2">${isExternal ? 'External' : 'Internal'} Transfers</h1>
                                     <p class="text-muted mb-0">Create Request & Approve Note</p>
                                 </div>
                                 <div>
                                     <a href="warehouse-transfer" class="btn btn-outline-primary"><i
                                             class="ri-truck-line"></i> Warehouse Ops</a>
-                                    <a href="internal-transfer?action=form" class="btn btn-success ml-2"><i
+                                    <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=form" class="btn btn-success ml-2"><i
                                             class="ri-add-line"></i> Create New Request</a>
                                 </div>
                             </div>
@@ -337,7 +337,7 @@
 
                                 <!-- Actions -->
                                 <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-                                    <form action="internal-transfer" method="POST" class="mr-2">
+                                    <form action="${isExternal ? 'external-transfer' : 'internal-transfer'}" method="POST" class="mr-2">
                                         <input type="hidden" name="action" value="cancel">
                                         <input type="hidden" name="transferId" id="cancelId">
                                         <button type="submit"
@@ -346,7 +346,7 @@
                                             Cancel Request
                                         </button>
                                     </form>
-                                    <form action="internal-transfer" method="POST">
+                                    <form action="${isExternal ? 'external-transfer' : 'internal-transfer'}" method="POST">
                                         <input type="hidden" name="action" value="approve">
                                         <input type="hidden" name="transferId" id="approveId">
                                         <button type="submit"
