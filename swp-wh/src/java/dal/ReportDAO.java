@@ -20,23 +20,80 @@ import model.Warehouse;
  * @author Asus
  */
 public class ReportDAO extends DBContext{
-    public static void main(String[] args) {
+//    public static void main(String[] args) {
+//    ReportDAO dao = new ReportDAO();
+//
+//    System.out.println("=== CASE 1: TẤT CẢ BIẾN ĐỘNG TRONG THÁNG 10/2024 (Trang 1) ===");
+//    List<InventoryTransaction> list1 = dao.getStockMovement(0, "2024-10-01", "2026-10-31", "", 1, 10);
+//    printReport(list1);
+//
+//    System.out.println("\n=== CASE 2: CHỈ LỌC PHIẾU XUẤT (Type=2) VÀ TÌM KIẾM 'IPHONE' ===");
+//    // Giả sử Type 2 = ISSUE
+//    List<InventoryTransaction> list2 = dao.getStockMovement(2, null, null, "Iphone", 1, 5);
+//    printReport(list2);
+//
+//    System.out.println("\n=== CASE 3: KIỂM TRA PHÂN TRANG (Trang 2, mỗi trang 2 bản ghi) ===");
+//    List<InventoryTransaction> list3 = dao.getStockMovement(0, null, null, null, 2, 2);
+//    printReport(list3);
+//}
+public static void main(String[] args) {
     ReportDAO dao = new ReportDAO();
 
-    System.out.println("=== CASE 1: TẤT CẢ BIẾN ĐỘNG TRONG THÁNG 10/2024 (Trang 1) ===");
-    List<InventoryTransaction> list1 = dao.getStockMovement(0, "2024-10-01", "2026-10-31", "", 1, 10);
-    printReport(list1);
+    // --- TEST CẤP ĐỘ 1: TỔNG HỢP TOÀN HỆ THỐNG ---
+    System.out.println("=== LEVEL 1: ALL PRODUCT DETAILS (GLOBAL QTY) ===");
+    List<ProductDetail> allDetails = dao.getAllProductDetailsWithGlobalQty();
+    
+    if (allDetails.isEmpty()) {
+        System.out.println("No data found in Product_Detail or Location_Product.");
+    } else {
+        System.out.printf("%-5s | %-20s | %-15s | %-10s\n", "ID", "Product Name", "Lot Number", "Total Qty");
+        System.out.println("------------------------------------------------------------");
+        for (ProductDetail pd : allDetails) {
+            System.out.printf("%-5d | %-20s | %-15s | %-10d\n", 
+                pd.getId(), 
+                pd.getProduct().getName(), 
+                pd.getLotNumber(), 
+                pd.getQuantity());
+        }
 
-    System.out.println("\n=== CASE 2: CHỈ LỌC PHIẾU XUẤT (Type=2) VÀ TÌM KIẾM 'IPHONE' ===");
-    // Giả sử Type 2 = ISSUE
-    List<InventoryTransaction> list2 = dao.getStockMovement(2, null, null, "Iphone", 1, 5);
-    printReport(list2);
+        // --- TEST CẤP ĐỘ 2: LẤY THEO NHÀ KHO (Lấy ID đầu tiên từ Level 1 để test) ---
+        int testPdId = allDetails.get(0).getId();
+        System.out.println("\n=== LEVEL 2: WAREHOUSES FOR PRODUCT DETAIL ID: " + testPdId + " ===");
+        List<Warehouse> warehouses = dao.getWarehousesByProductDetail(testPdId);
+        
+        if (warehouses.isEmpty()) {
+            System.out.println("This product detail is not stored in any warehouse.");
+        } else {
+            System.out.printf("%-5s | %-20s | %-10s\n", "W_ID", "Warehouse Name", "Qty in Wh");
+            System.out.println("---------------------------------------------------");
+            for (Warehouse w : warehouses) {
+                System.out.printf("%-5d | %-20s | %-10s\n", 
+                    w.getId(), 
+                    w.getWarehouseName(), 
+                    w.getDescription()); // Số lượng được tạm lưu ở description trong DAO trước đó
+            }
 
-    System.out.println("\n=== CASE 3: KIỂM TRA PHÂN TRANG (Trang 2, mỗi trang 2 bản ghi) ===");
-    List<InventoryTransaction> list3 = dao.getStockMovement(0, null, null, null, 2, 2);
-    printReport(list3);
+            // --- TEST CẤP ĐỘ 3: LẤY THEO VỊ TRÍ (Lấy Warehouse ID đầu tiên từ Level 2 để test) ---
+            int testWId = warehouses.get(0).getId();
+            System.out.println("\n=== LEVEL 3: LOCATIONS IN WAREHOUSE " + testWId + " FOR DETAIL " + testPdId + " ===");
+            List<Location> locations = dao.getLocationsByDetailInWarehouse(testPdId, testWId);
+            
+            if (locations.isEmpty()) {
+                System.out.println("No specific locations found.");
+            } else {
+                System.out.printf("%-5s | %-15s | %-15s | %-10s\n", "L_ID", "Code", "Name", "Qty");
+                System.out.println("------------------------------------------------------------");
+                for (Location loc : locations) {
+                    System.out.printf("%-5d | %-15s | %-15s | %-10d\n", 
+                        loc.getId(), 
+                        loc.getLocationCode(), 
+                        loc.getLocationName(), 
+                        loc.getCurrentStock());
+                }
+            }
+        }
+    }
 }
-
 // Hàm hỗ trợ in kết quả đẹp mắt
 private static void printReport(List<InventoryTransaction> list) {
     if (list.isEmpty()) {
@@ -63,28 +120,126 @@ private static void printReport(List<InventoryTransaction> list) {
     }
 }
     
-//    public static void main(String[] args) {
-//    ReportDAO dao = new ReportDAO();
-//    WarehouseDAO wd = new WarehouseDAO();
-//    // Lấy trang 1, mỗi trang 5 bản ghi, sắp xếp theo số lượng giảm dần
-//    List<LocationProduct> report = dao.getCurrentStock("", "", 1, 5, "lp.Quantity", "DESC");
-//    
-//    System.out.println("================= BÁO CÁO TỒN KHO HIỆN TẠI =================");
-//    System.out.printf("%-15s | %-10s | %-20s | %-10s | %-5s\n", 
-//                      "Warehouse", "Bin/Rack", "Product", "Lot", "Qty");
-//    System.out.println("------------------------------------------------------------");
-//   
-//    for (LocationProduct item : report) {
-//        Warehouse w = wd.getById(item.getLocation().getWarehouseId());
-//        System.out.printf("%-15s | %-10s | %-20s | %-10s | %-5d\n",
-//            w.getWarehouseName(), 
-//            item.getLocation().getLocationCode(),
-//            item.getProduct().getName(),
-//            item.getProductDetail().getLotNumber(),
-//            item.getQuantity()
-//        );
-//    }
-//}
+// CẤP ĐỘ 1: Lấy toàn bộ Product Detail và TỔNG số lượng của nó trong toàn hệ thống
+    public List<ProductDetail> getAllProductDetailsWithGlobalQty() {
+        List<ProductDetail> list = new ArrayList<>();
+        String sql = "SELECT pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, p.ProductID, p.Name, p.Code, " +
+                     "SUM(lp.Quantity) as GlobalQty " +
+                     "FROM Product_Detail pd " +
+                     "JOIN Product p ON pd.ProductID = p.ProductID " +
+                     "LEFT JOIN Location_Product lp ON pd.ProductDetailID = lp.ProductDetailID " +
+                     "GROUP BY pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, p.ProductID, p.Name, p.Code";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Product p = new Product();
+                p.setId(rs.getInt("ProductID"));
+                p.setName(rs.getString("Name"));
+                p.setCode(rs.getString("Code"));
+
+                ProductDetail pd = new ProductDetail();
+                pd.setId(rs.getInt("ProductDetailID"));
+                pd.setLotNumber(rs.getString("LotNumber"));
+                pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setProduct(p);
+                pd.setQuantity(rs.getInt("GlobalQty")); // Tổng lượng toàn hệ thống
+
+                list.add(pd);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    // CẤP ĐỘ 2: Click vào Product Detail -> Lấy danh sách các Nhà kho chứa nó và số lượng tại mỗi kho
+    public List<Warehouse> getWarehousesByProductDetail(int productDetailId) {
+        List<Warehouse> list = new ArrayList<>();
+        String sql = "SELECT w.WarehouseID, w.WarehouseName, w.WarehouseCode, SUM(lp.Quantity) as QtyInWarehouse " +
+                     "FROM Location_Product lp " +
+                     "JOIN Location l ON lp.LocationID = l.LocationID " +
+                     "JOIN Warehouse w ON l.WarehouseID = w.WarehouseID " +
+                     "WHERE lp.ProductDetailID = ? " +
+                     "GROUP BY w.WarehouseID, w.WarehouseName, w.WarehouseCode " +
+                     "HAVING SUM(lp.Quantity) > 0";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, productDetailId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Warehouse w = new Warehouse();
+                w.setId(rs.getInt("WarehouseID"));
+                w.setWarehouseName(rs.getString("WarehouseName"));
+                w.setWarehouseCode(rs.getString("WarehouseCode"));
+                // Vì class Warehouse không có field quantity, bạn có thể cân nhắc dùng 
+                // Description hoặc tạo một Wrapper class. Ở đây tôi dùng tạm Description để chứa Qty nếu bạn lười tạo class mới.
+                w.setDescription(String.valueOf(rs.getInt("QtyInWarehouse"))); 
+                list.add(w);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    // CẤP ĐỘ 3: Click vào Nhà kho -> Lấy danh sách các Location (vị trí) cụ thể và số lượng trong đó
+    public List<Location> getLocationsByDetailInWarehouse(int productDetailId, int warehouseId) {
+        List<Location> list = new ArrayList<>();
+        String sql = "SELECT l.LocationID, l.LocationCode, l.LocationName, lp.Quantity " +
+                     "FROM Location_Product lp " +
+                     "JOIN Location l ON lp.LocationID = l.LocationID " +
+                     "WHERE lp.ProductDetailID = ? AND l.WarehouseID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, productDetailId);
+            ps.setInt(2, warehouseId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Location loc = new Location();
+                loc.setId(rs.getInt("LocationID"));
+                loc.setLocationCode(rs.getString("LocationCode"));
+                loc.setLocationName(rs.getString("LocationName"));
+                loc.setCurrentStock(rs.getInt("Quantity")); // Số lượng tại vị trí này
+                list.add(loc);
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+public List<LocationProduct> getProductStockDetails(int productId) {
+    List<LocationProduct> list = new ArrayList<>();
+    String sql = "SELECT lp.Quantity, l.LocationCode, l.LocationName, w.WarehouseName, " +
+                 "p.Name AS ProductName, p.Code AS ProductCode, pd.LotNumber " +
+                 "FROM Location_Product lp " +
+                 "JOIN Location l ON lp.LocationID = l.LocationID " +
+                 "JOIN Warehouse w ON l.WarehouseID = w.WarehouseID " +
+                 "JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID " +
+                 "JOIN Product p ON pd.ProductID = p.ProductID " +
+                 "WHERE p.ProductID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, productId);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            LocationProduct lp = new LocationProduct();
+            lp.setQuantity(rs.getInt("Quantity"));
+            
+            Location loc = new Location();
+            loc.setLocationCode(rs.getString("LocationCode"));
+            loc.setLocationName(rs.getString("LocationName"));
+            loc.setWarehouseName(rs.getString("WarehouseName")); // Đảm bảo model Location có field này
+            lp.setLocation(loc);
+
+            Product p = new Product();
+            p.setName(rs.getString("ProductName"));
+            p.setCode(rs.getString("ProductCode"));
+            lp.setProduct(p);
+
+            ProductDetail pd = new ProductDetail();
+            pd.setLotNumber(rs.getString("LotNumber"));
+            lp.setProductDetail(pd);
+
+            list.add(lp);
+        }
+    } catch (Exception e) { e.printStackTrace(); }
+    return list;
+}
     
 // Sửa phương thức lấy danh sách
 public List<LocationProduct> getCurrentStock(String productName, String warehouseName, Integer locationId,
@@ -305,5 +460,61 @@ public int countStockMovement(Integer type, String fromDate, String toDate, Stri
     } catch (Exception e) { e.printStackTrace(); }
     return 0;
 }
-    
+    // CẤP ĐỘ 1: Lấy danh sách Product Detail có Search và Phân trang (OFFSET/FETCH)
+public List<ProductDetail> getGlobalStockPaged(String txtSearch, int page, int size) {
+    List<ProductDetail> list = new ArrayList<>();
+    // Sử dụng LEFT JOIN để hiện cả SP chưa có trong kho nếu cần, 
+    // hoặc JOIN nếu chỉ muốn hiện SP đang có hàng.
+    String sql = "SELECT pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, p.ProductID, p.Name, p.Code, " +
+                 "SUM(ISNULL(lp.Quantity, 0)) as GlobalQty " +
+                 "FROM Product_Detail pd " +
+                 "JOIN Product p ON pd.ProductID = p.ProductID " +
+                 "LEFT JOIN Location_Product lp ON pd.ProductDetailID = lp.ProductDetailID " +
+                 "WHERE p.Name LIKE ? OR p.Code LIKE ? OR pd.LotNumber LIKE ? " +
+                 "GROUP BY pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, p.ProductID, p.Name, p.Code " +
+                 "ORDER BY p.Name ASC " +
+                 "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        String search = "%" + (txtSearch == null ? "" : txtSearch) + "%";
+        ps.setString(1, search);
+        ps.setString(2, search);
+        ps.setString(3, search);
+        ps.setInt(4, (page - 1) * size);
+        ps.setInt(5, size);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Product p = new Product();
+            p.setId(rs.getInt("ProductID"));
+            p.setName(rs.getString("Name"));
+            p.setCode(rs.getString("Code"));
+
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setLotNumber(rs.getString("LotNumber"));
+            pd.setSerialNumber(rs.getString("SerialNumber"));
+            pd.setProduct(p);
+            pd.setQuantity(rs.getInt("GlobalQty"));
+            list.add(pd);
+        }
+    } catch (Exception e) { e.printStackTrace(); }
+    return list;
+}
+
+// Đếm tổng số bản ghi ProductDetail để chia trang
+public int countGlobalStock(String txtSearch) {
+    String sql = "SELECT COUNT(DISTINCT pd.ProductDetailID) FROM Product_Detail pd " +
+                 "JOIN Product p ON pd.ProductID = p.ProductID " +
+                 "WHERE p.Name LIKE ? OR p.Code LIKE ? OR pd.LotNumber LIKE ?";
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        String search = "%" + (txtSearch == null ? "" : txtSearch) + "%";
+        ps.setString(1, search);
+        ps.setString(2, search);
+        ps.setString(3, search);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1);
+    } catch (Exception e) { e.printStackTrace(); }
+    return 0;
+}
 }

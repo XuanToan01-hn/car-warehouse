@@ -56,8 +56,11 @@
                                         </div>
                                     </form>
                                 </div>
-                                <c:if test="${not empty errorS}">
-                                    <div class="alert alert-danger">${errorS}</div>
+                                <c:if test="${not empty error}">
+                                    <div class="alert alert-danger">${error}</div>
+                                </c:if>
+                                 <c:if test="${not empty success}">
+                                    <div class="alert alert-danger">${success}</div>
                                 </c:if>
                                 <a href="registeruser" class="btn btn-primary add-list">Add User</a>
                             </div>

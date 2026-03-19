@@ -20,7 +20,6 @@
 ```
     <h3 style="margin-bottom: 1rem;">Goods Issue: ${order.orderCode}</h3>
 
-    <%-- Error Messages --%>
     <c:if test="${not empty errors}">
         <div style="color: #ef4444; background: #fef2f2; padding: 0.75rem; border-radius: 6px; margin-bottom: 1rem; font-size: 0.9rem;">
             <c:forEach items="${errors}" var="e">

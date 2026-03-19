@@ -129,7 +129,6 @@ public class GoodsIssueServlet extends HttpServlet {
             return;
         }
 
-        // Thực hiện lưu vào DB
         if (giDAO.confirmIssue(gi, details)) {
             response.sendRedirect("sales-order?action=warehouse-list");
         } else {
@@ -138,7 +137,6 @@ public class GoodsIssueServlet extends HttpServlet {
         }
     }
 
-    // Hàm bổ trợ để nạp lại dữ liệu khi có lỗi, tránh lặp code
     private void handleError(HttpServletRequest request, HttpServletResponse response, int soId, int locId, SalesOrder order, List<String> errors) 
             throws ServletException, IOException {
         request.setAttribute("errors", errors);

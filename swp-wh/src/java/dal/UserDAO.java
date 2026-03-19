@@ -22,30 +22,39 @@ import model.Warehouse;
 public class UserDAO extends DBContext {
     
     public static void main(String[] args) {
-    UserDAO dao = new UserDAO();
-    
-    // Tạo user mới để test
-    model.User u = new model.User();
-    u.setUserCode("TEST_NULL_01");
-    u.setFullName("Nguyen Van Null");
-    u.setUsername("test_username_" + System.currentTimeMillis()); // Tạo username duy nhất
-    u.setPassword("123456"); // Trong thực tế nên là pass đã mã hóa
-    u.setEmail("testnull@gmail.com");
-    u.setPhone("0988777666");
-    u.setMale(1);
-//    u.setDateOfBirth("1999-12-31");
-    u.setRole(new model.Role(1)); // Giả sử RoleID 1 đã tồn tại trong bảng Role
-    
-    // GÁN NULL TRỰC TIẾP
-    u.setWarehouse(null); 
+UserDAO dao = new UserDAO();
 
-    System.out.println("--- Đang thực hiện Insert với Warehouse = NULL ---");
-    boolean success = dao.insert(u);
-    
+    System.out.println("--- TEST UPDATE USER ---");
+
+    // 1. Lấy user có sẵn trong DB (ví dụ ID = 1)
+    User u = dao.getById(1);
+
+    if (u == null) {
+        System.out.println("Không tìm thấy user để update!");
+        return;
+    }
+
+    // 2. Sửa dữ liệu
+    u.setFullName("Nguyen Van Updated");
+    u.setUsername("updated_username_" + System.currentTimeMillis());
+    u.setEmail("updated@gmail.com");
+    u.setPhone("0999999999");
+    u.setMale(0);
+    u.setDateOfBirth("2000-01-01");
+
+    // Role (giả sử role 2 tồn tại)
+    u.setRole(new Role(2));
+
+    // Test NULL warehouse
+    u.setWarehouse(null);
+
+    // 3. Gọi update
+    boolean success = dao.update(u);
+
     if (success) {
-        System.out.println("Kết quả: INSERT THÀNH CÔNG!");
+        System.out.println("UPDATE THÀNH CÔNG!");
     } else {
-        System.out.println("Kết quả: INSERT THẤT BẠI. Xem lỗi ở trên.");
+        System.out.println("UPDATE THẤT BẠI!");
     }
 }
     public User loginAuth(String email, String password) {
@@ -463,32 +472,54 @@ public boolean insert(User u) {
 }
 
 public boolean update(User u) {
-    // 1. Câu lệnh SQL đầy đủ các trường bạn đã set trong Servlet
-    String sql = "UPDATE Users SET UserCode=?, FullName=?, Username=?, Male=?, "
-               + "DateOfBirth=?, Email=?, Phone=?, RoleID=?, WarehouseID=? "
-               + "WHERE UserID=?";
-    
+    String sql = "UPDATE Users SET "
+               + "FullName = ?, "
+               + "Username = ?, "
+               + "Male = ?, "
+               + "DateOfBirth = ?, "
+               + "Email = ?, "
+               + "Phone = ?, "
+               + "RoleID = ?, "
+               + "WarehouseID = ? "
+               + "WHERE UserID = ?";
+
     try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setString(1, u.getUserCode());
-        ps.setString(2, u.getFullName());
-        ps.setString(3, u.getUsername());
-        ps.setInt(4, u.getMale());
-        ps.setString(5, u.getDateOfBirth());
-        ps.setString(6, u.getEmail());
-        ps.setString(7, u.getPhone());
-        ps.setInt(8, u.getRole().getId());
-        if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
-            ps.setInt(9, u.getWarehouse().getId());
+
+        ps.setString(1, u.getFullName());
+        ps.setString(2, u.getUsername());
+        ps.setInt(3, u.getMale());
+
+        // Handle DateOfBirth NULL an toàn
+        if (u.getDateOfBirth() != null && !u.getDateOfBirth().isEmpty()) {
+            ps.setString(4, u.getDateOfBirth());
         } else {
-            ps.setNull(9, java.sql.Types.INTEGER);
+            ps.setNull(4, java.sql.Types.DATE);
         }
-        ps.setInt(10, u.getId());
+
+        ps.setString(5, u.getEmail());
+        ps.setString(6, u.getPhone());
+
+        // Role (bắt buộc phải có)
+        ps.setInt(7, u.getRole().getId());
+
+        // Warehouse (có thể NULL)
+        if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
+            ps.setInt(8, u.getWarehouse().getId());
+        } else {
+            ps.setNull(8, java.sql.Types.INTEGER);
+        }
+
+        ps.setInt(9, u.getId());
 
         int rowsAffected = ps.executeUpdate();
+
+        System.out.println("Update rows affected: " + rowsAffected);
+
         return rowsAffected > 0;
+
     } catch (Exception e) {
-        System.err.println("LỖI UPDATE THỰC TẾ: " + e.getMessage());
-        e.printStackTrace();
+        System.err.println("LỖI UPDATE USER:");
+        e.printStackTrace(); // cực kỳ quan trọng để debug
         return false;
     }
 }

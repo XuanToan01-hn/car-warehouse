@@ -14,14 +14,14 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
-import model.ProductDetail;
+import model.LocationProduct;
 
 /**
  *
  * @author Asus
  */
-@WebServlet(name="InventoryReportController", urlPatterns={"/inventory-report"})
-public class InventoryReportController extends HttpServlet {
+@WebServlet(name="ReportProductDetail", urlPatterns={"/report-detail"})
+public class ReportProductDetail extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -38,10 +38,10 @@ public class InventoryReportController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet InventoryReportController</title>");  
+            out.println("<title>Servlet ReportProductDetail</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet InventoryReportController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet ReportProductDetail at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -55,45 +55,24 @@ public class InventoryReportController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-@Override
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) 
     throws ServletException, IOException {
+        int productId = Integer.parseInt(request.getParameter("id"));
         ReportDAO dao = new ReportDAO();
         
-        // 1. Lấy các tham số filter và phân trang cho Level 1
-        String search = request.getParameter("search");
-        int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
-        int size = 10;
-
-        // 2. Lấy tham số Drill-down
-        String pdIdStr = request.getParameter("pdId");
-        String wIdStr = request.getParameter("wId");
-
-        // --- LEVEL 1: Luôn lấy danh sách sản phẩm ---
-        List<ProductDetail> list = dao.getGlobalStockPaged(search, page, size);
-        int totalRecords = dao.countGlobalStock(search);
-        int totalPages = (int) Math.ceil((double) totalRecords / size);
-
-        request.setAttribute("pdList", list);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("currentPage", page);
-
-        // --- LEVEL 2: Nếu có chọn 1 Product Detail cụ thể ---
-        if (pdIdStr != null && !pdIdStr.isEmpty()) {
-            int pdId = Integer.parseInt(pdIdStr);
-            request.setAttribute("warehouses", dao.getWarehousesByProductDetail(pdId));
-            request.setAttribute("selectedPdId", pdId);
+        List<LocationProduct> details = dao.getProductStockDetails(productId);
+        
+        // Tính tổng số lượng tồn kho
+        int totalQty = details.stream().mapToInt(LocationProduct::getQuantity).sum();
+        
+        request.setAttribute("details", details);
+        request.setAttribute("totalQty", totalQty);
+        if(!details.isEmpty()) {
+            request.setAttribute("product", details.get(0).getProduct());
         }
-
-        // --- LEVEL 3: Nếu có chọn 1 Nhà kho cụ thể ---
-        if (wIdStr != null && !wIdStr.isEmpty()) {
-            int pdId = Integer.parseInt(pdIdStr);
-            int wId = Integer.parseInt(wIdStr);
-            request.setAttribute("locations", dao.getLocationsByDetailInWarehouse(pdId, wId));
-            request.setAttribute("selectedWId", wId);
-        }
-
-        request.getRequestDispatcher("/view/report/inventoryReport.jsp").forward(request, response);
+        
+        request.getRequestDispatcher("/view/report/productDetail.jsp").forward(request, response);
     }
     /** 
      * Handles the HTTP <code>POST</code> method.
