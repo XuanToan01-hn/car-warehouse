@@ -30,31 +30,6 @@ public class TaxServlet extends HttpServlet {
             }
             response.sendRedirect(request.getContextPath() + "/taxes");
             return;
-        } else if ("getDetailJson".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null && !idStr.trim().isEmpty()) {
-                try {
-                    int id = Integer.parseInt(idStr.trim());
-                    TaxDAO dao = new TaxDAO();
-                    Tax t = dao.getById(id);
-                    if (t != null) {
-                        response.setContentType("application/json");
-                        response.setCharacterEncoding("UTF-8");
-                        
-                        String nameJson = t.getTaxName() != null ? t.getTaxName().replace("\"", "\\\"") : "";
-                        String effFrom = t.getEffectiveFrom() != null ? t.getEffectiveFrom().toString() : "";
-                        String expDate = t.getExpiredDate() != null ? t.getExpiredDate().toString() : "";
-
-                        String json = String.format(
-                            "{\"id\": %d, \"taxName\": \"%s\", \"taxRate\": %.2f, \"effectiveFrom\": \"%s\", \"expiredDate\": \"%s\"}",
-                            t.getId(), nameJson, t.getTaxRate(), effFrom, expDate
-                        );
-                        response.getWriter().write(json);
-                        return;
-                    }
-                } catch (NumberFormatException ignored) {
-                }
-            }
         }
 
         TaxDAO dao = new TaxDAO();

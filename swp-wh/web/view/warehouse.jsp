@@ -197,7 +197,12 @@
                                                         </td>
                                                         <td class="text-right">
                                                             <button class="btn-action btn-edit mr-2"
-                                                                onclick="prepareEdit('${w.id}')">
+                                                                data-id="${w.id}"
+                                                                data-code="${w.warehouseCode}"
+                                                                data-name="${w.warehouseName}"
+                                                                data-address="${w.address}"
+                                                                data-description="${w.description}"
+                                                                onclick="prepareEdit(this)">
                                                                 <i class="ri-pencil-line"></i> Edit
                                                             </button>
                                                             <a href="warehouses?action=delete&id=${w.id}"
@@ -282,24 +287,16 @@
                     document.getElementById('f-code').value = "";
                 }
 
-                function prepareEdit(id) {
-                    fetch('warehouses?action=getDetailJson&id=' + id)
-                        .then(r => r.json())
-                        .then(data => {
-                            document.getElementById('form-title').innerText = "Edit Warehouse";
-                            document.getElementById('form-action').value = "update";
-                            document.getElementById('wh-id').value = data.id;
-                            document.getElementById('f-code').value = data.code;
-                            document.getElementById('f-code').readOnly = true;
-                            document.getElementById('f-name').value = data.name;
-                            document.getElementById('f-address').value = data.address || '';
-                            document.getElementById('f-description').value = data.description || '';
-                            $('#warehouseModal').modal('show');
-                        })
-                        .catch(err => {
-                            console.error('Error loading warehouse:', err);
-                            alert('Error loading warehouse data');
-                        });
+                function prepareEdit(btn) {
+                    document.getElementById('form-title').innerText = "Edit Warehouse";
+                    document.getElementById('form-action').value = "update";
+                    document.getElementById('wh-id').value = btn.getAttribute('data-id');
+                    document.getElementById('f-code').value = btn.getAttribute('data-code');
+                    document.getElementById('f-code').readOnly = true;
+                    document.getElementById('f-name').value = btn.getAttribute('data-name');
+                    document.getElementById('f-address').value = btn.getAttribute('data-address') || '';
+                    document.getElementById('f-description').value = btn.getAttribute('data-description') || '';
+                    $('#warehouseModal').modal('show');
                 }
             </script>
         </body>

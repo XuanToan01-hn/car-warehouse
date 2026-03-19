@@ -260,7 +260,7 @@
                 <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title font-weight-bold">Chi tiết yêu cầu chuyển kho</h5>
+                            <h5 class="modal-title font-weight-bold">Details of warehouse transfer request</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
@@ -268,20 +268,20 @@
                         <div class="modal-body">
                             <div id="loadingDetail" class="text-center py-4">
                                 <div class="spinner-border text-primary" role="status"></div>
-                                <p class="mt-2 text-muted">Đang tải thông tin...</p>
+                                <p class="mt-2 text-muted">Loading information...</p>
                             </div>
                             <div id="detailContent" style="display: none;">
                                 <!-- Header Info -->
                                 <div class="row mb-3">
                                     <div class="col-md-7">
-                                        <span class="detail-label text-primary">Mã vận đơn</span>
+                                        <span class="detail-label text-primary">Order ID</span>
                                         <span id="dtCode" class="detail-value h5 font-weight-bold mb-0"></span>
                                     </div>
                                     <div class="col-md-5 text-md-right border-left pl-4">
-                                        <span class="detail-label">Số lượng chuyển</span>
+                                        <span class="detail-label">Quantity</span>
                                         <div class="d-flex align-items-baseline justify-content-md-end">
                                             <span id="dtQty" class="text-dark font-weight-bold h3 mb-0"></span>
-                                            <span class="text-muted ml-1" style="font-size: 1rem;">chiếc</span>
+                                            <span class="text-muted ml-1" style="font-size: 1rem;">pcs</span>
                                         </div>
                                     </div>
                                 </div>
@@ -290,12 +290,12 @@
                                     <!-- Left Column: Product & Note -->
                                     <div class="col-md-6">
                                         <div class="product-banner mb-3">
-                                            <span class="detail-label text-primary">Xe / Sản phẩm</span>
+                                            <span class="detail-label text-primary">Car / Product</span>
                                             <div id="dtProduct" class="detail-value font-weight-bold truncate-2"
                                                 style="font-size: 1.15rem;"></div>
                                         </div>
                                         <div class="info-section mb-0" style="padding: 1rem;">
-                                            <span class="detail-label">Lý do / Ghi chú</span>
+                                            <span class="detail-label">Reason / Note</span>
                                             <div class="p-2 border rounded bg-white text-muted"
                                                 style="min-height: 80px;">
                                                 <span id="dtNote"
@@ -307,14 +307,14 @@
                                     <!-- Right Column: Route -->
                                     <div class="col-md-6">
                                         <div class="info-section h-100 mb-0">
-                                            <span class="detail-label">Lộ trình vận chuyển</span>
+                                            <span class="detail-label"> Shipping Route</span>
                                             <div class="d-flex flex-column gap-3 mt-2">
                                                 <div class="route-node">
                                                     <i class="ri-map-pin-2-fill text-danger mr-3"
                                                         style="font-size: 1.2rem;"></i>
                                                     <div style="line-height: 1.3;">
                                                         <small class="text-muted d-block"
-                                                            style="font-size: 0.75rem;">NGUỒN</small>
+                                                            style="font-size: 0.75rem;">SOURCE</small>
                                                         <span id="dtFrom" style="font-size: 1rem;"></span>
                                                     </div>
                                                 </div>
@@ -326,7 +326,7 @@
                                                         style="font-size: 1.2rem;"></i>
                                                     <div style="line-height: 1.3;">
                                                         <small class="text-muted d-block"
-                                                            style="font-size: 0.75rem;">ĐÍCH</small>
+                                                            style="font-size: 0.75rem;">DESTINATION</small>
                                                         <span id="dtTo" style="font-size: 1rem;"></span>
                                                     </div>
                                                 </div>
@@ -342,8 +342,8 @@
                                         <input type="hidden" name="transferId" id="cancelId">
                                         <button type="submit"
                                             class="btn btn-outline-danger px-4 rounded-xl font-weight-bold"
-                                            onclick="return confirm('Bạn có chắc chắn muốn HỦY yêu cầu này?')">
-                                            Hủy yêu cầu
+                                            onclick="return confirm('Are you sure you want to CANCEL this request?')">
+                                            Cancel Request
                                         </button>
                                     </form>
                                     <form action="internal-transfer" method="POST">
@@ -351,8 +351,8 @@
                                         <input type="hidden" name="transferId" id="approveId">
                                         <button type="submit"
                                             class="btn btn-approve px-5 rounded-xl font-weight-bold shadow-sm"
-                                            onclick="return confirm('Phê duyệt và tạo phiếu chuyển cho đơn này?')">
-                                            <i class="ri-check-line mr-1"></i> Phê duyệt ngay
+                                            onclick="return confirm('Are you sure you want to APPROVE this request?')">
+                                            <i class="ri-check-line mr-1"></i> Approve
                                         </button>
                                     </form>
                                 </div>
@@ -379,7 +379,7 @@
                             $('#dtTo').text(data.to);
                             $('#dtProduct').text(data.product);
                             $('#dtQty').text(data.qty);
-                            $('#dtNote').text(data.note || 'Không có ghi chú');
+                            $('#dtNote').text(data.note || 'No note');
 
                             $('#approveId').val(data.id);
                             $('#cancelId').val(data.id);
@@ -388,7 +388,7 @@
                         })
                         .catch(err => {
                             console.error(err);
-                            alert('Lỗi khi tải dữ liệu chi tiết');
+                            alert('Error loading detail data');
                             $('#detailModal').modal('hide');
                         });
                 }
