@@ -38,7 +38,7 @@ public class SalesOrderServlet extends HttpServlet {
             getDetailsByProduct(request, response);
             break;
             case "warehouse-list":
-                List<SalesOrder> warehouseOrders = salesOrderDAO.getAll(); // Hàm getAll của bạn đã có OrderedQty/DeliveredQty
+                List<SalesOrder> warehouseOrders = salesOrderDAO.getAll();
                 request.setAttribute("orders", warehouseOrders);
                 request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
                 break;
