@@ -5,7 +5,6 @@
 
 package controller.report;
 
-import dal.ReportDAO;
 import java.io.IOException;
 import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
@@ -13,15 +12,13 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import model.InventoryTransaction;
 
 /**
  *
  * @author Asus
  */
-@WebServlet(name="StockMovementController", urlPatterns={"/stock-movement"})
-public class StockMovementController extends HttpServlet {
+@WebServlet(name="InventoryBalanceController", urlPatterns={"/inventory-balance"})
+public class InventoryBalanceController extends HttpServlet {
    
     /** 
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code> methods.
@@ -38,10 +35,10 @@ public class StockMovementController extends HttpServlet {
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
-            out.println("<title>Servlet StockMovementController</title>");  
+            out.println("<title>Servlet InventoryBalanceController</title>");  
             out.println("</head>");
             out.println("<body>");
-            out.println("<h1>Servlet StockMovementController at " + request.getContextPath () + "</h1>");
+            out.println("<h1>Servlet InventoryBalanceController at " + request.getContextPath () + "</h1>");
             out.println("</body>");
             out.println("</html>");
         }
@@ -55,34 +52,12 @@ public class StockMovementController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-@Override
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
     throws ServletException, IOException {
-        ReportDAO dao = new ReportDAO();
+        processRequest(request, response);
+    } 
 
-        // 1. Lấy tham số filter
-        String typeStr = request.getParameter("type"); // 1: Import, 2: Export, null/0: All
-        String fromDate = request.getParameter("fromDate");
-        String toDate = request.getParameter("toDate");
-        String search = request.getParameter("search");
-        
-        int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
-        int size = 10;
-
-        Integer type = (typeStr != null && !typeStr.isEmpty()) ? Integer.parseInt(typeStr) : 0;
-
-        // 2. Gọi DAO lấy dữ liệu Entity InventoryTransaction
-        List<InventoryTransaction> list = dao.getStockMovement(type, fromDate, toDate, search, page, size);
-        int totalRecords = dao.countStockMovement(type, fromDate, toDate, search);
-        int totalPages = (int) Math.ceil((double) totalRecords / size);
-
-        // 3. Đẩy dữ liệu sang JSP
-        request.setAttribute("movements", list);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("currentPage", page);
-        
-        request.getRequestDispatcher("/view/report/stockMovement.jsp").forward(request, response);
-    }
     /** 
      * Handles the HTTP <code>POST</code> method.
      * @param request servlet request

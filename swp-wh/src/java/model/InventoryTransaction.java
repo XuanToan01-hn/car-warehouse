@@ -19,7 +19,17 @@ public class InventoryTransaction {
     private int quantity;
     private String referenceCode;
     private Date transactionDate;
+    
+    private SalesOrder salesOrder;
 
+    public SalesOrder getSalesOrder() {
+        return salesOrder;
+    }
+
+    public void setSalesOrder(SalesOrder salesOrder) {
+        this.salesOrder = salesOrder;
+    }
+    
     public InventoryTransaction() {}
 
     public int getId() { return id; }

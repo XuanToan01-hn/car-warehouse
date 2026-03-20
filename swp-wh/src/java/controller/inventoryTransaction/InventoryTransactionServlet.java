@@ -61,38 +61,38 @@ public class InventoryTransactionServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         
-        // 1. Lấy tham số phân trang
+        // 1. Xử lý phân trang
         int page = 1;
-        int pageSize = 5; 
+        int pageSize = 10; 
         try {
             String pageStr = request.getParameter("page");
             if (pageStr != null && !pageStr.isEmpty()) {
                 page = Integer.parseInt(pageStr);
             }
-        } catch (NumberFormatException e) { 
-            page = 1; 
+        } catch (NumberFormatException e) {
+            page = 1;
         }
 
-        // 2. Lấy tham số Filter & Search
+        // 2. Lấy tham số lọc Loại (Nhập/Xuất)
         String typeRaw = request.getParameter("type");
         Integer type = (typeRaw != null && !typeRaw.isEmpty()) ? Integer.parseInt(typeRaw) : 0;
         
-        String search = request.getParameter("search");
-        if (search == null) {
-            search = ""; // Tránh lỗi cộng chuỗi "null" trên URL JSP
+        // 3. Lấy tham số tìm kiếm theo Mã Đơn Hàng (SalesOrder Code)
+        String searchOrder = request.getParameter("searchOrder");
+        if (searchOrder == null) {
+            searchOrder = "";
         }
 
-        // 3. Gọi DAO lấy dữ liệu
-        List<InventoryTransaction> list = transDAO.getTransactions(page, pageSize, type, search);
-        int totalRecords = transDAO.getTotalTransactions(type, search);
+        // 4. Gọi DAO lấy dữ liệu (Hàm này đã sửa LEFT JOIN Sales_Order)
+        List<InventoryTransaction> list = transDAO.getTransactions(page, pageSize, type, searchOrder);
+        int totalRecords = transDAO.getTotalTransactions(type, searchOrder);
         int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
-        // 4. Đẩy dữ liệu lên JSP
         request.setAttribute("transactions", list);
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("selectedType", type);
-        request.setAttribute("search", search);
+        request.setAttribute("searchOrder", searchOrder);
 
         request.getRequestDispatcher("/view/inventory-transaction/log-list.jsp").forward(request, response);
     }
