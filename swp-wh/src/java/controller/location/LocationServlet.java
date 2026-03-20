@@ -14,7 +14,8 @@ import java.util.Map;
 import java.util.HashMap;
 import model.Location;
 import model.Warehouse;
-@WebServlet(name = "LocationServlet", urlPatterns = {"/locations"})
+
+@WebServlet(name = "LocationServlet", urlPatterns = { "/locations" })
 public class LocationServlet extends HttpServlet {
 
     @Override
@@ -27,60 +28,103 @@ public class LocationServlet extends HttpServlet {
         WarehouseDAO warehouseDAO = new WarehouseDAO();
         try {
 
-        if ("delete".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null) {
-                try {
-                    int id = Integer.parseInt(idStr);
-                    locationDAO.delete(id);
-                } catch (NumberFormatException e) {
-                }
-            }
-            response.sendRedirect(request.getContextPath() + "/locations");
-            return;
-        } else if ("getDetail".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null) {
-                int id = Integer.parseInt(idStr);
-                model.Location loc = locationDAO.getById(id);
-                List<model.LocationProduct> rawProducts = locationDAO.getProductsByLocation(id);
-                
-                // Grouping logic for UI
-                java.util.Map<Integer, java.util.Map<String, Object>> groupedMap = new java.util.LinkedHashMap<>();
-                for (model.LocationProduct lp : rawProducts) {
-                    int pid = lp.getProduct().getId();
-                    if (!groupedMap.containsKey(pid)) {
-                        java.util.Map<String, Object> group = new java.util.HashMap<>();
-                        group.put("product", lp.getProduct());
-                        group.put("totalQty", 0);
-                        group.put("serials", new ArrayList<Map<String, Object>>());
-                        groupedMap.put(pid, group);
-                    }
-                    java.util.Map<String, Object> group = groupedMap.get(pid);
-                    group.put("totalQty", (int)group.get("totalQty") + lp.getQuantity());
-                    if (lp.getProductDetail() != null && lp.getProductDetail().getSerialNumber() != null) {
-                        Map<String, Object> serialInfo = new HashMap<>();
-                        serialInfo.put("serial", lp.getProductDetail().getSerialNumber());
-                        serialInfo.put("qty", lp.getQuantity());
-                        serialInfo.put("color", lp.getProductDetail().getColor() != null ? lp.getProductDetail().getColor() : "");
-                        ((java.util.List<java.util.Map<String, Object>>)group.get("serials")).add(serialInfo);
+            if ("delete".equals(action)) {
+                String idStr = request.getParameter("id");
+                if (idStr != null) {
+                    try {
+                        int id = Integer.parseInt(idStr);
+                        locationDAO.delete(id);
+                    } catch (NumberFormatException e) {
                     }
                 }
-                
-                request.setAttribute("loc", loc);
-                request.setAttribute("groupedProducts", groupedMap.values());
-                request.getRequestDispatcher("/view/location-detail-fragment.jsp").forward(request, response);
+                response.sendRedirect(request.getContextPath() + "/locations");
                 return;
+            } else if ("viewDetail".equals(action) || "getDetail".equals(action)) {
+                String idStr = request.getParameter("id");
+                if (idStr != null) {
+                    int id = Integer.parseInt(idStr);
+                    model.Location loc = locationDAO.getById(id);
+                    List<model.LocationProduct> rawProducts = locationDAO.getProductsByLocation(id);
+
+                    // Grouping logic for UI
+                    java.util.Map<Integer, java.util.Map<String, Object>> groupedMap = new java.util.LinkedHashMap<>();
+                    int totalQty = 0;
+                    for (model.LocationProduct lp : rawProducts) {
+                        totalQty += lp.getQuantity();
+                        int pid = lp.getProduct().getId();
+                        if (!groupedMap.containsKey(pid)) {
+                            java.util.Map<String, Object> group = new java.util.HashMap<>();
+                            group.put("product", lp.getProduct());
+                            group.put("totalQty", 0);
+                            group.put("serials", new ArrayList<Map<String, Object>>());
+                            groupedMap.put(pid, group);
+                        }
+                        java.util.Map<String, Object> group = groupedMap.get(pid);
+                        group.put("totalQty", (int) group.get("totalQty") + lp.getQuantity());
+                        if (lp.getProductDetail() != null && lp.getProductDetail().getSerialNumber() != null) {
+                            Map<String, Object> serialInfo = new HashMap<>();
+                            serialInfo.put("serial", lp.getProductDetail().getSerialNumber());
+                            serialInfo.put("qty", lp.getQuantity());
+                            serialInfo.put("color",
+                                    lp.getProductDetail().getColor() != null ? lp.getProductDetail().getColor() : "");
+                            ((java.util.List<java.util.Map<String, Object>>) group.get("serials")).add(serialInfo);
+                        }
+                    }
+
+                    List<Map<String, Object>> allGroupedProducts = new ArrayList<>(groupedMap.values());
+
+                    // Pagination Logic
+                    int pageSize = 5;
+                    String pageStr = request.getParameter("page");
+                    int currentPage = (pageStr != null) ? Integer.parseInt(pageStr) : 1;
+                    int totalProducts = allGroupedProducts.size();
+                    int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
+
+                    int start = (currentPage - 1) * pageSize;
+                    int end = Math.min(start + pageSize, totalProducts);
+
+                    List<Map<String, Object>> pagedProducts = new ArrayList<>();
+                    if (start < totalProducts) {
+                        pagedProducts = allGroupedProducts.subList(start, end);
+                    }
+
+                    request.setAttribute("loc", loc);
+                    request.setAttribute("totalQty", totalQty);
+                    request.setAttribute("pagedProducts", pagedProducts);
+                    request.setAttribute("currentPage", currentPage);
+                    request.setAttribute("totalPages", totalPages);
+
+                    request.getRequestDispatcher("/view/location-detail.jsp").forward(request, response);
+                    return;
+                }
+            } else if ("getDetailJson".equals(action)) {
+                String idStr = request.getParameter("id");
+                if (idStr != null) {
+                    int id = Integer.parseInt(idStr);
+                    Location l = locationDAO.getById(id);
+                    if (l != null) {
+                        response.setContentType("application/json");
+                        response.setCharacterEncoding("UTF-8");
+                        String codeJson = l.getLocationCode() != null ? l.getLocationCode().replace("\"", "\\\"") : "";
+                        String nameJson = l.getLocationName() != null ? l.getLocationName().replace("\"", "\\\"") : "";
+                        int capJson = l.getMaxCapacity() != null ? l.getMaxCapacity() : 0;
+
+                        String json = String.format(
+                                "{\"id\": %d, \"whId\": %d, \"code\": \"%s\", \"name\": \"%s\", \"capacity\": %d}",
+                                l.getId(), l.getWarehouseId(), codeJson, nameJson, capJson);
+                        response.getWriter().write(json);
+                        return;
+                    }
+                }
             }
-        }
 
-        List<Location> locations = locationDAO.getAll();
-        List<Warehouse> warehouses = warehouseDAO.getAll();
+            List<Location> locations = locationDAO.getAll();
+            List<Warehouse> warehouses = warehouseDAO.getAll();
 
-        request.setAttribute("locations", locations);
-        request.setAttribute("warehouses", warehouses);
+            request.setAttribute("locations", locations);
+            request.setAttribute("warehouses", warehouses);
 
-        request.getRequestDispatcher("/view/location.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/location.jsp").forward(request, response);
         } catch (Exception e) {
             System.err.println("[CRITICAL] LocationServlet Error: " + e.getMessage());
             e.printStackTrace();
@@ -131,4 +175,3 @@ public class LocationServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/locations");
     }
 }
-

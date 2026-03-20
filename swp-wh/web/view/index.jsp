@@ -39,32 +39,27 @@
     <style>
         /* Minimal fallback styles in case global styles are different */
         body { margin:0; font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background:#f8fafc; }
-        .main-wrapper { display:flex; min-height:100vh; }
-        .page-wrapper { margin-left:240px; width:100%; }
-        .content { padding:28px; }
         .welcome-card { display:flex; align-items:center; justify-content:center; height:70vh; }
         .welcome-box { text-align:center; background:#fff; padding:40px 60px; border-radius:12px; box-shadow:0 8px 30px rgba(2,6,23,0.06); }
         .welcome-box h1{ margin:0 0 12px 0; font-size:42px; color:#0f172a; }
         .welcome-box p{ margin:0 0 8px 0; color:#475569; font-size:18px; }
         .role-badge{ display:inline-block; margin-top:12px; background:linear-gradient(90deg,#6366f1,#9333ea); color:#fff; padding:8px 16px; border-radius:20px; font-weight:600 }
-        @media (max-width:900px){ .page-wrapper { margin-left:0; } }
     </style>
 </head>
 <body>
-<div class="main-wrapper">
+<div class="wrapper">
 
     <!-- SIDEBAR -->
-    <jsp:include page="sidebar.jsp" />
+    <%@ include file="sidebar.jsp" %>
     <!-- END SIDEBAR -->
 
-    <div class="page-wrapper">
+    <!-- HEADER -->
+    <jsp:include page="header.jsp" />
+    <!-- END HEADER -->
 
-        <!-- HEADER -->
-        <jsp:include page="header.jsp" />
-        <!-- END HEADER -->
-
+    <div class="content-page">
         <!-- PAGE CONTENT -->
-        <div class="content">
+        <div class="container-fluid">
             <div class="welcome-card">
                 <div class="welcome-box">
                     <h1>Welcome to Dream Warehouse</h1>
@@ -74,7 +69,6 @@
             </div>
         </div>
         <!-- END PAGE CONTENT -->
-
     </div>
 
 </div>
