@@ -170,6 +170,30 @@
                                 </button>
                             </div>
 
+                            <c:if test="${not empty sessionScope.error}">
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="error" scope="session" />
+                            </c:if>
+                            <c:if test="${not empty sessionScope.success}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-checkbox-circle-line mr-2"></i> ${sessionScope.success}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="success" scope="session" />
+                            </c:if>
+
+                            <div class="search-section" style="background: white; padding: 1rem 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); max-width: 500px;">
+                                <i class="ri-search-line" style="color: var(--primary); font-size: 1.2rem;"></i>
+                                <input type="text" id="searchInput" placeholder="Search by code, name or address..." style="border: none; font-weight: 600; outline: none; width: 100%; background: transparent;">
+                            </div>
+
                             <div class="card card-main">
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
@@ -185,7 +209,7 @@
                                             </thead>
                                             <tbody>
                                                 <c:forEach var="w" items="${warehouses}">
-                                                    <tr>
+                                                    <tr class="warehouse-row">
                                                         <td><span
                                                                 class="font-weight-bold text-primary">${w.warehouseCode}</span>
                                                         </td>
@@ -298,6 +322,19 @@
                     document.getElementById('f-description').value = btn.getAttribute('data-description') || '';
                     $('#warehouseModal').modal('show');
                 }
+
+                // Search logic
+                const searchInput = document.getElementById('searchInput');
+                const tableRows = document.querySelectorAll('.warehouse-row');
+
+                searchInput.addEventListener('input', function () {
+                    const query = this.value.toLowerCase().trim();
+
+                    tableRows.forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        row.style.display = text.includes(query) ? '' : 'none';
+                    });
+                });
             </script>
         </body>
 
