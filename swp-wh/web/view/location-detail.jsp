@@ -171,13 +171,30 @@
                                 <h1 class="font-weight-bold h2">Location: <span class="text-primary">${loc.locationCode}</span></h1>
                                 <p class="text-secondary mb-0">${loc.locationName} | Max Capacity: <strong>${loc.maxCapacity}</strong></p>
                             </div>
-                            <div class="text-right">
-                                <div class="badge badge-pill p-3 text-dark font-weight-bold" 
-                                     style="background: white; border: 1px solid #e2e8f0; border-radius: 15px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                                    <span class="text-primary h4 d-block mb-1">${totalQty}</span>
-                                    <span class="text-muted small text-uppercase">Vehicles in stock</span>
-                                </div>
+                        </div>
+
+                        <c:if test="${not empty sessionScope.error}">
+                            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert"
+                                style="border-radius: 12px; font-weight: 600;">
+                                <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
+                                <button type="button" class="close"
+                                    data-dismiss="alert"><span>&times;</span></button>
                             </div>
+                            <c:remove var="error" scope="session" />
+                        </c:if>
+                        <c:if test="${not empty sessionScope.success}">
+                            <div class="alert alert-success alert-dismissible fade show mb-4" role="alert"
+                                style="border-radius: 12px; font-weight: 600;">
+                                <i class="ri-checkbox-circle-line mr-2"></i> ${sessionScope.success}
+                                <button type="button" class="close"
+                                    data-dismiss="alert"><span>&times;</span></button>
+                            </div>
+                            <c:remove var="success" scope="session" />
+                        </c:if>
+
+                        <div class="search-section mb-4" style="background: white; padding: 1rem 1.5rem; border-radius: 12px; display: flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); max-width: 500px;">
+                            <i class="ri-search-line text-primary"></i>
+                            <input type="text" id="vehicleSearchInput" placeholder="Search vehicles in this location..." style="border: none; font-weight: 600; outline: none; width: 100%;">
                         </div>
 
                         <div class="card card-main">
@@ -262,6 +279,25 @@
             </div>
 
             <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
+            <script>
+                document.getElementById('vehicleSearchInput').addEventListener('input', function() {
+                    const query = this.value.toLowerCase().trim();
+                    const rows = document.querySelectorAll('.product-row');
+                    
+                    rows.forEach(row => {
+                        const text = row.innerText.toLowerCase();
+                        const targetId = row.getAttribute('data-target');
+                        const detailRow = document.querySelector(targetId);
+                        
+                        if (text.includes(query)) {
+                            row.style.display = '';
+                        } else {
+                            row.style.display = 'none';
+                            $(detailRow).collapse('hide');
+                        }
+                    });
+                });
+            </script>
         </body>
 
         </html>

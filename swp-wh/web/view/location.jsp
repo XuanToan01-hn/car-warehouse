@@ -204,6 +204,25 @@
                                 </c:if>
                             </div>
 
+                            <c:if test="${not empty sessionScope.error}">
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="error" scope="session" />
+                            </c:if>
+                            <c:if test="${not empty sessionScope.success}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-checkbox-circle-line mr-2"></i> ${sessionScope.success}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="success" scope="session" />
+                            </c:if>
+
                             <div class="filter-section">
                                 <i class="ri-filter-2-line text-primary"></i>
                                 <span class="font-weight-bold">Warehouse:</span>
@@ -212,6 +231,11 @@
                                         <option value="${w.id}">${w.warehouseCode} - ${w.warehouseName}</option>
                                     </c:forEach>
                                 </select>
+                            </div>
+
+                            <div class="search-section mb-4" style="background: white; padding: 1rem 1.5rem; border-radius: 12px; display: inline-flex; align-items: center; gap: 1rem; border: 1px solid #e2e8f0; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); min-width: 350px; margin-left: 1rem;">
+                                <i class="ri-search-line text-primary"></i>
+                                <input type="text" id="locSearchInput" placeholder="Quick search in current results..." style="border: none; font-weight: 600; outline: none; width: 100%;">
                             </div>
 
                             <div class="card card-main">
@@ -249,7 +273,12 @@
                                                             </a>
                                                             <c:if test="${sessionScope.user.role.id == 2}">
                                                                 <button class="btn-action btn-edit mr-2"
-                                                                    onclick="prepareEdit('${l.id}')">
+                                                                    data-id="${l.id}"
+                                                                    data-whid="${l.warehouseId}"
+                                                                    data-code="${l.locationCode}"
+                                                                    data-name="${l.locationName}"
+                                                                    data-capacity="${l.maxCapacity}"
+                                                                    onclick="prepareEdit(this)">
                                                                     <i class="ri-pencil-line"></i> Edit
                                                                 </button>
                                                                 <a href="locations?action=delete&id=${l.id}"
@@ -278,57 +307,38 @@
                             <h5 class="modal-title font-weight-bold" id="form-title">Add New Location</h5>
                             <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                         </div>
-                        <div class="modal-body">
-                            <form id="locationForm" action="locations" method="post">
-                                <input type="hidden" name="action" id="form-action" value="add">
-                                <input type="hidden" name="id" id="loc-id">
-
+                        <form id="location-form" action="locations" method="post">
+                            <input type="hidden" name="action" id="form-action" value="add">
+                            <input type="hidden" name="id" id="location-id">
+                            <div class="modal-body">
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Warehouse</label>
-                                            <select name="warehouseId" id="f-warehouse" class="form-select w-100"
-                                                required>
-                                                <c:forEach var="w" items="${warehouses}">
-                                                    <option value="${w.id}">${w.warehouseCode} - ${w.warehouseName}
-                                                    </option>
-                                                </c:forEach>
-                                            </select>
-                                        </div>
+                                    <div class="col-md-6 form-group">
+                                        <label class="font-weight-bold">Warehouse <span class="text-danger">*</span></label>
+                                        <select name="warehouseId" id="warehouseId" class="form-control" required>
+                                            <c:forEach var="w" items="${warehouses}">
+                                                <option value="${w.id}">${w.warehouseName}</option>
+                                            </c:forEach>
+                                        </select>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Max Capacity</label>
-                                            <input type="number" name="maxCapacity" id="f-capacity" class="form-control"
-                                                placeholder="0">
-                                        </div>
+                                    <div class="col-md-6 form-group">
+                                        <label class="font-weight-bold">Location Code <span class="text-danger">*</span></label>
+                                        <input type="text" name="locationCode" id="locationCode" class="form-control" required maxlength="50">
                                     </div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Location Code</label>
-                                            <input type="text" name="locationCode" id="f-code" class="form-control"
-                                                placeholder="e.g. LOC-001" required>
-                                        </div>
+                                    <div class="col-md-6 form-group">
+                                        <label class="font-weight-bold">Location Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="locationName" id="locationName" class="form-control" required maxlength="100">
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label class="form-label">Display Name</label>
-                                            <input type="text" name="locationName" id="f-name" class="form-control"
-                                                placeholder="e.g. North Area" required>
-                                        </div>
+                                    <div class="col-md-6 form-group">
+                                        <label class="font-weight-bold">Max Capacity</label>
+                                        <input type="number" name="maxCapacity" id="maxCapacity" class="form-control" min="0">
                                     </div>
                                 </div>
-
-                                <div class="text-right mt-4">
-                                    <button type="button" class="btn btn-secondary px-4 py-2" data-dismiss="modal"
-                                        style="border-radius:10px; font-weight: 600;">Cancel</button>
-                                    <button type="submit" class="btn btn-add ml-2 px-4 py-2">Save Location</button>
-                                </div>
-                            </form>
-                        </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary px-4">Save Changes</button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -339,36 +349,39 @@
             <script>
                 function filterLocations() {
                     const whId = document.getElementById('wh-filter').value;
+                    const query = document.getElementById('locSearchInput').value.toLowerCase().trim();
                     const rows = document.querySelectorAll('.location-row');
+                    
                     rows.forEach(row => {
-                        row.style.display = row.getAttribute('data-wh') === whId ? '' : 'none';
+                        const isWhMatch = row.getAttribute('data-wh') === whId;
+                        const text = row.innerText.toLowerCase();
+                        const isSearchMatch = text.includes(query);
+                        
+                        row.style.display = (isWhMatch && isSearchMatch) ? '' : 'none';
                     });
                 }
+
+                document.getElementById('locSearchInput').addEventListener('input', filterLocations);
 
                 function prepareAdd() {
                     document.getElementById('form-title').innerText = "Add New Location";
                     document.getElementById('form-action').value = "add";
-                    document.getElementById('locationForm').reset();
-                    document.getElementById('loc-id').value = "";
+                    document.getElementById('location-id').value = "";
+                    document.getElementById('locationCode').value = "";
+                    document.getElementById('locationName').value = "";
+                    document.getElementById('maxCapacity').value = "";
+                    $('#locationModal').modal('show');
                 }
 
-                function prepareEdit(id) {
-                    fetch('locations?action=getDetailJson&id=' + id)
-                        .then(r => r.json())
-                        .then(data => {
-                            document.getElementById('form-title').innerText = "Edit Location";
-                            document.getElementById('form-action').value = "update";
-                            document.getElementById('loc-id').value = data.id;
-                            document.getElementById('f-warehouse').value = data.whId;
-                            document.getElementById('f-code').value = data.code;
-                            document.getElementById('f-name').value = data.name;
-                            document.getElementById('f-capacity').value = data.capacity;
-                            $('#locationModal').modal('show');
-                        })
-                        .catch(err => {
-                            console.error('Error loading location:', err);
-                            alert('Error loading location data');
-                        });
+                function prepareEdit(btn) {
+                    document.getElementById('form-title').innerText = "Edit Location";
+                    document.getElementById('form-action').value = "update";
+                    document.getElementById('location-id').value = btn.getAttribute('data-id');
+                    document.getElementById('warehouseId').value = btn.getAttribute('data-whid');
+                    document.getElementById('locationCode').value = btn.getAttribute('data-code');
+                    document.getElementById('locationName').value = btn.getAttribute('data-name');
+                    document.getElementById('maxCapacity').value = btn.getAttribute('data-capacity');
+                    $('#locationModal').modal('show');
                 }
 
 
