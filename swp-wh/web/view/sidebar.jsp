@@ -4,7 +4,7 @@
 
 <div class="iq-sidebar sidebar-default">
     <div class="iq-sidebar-logo d-flex align-items-center justify-content-between">
-        <a href="index.jsp" class="header-logo">
+        <a href="home" class="header-logo">
             <img src="${pageContext.request.contextPath}/assets/images/logo.png"
                  class="img-fluid rounded-normal light-logo">
             <h5 class="logo-title light-logo ml-3">POSDash</h5>

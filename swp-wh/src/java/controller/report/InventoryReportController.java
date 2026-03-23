@@ -55,46 +55,68 @@ public class InventoryReportController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-@Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
-    throws ServletException, IOException {
-        ReportDAO dao = new ReportDAO();
-        
-        // 1. Lấy các tham số filter và phân trang cho Level 1
-        String search = request.getParameter("search");
-        int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
-        int size = 10;
+    @Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+throws ServletException, IOException {
+    ReportDAO dao = new ReportDAO();
+    
+    String search = request.getParameter("search");
+    int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
+    int size = 10;
 
-        // 2. Lấy tham số Drill-down
-        String pdIdStr = request.getParameter("pdId");
-        String wIdStr = request.getParameter("wId");
+    // THAY ĐỔI Ở ĐÂY: Gọi hàm lấy báo cáo phẳng thay vì gộp
+    List<ProductDetail> list = dao.getInventoryFlatReport(search, page, size);
+    
+    int totalRecords = dao.countGlobalStock(search);
+    int totalPages = (int) Math.ceil((double) totalRecords / size);
 
-        // --- LEVEL 1: Luôn lấy danh sách sản phẩm ---
-        List<ProductDetail> list = dao.getGlobalStockPaged(search, page, size);
-        int totalRecords = dao.countGlobalStock(search);
-        int totalPages = (int) Math.ceil((double) totalRecords / size);
+    request.setAttribute("pdList", list);
+    request.setAttribute("totalPages", totalPages);
+    request.setAttribute("currentPage", page);
 
-        request.setAttribute("pdList", list);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("currentPage", page);
-
-        // --- LEVEL 2: Nếu có chọn 1 Product Detail cụ thể ---
-        if (pdIdStr != null && !pdIdStr.isEmpty()) {
-            int pdId = Integer.parseInt(pdIdStr);
-            request.setAttribute("warehouses", dao.getWarehousesByProductDetail(pdId));
-            request.setAttribute("selectedPdId", pdId);
-        }
-
-        // --- LEVEL 3: Nếu có chọn 1 Nhà kho cụ thể ---
-        if (wIdStr != null && !wIdStr.isEmpty()) {
-            int pdId = Integer.parseInt(pdIdStr);
-            int wId = Integer.parseInt(wIdStr);
-            request.setAttribute("locations", dao.getLocationsByDetailInWarehouse(pdId, wId));
-            request.setAttribute("selectedWId", wId);
-        }
-
-        request.getRequestDispatcher("/view/report/inventoryReport.jsp").forward(request, response);
-    }
+    // Chuyển hướng đến đúng trang JSP của bạn
+    request.getRequestDispatcher("/view/report/inventoryReport.jsp").forward(request, response);
+}
+//@Override
+//    protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+//    throws ServletException, IOException {
+//        ReportDAO dao = new ReportDAO();
+//        
+//        // 1. Lấy các tham số filter và phân trang cho Level 1
+//        String search = request.getParameter("search");
+//        int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
+//        int size = 10;
+//
+//        // 2. Lấy tham số Drill-down
+//        String pdIdStr = request.getParameter("pdId");
+//        String wIdStr = request.getParameter("wId");
+//
+//        // --- LEVEL 1: Luôn lấy danh sách sản phẩm ---
+//        List<ProductDetail> list = dao.getGlobalStockPaged(search, page, size);
+//        int totalRecords = dao.countGlobalStock(search);
+//        int totalPages = (int) Math.ceil((double) totalRecords / size);
+//
+//        request.setAttribute("pdList", list);
+//        request.setAttribute("totalPages", totalPages);
+//        request.setAttribute("currentPage", page);
+//
+//        // --- LEVEL 2: Nếu có chọn 1 Product Detail cụ thể ---
+//        if (pdIdStr != null && !pdIdStr.isEmpty()) {
+//            int pdId = Integer.parseInt(pdIdStr);
+//            request.setAttribute("warehouses", dao.getWarehousesByProductDetail(pdId));
+//            request.setAttribute("selectedPdId", pdId);
+//        }
+//
+//        // --- LEVEL 3: Nếu có chọn 1 Nhà kho cụ thể ---
+//        if (wIdStr != null && !wIdStr.isEmpty()) {
+//            int pdId = Integer.parseInt(pdIdStr);
+//            int wId = Integer.parseInt(wIdStr);
+//            request.setAttribute("locations", dao.getLocationsByDetailInWarehouse(pdId, wId));
+//            request.setAttribute("selectedWId", wId);
+//        }
+//
+//        request.getRequestDispatcher("/view/report/inventoryReport.jsp").forward(request, response);
+//    }
     /** 
      * Handles the HTTP <code>POST</code> method.
      * @param request servlet request

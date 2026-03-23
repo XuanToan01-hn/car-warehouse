@@ -10,9 +10,19 @@ public class Location {
     private int currentStock; // sum of qty in Location_Product
     private String warehouseName;
 
+    
+    
     public Location() {
     }
 
+    public Location(int warehouseId, String locationCode) {
+        this.warehouseId = warehouseId;
+        this.locationCode = locationCode;
+    }
+
+    
+    
+    
     public String getWarehouseName() {
         return warehouseName;
     }

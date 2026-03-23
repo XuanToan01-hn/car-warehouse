@@ -639,4 +639,50 @@ public class ReportDAO extends DBContext {
         }
         return 0;
     }
+        public List<ProductDetail> getInventoryFlatReport(String txtSearch, int page, int size) {
+    List<ProductDetail> list = new ArrayList<>();
+    // SQL JOIN 4 bảng để lấy chi tiết từng vị trí
+    String sql = "SELECT p.Name, p.Code, pd.LotNumber, pd.ProductDetailID, "
+               + "w.WarehouseName, l.LocationCode, lp.Quantity "
+               + "FROM Location_Product lp "
+               + "JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID "
+               + "JOIN Product p ON pd.ProductID = p.ProductID "
+               + "JOIN Location l ON lp.LocationID = l.LocationID "
+               + "JOIN Warehouse w ON l.WarehouseID = w.WarehouseID "
+               + "WHERE p.Name LIKE ? OR p.Code LIKE ? OR pd.LotNumber LIKE ? "
+               + "ORDER BY p.Name ASC "
+               + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        String search = "%" + (txtSearch == null ? "" : txtSearch) + "%";
+        ps.setString(1, search);
+        ps.setString(2, search);
+        ps.setString(3, search);
+        ps.setInt(4, (page - 1) * size);
+        ps.setInt(5, size);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            Product p = new Product();
+            p.setName(rs.getString("Name"));
+            p.setCode(rs.getString("Code"));
+
+            Location loc = new Location();
+            loc.setWarehouseName(rs.getString("WarehouseName"));
+            loc.setLocationCode(rs.getString("LocationCode"));
+
+            ProductDetail pd = new ProductDetail();
+            pd.setId(rs.getInt("ProductDetailID"));
+            pd.setLotNumber(rs.getString("LotNumber"));
+            pd.setQuantity(rs.getInt("Quantity")); // Số lượng tại vị trí này
+            pd.setProduct(p);
+            pd.setLocation(loc); // Gán thông tin vị trí vào ProductDetail
+
+            list.add(pd);
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return list;
+}
+
 }
