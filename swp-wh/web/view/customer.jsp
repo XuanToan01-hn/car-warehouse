@@ -184,6 +184,7 @@
         <body>
             <div class="wrapper">
                 <%@ include file="sidebar.jsp" %>
+                    <jsp:include page="header.jsp" />
                     <div class="content-page">
                         <div class="container-fluid">
                             <div class="page-header">
@@ -254,14 +255,10 @@
                                                         </td>
                                                         <td><span class="text-secondary">${c.address}</span></td>
                                                         <td class="text-right">
-                                                            <button class="btn-action btn-edit mr-2"
-                                                                data-id="${c.id}"
-                                                                data-code="${c.customerCode}"
-                                                                data-name="${c.name}"
-                                                                data-phone="${c.phone}"
-                                                                data-email="${c.email}"
-                                                                data-address="${c.address}"
-                                                                onclick="prepareEdit(this)">
+                                                            <button class="btn-action btn-edit mr-2" data-id="${c.id}"
+                                                                data-code="${c.customerCode}" data-name="${c.name}"
+                                                                data-phone="${c.phone}" data-email="${c.email}"
+                                                                data-address="${c.address}" onclick="prepareEdit(this)">
                                                                 <i class="ri-pencil-line"></i> Edit
                                                             </button>
                                                             <a href="customers?action=delete&id=${c.id}"

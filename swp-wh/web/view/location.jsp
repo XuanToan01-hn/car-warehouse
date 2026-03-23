@@ -196,10 +196,12 @@
                         <div class="container-fluid">
                             <div class="page-header">
                                 <h1 class="font-weight-bold h2">Location Management</h1>
-                                <button class="btn btn-add" data-toggle="modal" data-target="#locationModal"
-                                    onclick="prepareAdd()">
-                                    <i class="ri-add-line"></i> Add New Location
-                                </button>
+                                <c:if test="${sessionScope.user.role.id == 2}">
+                                    <button class="btn btn-add" data-toggle="modal" data-target="#locationModal"
+                                        onclick="prepareAdd()">
+                                        <i class="ri-add-line"></i> Add New Location
+                                    </button>
+                                </c:if>
                             </div>
 
                             <div class="filter-section">
@@ -228,7 +230,7 @@
                                                 <c:forEach var="l" items="${locations}">
                                                     <tr class="location-row" data-wh="${l.warehouseId}">
                                                         <td>
-                                                            <a href="javascript:void(0)" onclick="viewDetail('${l.id}')"
+                                                            <a href="locations?action=viewDetail&id=${l.id}"
                                                                 class="font-weight-bold text-primary">
                                                                 ${l.locationCode}
                                                             </a>
@@ -241,24 +243,21 @@
                                                                 class="badge badge-soft-primary px-3 py-2">${l.maxCapacity}</span>
                                                         </td>
                                                         <td class="text-right">
-                                                            <button class="btn-action btn-view mr-2"
-                                                                onclick="viewDetail('${l.id}')">
+                                                            <a href="locations?action=viewDetail&id=${l.id}"
+                                                               class="btn-action btn-view mr-2">
                                                                 <i class="ri-eye-line"></i> View
-                                                            </button>
-                                                            <button class="btn-action btn-edit mr-2"
-                                                                data-id="${l.id}"
-                                                                data-wh="${l.warehouseId}"
-                                                                data-code="${l.locationCode}"
-                                                                data-name="${l.locationName}"
-                                                                data-capacity="${l.maxCapacity}"
-                                                                onclick="prepareEdit(this)">
-                                                                <i class="ri-pencil-line"></i> Edit
-                                                            </button>
-                                                            <a href="locations?action=delete&id=${l.id}"
-                                                                class="btn-action btn-delete"
-                                                                onclick="return confirm('Delete this location?')">
-                                                                <i class="ri-delete-bin-line"></i> Delete
                                                             </a>
+                                                            <c:if test="${sessionScope.user.role.id == 2}">
+                                                                <button class="btn-action btn-edit mr-2"
+                                                                    onclick="prepareEdit('${l.id}')">
+                                                                    <i class="ri-pencil-line"></i> Edit
+                                                                </button>
+                                                                <a href="locations?action=delete&id=${l.id}"
+                                                                    class="btn-action btn-delete"
+                                                                    onclick="return confirm('Delete this location?')">
+                                                                    <i class="ri-delete-bin-line"></i> Delete
+                                                                </a>
+                                                            </c:if>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
@@ -334,19 +333,7 @@
                 </div>
             </div>
 
-            <!-- Details Modal -->
-            <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered modal-xl" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header border-0 pb-0">
-                            <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                        </div>
-                        <div class="modal-body pt-0" id="detail-content">
-                            <!-- Loaded via AJAX -->
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
             <script>
@@ -365,29 +352,26 @@
                     document.getElementById('loc-id').value = "";
                 }
 
-                function prepareEdit(btn) {
-                    document.getElementById('form-title').innerText = "Edit Location";
-                    document.getElementById('form-action').value = "update";
-                    document.getElementById('loc-id').value = btn.getAttribute('data-id');
-                    document.getElementById('f-warehouse').value = btn.getAttribute('data-wh');
-                    document.getElementById('f-code').value = btn.getAttribute('data-code');
-                    document.getElementById('f-name').value = btn.getAttribute('data-name');
-                    document.getElementById('f-capacity').value = btn.getAttribute('data-capacity');
-                    $('#locationModal').modal('show');
-                }
-
-                function viewDetail(id) {
-                    fetch('locations?action=getDetail&id=' + id)
-                        .then(r => r.text())
-                        .then(html => {
-                            document.getElementById('detail-content').innerHTML = html;
-                            $('#detailModal').modal('show');
+                function prepareEdit(id) {
+                    fetch('locations?action=getDetailJson&id=' + id)
+                        .then(r => r.json())
+                        .then(data => {
+                            document.getElementById('form-title').innerText = "Edit Location";
+                            document.getElementById('form-action').value = "update";
+                            document.getElementById('loc-id').value = data.id;
+                            document.getElementById('f-warehouse').value = data.whId;
+                            document.getElementById('f-code').value = data.code;
+                            document.getElementById('f-name').value = data.name;
+                            document.getElementById('f-capacity').value = data.capacity;
+                            $('#locationModal').modal('show');
                         })
                         .catch(err => {
-                            console.error('Error loading detail:', err);
-                            alert('Error loading location details');
+                            console.error('Error loading location:', err);
+                            alert('Error loading location data');
                         });
                 }
+
+
 
                 window.onload = filterLocations;
             </script>
