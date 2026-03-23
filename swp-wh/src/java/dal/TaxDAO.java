@@ -10,13 +10,25 @@ import model.Tax;
 
 public class TaxDAO extends DBContext {
 
+    private Tax mapResultSetToTax(ResultSet rs) throws SQLException {
+        Tax t = new Tax();
+        t.setId(rs.getInt("TaxID"));
+        t.setTaxName(rs.getString("TaxName"));
+        t.setTaxRate(rs.getDouble("TaxRate"));
+        t.setEffectiveFrom(rs.getDate("EffectiveFrom"));
+        t.setExpiredDate(rs.getDate("ExpiredDate"));
+        return t;
+    }
+
     public Tax getById(int id) {
+        if (connection == null) return null;
         String sql = "SELECT * FROM Tax WHERE TaxID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return mapRow(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToTax(rs);
+                }
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -26,11 +38,12 @@ public class TaxDAO extends DBContext {
 
     public List<Tax> getAll() {
         List<Tax> list = new ArrayList<>();
+        if (connection == null) return list;
         String sql = "SELECT * FROM Tax ORDER BY TaxID";
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                list.add(mapRow(rs));
+                list.add(mapResultSetToTax(rs));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -39,11 +52,12 @@ public class TaxDAO extends DBContext {
     }
 
     public void insert(Tax t) {
+        if (connection == null) return;
         String sql = "INSERT INTO Tax (TaxName, TaxRate, EffectiveFrom, ExpiredDate) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, safeTrim(t.getTaxName()));
             ps.setDouble(2, t.getTaxRate());
-
+            
             if (t.getEffectiveFrom() != null) {
                 ps.setDate(3, new java.sql.Date(t.getEffectiveFrom().getTime()));
             } else {
@@ -54,7 +68,6 @@ public class TaxDAO extends DBContext {
             } else {
                 ps.setDate(4, null);
             }
-
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -62,6 +75,7 @@ public class TaxDAO extends DBContext {
     }
 
     public void update(Tax t) {
+        if (connection == null) return;
         String sql = "UPDATE Tax SET TaxName = ?, TaxRate = ?, EffectiveFrom = ?, ExpiredDate = ? WHERE TaxID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, safeTrim(t.getTaxName()));
@@ -84,6 +98,7 @@ public class TaxDAO extends DBContext {
     }
 
     public void delete(int id) {
+        if (connection == null) return;
         String sql = "DELETE FROM Tax WHERE TaxID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -91,16 +106,6 @@ public class TaxDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    private Tax mapRow(ResultSet rs) throws SQLException {
-        Tax t = new Tax();
-        t.setId(rs.getInt("TaxID"));
-        t.setTaxName(rs.getString("TaxName"));
-        t.setTaxRate(rs.getDouble("TaxRate"));
-        t.setEffectiveFrom(rs.getDate("EffectiveFrom"));
-        t.setExpiredDate(rs.getDate("ExpiredDate"));
-        return t;
     }
 
     private static String safeTrim(String s) {

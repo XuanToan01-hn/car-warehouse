@@ -168,7 +168,8 @@ public class LocationServlet extends HttpServlet {
         String maxCapacityRaw = request.getParameter("maxCapacity");
 
         if (locationName.isEmpty() || !isValidName(locationName)) {
-            request.getSession().setAttribute("error", "Tên vị trí phải là định dạng chữ và số!");
+            String prefix = "add".equals(action) ? "Thêm vị trí" : "Cập nhật vị trí";
+            request.getSession().setAttribute("error", prefix + " không thành công. Tên vị trí phải là định dạng chữ và số!");
             response.sendRedirect(request.getContextPath() + "/locations");
             return;
         }

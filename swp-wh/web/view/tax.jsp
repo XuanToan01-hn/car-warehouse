@@ -208,6 +208,25 @@
                                 </button>
                             </div>
 
+                            <c:if test="${not empty sessionScope.error}">
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="error" scope="session" />
+                            </c:if>
+                            <c:if test="${not empty sessionScope.success}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert"
+                                    style="border-radius: 12px; font-weight: 600;">
+                                    <i class="ri-checkbox-circle-line mr-2"></i> ${sessionScope.success}
+                                    <button type="button" class="close"
+                                        data-dismiss="alert"><span>&times;</span></button>
+                                </div>
+                                <c:remove var="success" scope="session" />
+                            </c:if>
+
                             <div class="mb-4">
                                 <div class="search-box">
                                     <i class="ri-search-line"></i>

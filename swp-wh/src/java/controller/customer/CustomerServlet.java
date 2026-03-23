@@ -60,13 +60,19 @@ public class CustomerServlet extends HttpServlet {
 
                 // Validation
                 if (name.isEmpty() || !isValidName(name)) {
-                    request.getSession().setAttribute("error", "Tên phải là định dạng chữ!");
+                    request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Tên phải là định dạng chữ!");
                     response.sendRedirect(request.getContextPath() + "/customers");
                     return;
                 }
                 
                 if (!phone.isEmpty() && !isValidPhone(phone)) {
-                    request.getSession().setAttribute("error", "Số điện thoại phải là 10 số và bắt đầu bằng số 0!");
+                    request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Số điện thoại phải là 10 số và bắt đầu bằng số 0!");
+                    response.sendRedirect(request.getContextPath() + "/customers");
+                    return;
+                }
+
+                if (!email.isEmpty() && !isValidEmail(email)) {
+                    request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Email không đúng định dạng!");
                     response.sendRedirect(request.getContextPath() + "/customers");
                     return;
                 }
@@ -102,13 +108,19 @@ public class CustomerServlet extends HttpServlet {
 
                 // Validation
                 if (name.isEmpty() || !isValidName(name)) {
-                    request.getSession().setAttribute("error", "Tên phải là định dạng chữ!");
+                    request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Tên phải là định dạng chữ!");
                     response.sendRedirect(request.getContextPath() + "/customers");
                     return;
                 }
                 
                 if (!phone.isEmpty() && !isValidPhone(phone)) {
-                    request.getSession().setAttribute("error", "Số điện thoại phải là 10 số và bắt đầu bằng số 0!");
+                    request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Số điện thoại phải là 10 số và bắt đầu bằng số 0!");
+                    response.sendRedirect(request.getContextPath() + "/customers");
+                    return;
+                }
+
+                if (!email.isEmpty() && !isValidEmail(email)) {
+                    request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Email không đúng định dạng!");
                     response.sendRedirect(request.getContextPath() + "/customers");
                     return;
                 }
@@ -154,6 +166,11 @@ public class CustomerServlet extends HttpServlet {
     private boolean isValidPhone(String phone) {
         // Exactly 10 digits, starts with 0
         return phone.matches("^0\\d{9}$");
+    }
+
+    private boolean isValidEmail(String email) {
+        // Basic email regex
+        return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
 
     private static String trimParam(String s) {

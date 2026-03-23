@@ -11,8 +11,6 @@
             <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
             <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
-            <link rel="stylesheet"
-                href="${pageContext.request.contextPath}/assets/vendor/@fortawesome/fontawesome-free/css/all.min.css">
         </head>
 
         <body>
@@ -25,19 +23,20 @@
 
                         <div class="content-page">
                             <div class="container-fluid">
+                                <div class="page-header">
+                                    <div>
+                                        <h1 class="font-weight-bold mb-1">Create Sales Order</h1>
+                                        <p class="text-secondary mb-0">General information and product selection for new orders.</p>
+                                    </div>
+                                    <a href="${pageContext.request.contextPath}/sales-order?action=list"
+                                        class="btn btn-secondary">
+                                        Back to List
+                                    </a>
+                                </div>
+
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <div class="card">
-                                            <div class="card-header d-flex justify-content-between align-items-center">
-                                                <div class="header-title">
-                                                    <h4 class="card-title">Create New Sales Order</h4>
-                                                </div>
-                                                <a href="${pageContext.request.contextPath}/sales-order?action=list"
-                                                    class="btn btn-secondary">
-                                                    Back to List
-                                                </a>
-                                            </div>
-
                                             <div class="card-body">
                                                 <form action="${pageContext.request.contextPath}/sales-order"
                                                     method="post" id="orderForm">
@@ -57,6 +56,25 @@
                                                                 <span aria-hidden="true">&times;</span>
                                                             </button>
                                                         </div>
+                                                    </c:if>
+
+                                                    <c:if test="${not empty sessionScope.error}">
+                                                        <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                                                            style="border-radius: 12px; font-weight: 600;">
+                                                            <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
+                                                            <button type="button" class="close"
+                                                                data-dismiss="alert"><span>&times;</span></button>
+                                                        </div>
+                                                        <c:remove var="error" scope="session" />
+                                                    </c:if>
+                                                    <c:if test="${not empty sessionScope.success}">
+                                                        <div class="alert alert-success alert-dismissible fade show" role="alert"
+                                                            style="border-radius: 12px; font-weight: 600;">
+                                                            <i class="ri-checkbox-circle-line mr-2"></i> ${sessionScope.success}
+                                                            <button type="button" class="close"
+                                                                data-dismiss="alert"><span>&times;</span></button>
+                                                        </div>
+                                                        <c:remove var="success" scope="session" />
                                                     </c:if>
 
                                                     <div class="row mb-4">
@@ -91,7 +109,7 @@
                                                             </div>
                                                             <button type="button" class="btn btn-info mt-3"
                                                                 onclick="addItem()">
-                                                                <i class="fas fa-plus mr-2"></i>Add Product
+                                                                Add Product
                                                             </button>
                                                         </div>
                                                     </div>
@@ -102,7 +120,7 @@
                                                             <a href="${pageContext.request.contextPath}/sales-order?action=list"
                                                                 class="btn btn-secondary mr-2">Cancel</a>
                                                             <button type="submit" class="btn btn-primary">
-                                                                <i class="fas fa-save mr-2"></i>Save Sales Order
+                                                                Save Sales Order
                                                             </button>
                                                         </div>
                                                     </div>
@@ -165,7 +183,7 @@
                             <label class="form-label small font-weight-bold">&nbsp;</label>
                             <button type="button" class="btn btn-outline-danger btn-block btn-sm"
                                 onclick="this.closest('.row').remove()">
-                                <i class="fas fa-trash"></i>
+                                Xóa
                             </button>
                         </div>
                     </div>

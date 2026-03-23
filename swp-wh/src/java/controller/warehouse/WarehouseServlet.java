@@ -58,7 +58,7 @@ public class WarehouseServlet extends HttpServlet {
                 String description = trimParam(request.getParameter("description"));
 
                 if (name.isEmpty() || !isValidName(name)) {
-                    request.getSession().setAttribute("error", "Tên kho phải là định dạng chữ!");
+                    request.getSession().setAttribute("error", "Thêm kho không thành công. Tên kho phải là định dạng chữ hoặc số!");
                     response.sendRedirect(request.getContextPath() + "/warehouses");
                     return;
                 }
@@ -92,7 +92,7 @@ public class WarehouseServlet extends HttpServlet {
                 String description = trimParam(request.getParameter("description"));
 
                 if (name.isEmpty() || !isValidName(name)) {
-                    request.getSession().setAttribute("error", "Tên kho phải là định dạng chữ!");
+                    request.getSession().setAttribute("error", "Cập nhật kho không thành công. Tên kho phải là định dạng chữ hoặc số!");
                     response.sendRedirect(request.getContextPath() + "/warehouses");
                     return;
                 }
