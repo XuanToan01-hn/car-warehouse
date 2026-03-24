@@ -19,7 +19,7 @@ public class ListPurchaseOrderServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        // Tạo DAO mới mỗi request để tránh null connection do field-level caching
+        // Create new DAO per request to avoid null connection from field-level caching
         PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
 
         String keyword = request.getParameter("search");

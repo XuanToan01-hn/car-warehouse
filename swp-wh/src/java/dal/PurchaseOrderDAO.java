@@ -290,6 +290,7 @@ public class PurchaseOrderDAO extends DBContext {
                     INSERT INTO Purchase_Order_Detail (PurchaseOrderID, Quantity, Price, TaxID, SubTotal, ProductDetailID)
                     VALUES (?, ?, ?, ?, ?, ?)
                 """;
+
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, pod.getPurchaseOrderId());
