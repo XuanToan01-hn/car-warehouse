@@ -82,29 +82,26 @@ public class LocationServlet extends HttpServlet {
 
             List<LocationProduct> rawProducts = dao.getProductsByLocation(id);
 
-            // Grouping logic
-            Map<Integer, Map<String, Object>> groupedMap = new LinkedHashMap<>();
+            // Grouping logic (Simplified: Model + Color)
+            Map<String, Map<String, Object>> groupedMap = new LinkedHashMap<>();
             int totalQty = 0;
             for (LocationProduct lp : rawProducts) {
                 totalQty += lp.getQuantity();
                 int pid = lp.getProduct().getId();
-                if (!groupedMap.containsKey(pid)) {
+                String color = (lp.getProductDetail() != null && lp.getProductDetail().getColor() != null) 
+                               ? lp.getProductDetail().getColor() : "N/A";
+                
+                String key = pid + "_" + color;
+                
+                if (!groupedMap.containsKey(key)) {
                     Map<String, Object> group = new HashMap<>();
                     group.put("product", lp.getProduct());
+                    group.put("color", color);
                     group.put("totalQty", 0);
-                    group.put("serials", new ArrayList<Map<String, Object>>());
-                    groupedMap.put(pid, group);
+                    groupedMap.put(key, group);
                 }
-                Map<String, Object> group = groupedMap.get(pid);
+                Map<String, Object> group = groupedMap.get(key);
                 group.put("totalQty", (int) group.get("totalQty") + lp.getQuantity());
-                
-                if (lp.getProductDetail() != null && lp.getProductDetail().getSerialNumber() != null) {
-                    Map<String, Object> serialInfo = new HashMap<>();
-                    serialInfo.put("serial", lp.getProductDetail().getSerialNumber());
-                    serialInfo.put("qty", lp.getQuantity());
-                    serialInfo.put("color", lp.getProductDetail().getColor() != null ? lp.getProductDetail().getColor() : "");
-                    ((List<Map<String, Object>>) group.get("serials")).add(serialInfo);
-                }
             }
 
             List<Map<String, Object>> allGroupedProducts = new ArrayList<>(groupedMap.values());
