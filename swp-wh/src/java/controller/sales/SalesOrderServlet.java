@@ -34,9 +34,6 @@ public class SalesOrderServlet extends HttpServlet {
             case "create":
                 showCreateForm(request, response);
                 break;
-            case "getDetailsByProduct":
-            getDetailsByProduct(request, response);
-            break;
             case "warehouse-list":
                 List<SalesOrder> warehouseOrders = salesOrderDAO.getAll(); // Hàm getAll của bạn đã có OrderedQty/DeliveredQty
                 request.setAttribute("orders", warehouseOrders);
@@ -146,7 +143,8 @@ public class SalesOrderServlet extends HttpServlet {
             // Nếu có ít nhất 1 sản phẩm thiếu hàng, không lưu vào DB mà báo lỗi về trang create
             request.setAttribute("inventoryErrors", inventoryErrors);
             request.setAttribute("customers", customerDAO.getAll());
-            request.setAttribute("productDetails", productDetailDAO.getFiltered(null, null, 1, 100));
+            request.setAttribute("productList", new ProductDAO().getAll());
+            request.setAttribute("allDetails", new ProductDetailDAO().getAll());
             request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
         } else {
             // Mọi thứ OK, tiến hành lưu đơn hàng
@@ -197,49 +195,4 @@ public class SalesOrderServlet extends HttpServlet {
     }
     
     
-private void getDetailsByProduct(HttpServletRequest request, HttpServletResponse response)
-        throws IOException {
-    // Kiểm tra productId đầu vào
-    String productIdRaw = request.getParameter("productId");
-    if (productIdRaw == null || productIdRaw.isEmpty()) return;
-
-    int productId = Integer.parseInt(productIdRaw);
-    
-    // Lấy danh sách biến thể
-    List<ProductDetail> details = productDetailDAO.getByProductId(productId);
-    
-    // Khởi tạo DAO để lấy tồn kho thực tế (đảm bảo đồng nhất với lúc tạo đơn)
-    LocationProductDAO lpDAO = new LocationProductDAO();
-
-    response.setContentType("application/json");
-    response.setCharacterEncoding("UTF-8");
-    
-    StringBuilder json = new StringBuilder("[");
-    for (int i = 0; i < details.size(); i++) {
-        ProductDetail d = details.get(i);
-        
-        // Lấy tồn kho thực tế từ bảng Location_Product
-        int actualStock = lpDAO.getStockQuantity(d.getId());
-
-        // Xử lý tránh null để JSON không bị lỗi hoặc hiện chữ "null"
-        String lot = (d.getLotNumber() != null) ? d.getLotNumber() : "";
-        String serial = (d.getSerialNumber() != null) ? d.getSerialNumber() : "";
-        String color = (d.getColor() != null) ? d.getColor() : "";
-
-        json.append("{");
-        json.append("\"id\":").append(d.getId()).append(",");
-        json.append("\"lot\":\"").append(lot).append("\",");
-        json.append("\"serial\":\"").append(serial).append("\",");
-        json.append("\"price\":").append(d.getPrice()).append(",");
-        // ĐỔI TÊN THÀNH stockQty ĐỂ KHỚP VỚI JSP
-        json.append("\"stockQty\":").append(actualStock).append(","); 
-        json.append("\"color\":\"").append(color).append("\"");
-        json.append("}");
-        
-        if (i < details.size() - 1) json.append(",");
-    }
-    json.append("]");
-    response.getWriter().write(json.toString());
-}
-
 }
