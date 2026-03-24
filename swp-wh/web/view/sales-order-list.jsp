@@ -172,7 +172,7 @@
                                                         <th>Order Code</th>
                                                         <th>Customer</th>
                                                         <th>Created Date</th>
-                                                        <th>Qty (Ord / Del)</th>
+                                                        <th>Qty (Del / Ord)</th>
                                                         <th>Status</th>
                                                         <th class="text-right">Actions</th>
                                                     </tr>
@@ -202,10 +202,10 @@
                                                             </td>
                                                             <td>
                                                                 <span
-                                                                    class="text-primary font-weight-bold">${o.orderedQty}</span>
+                                                                    class="text-success font-weight-bold">${o.deliveredQty}</span>
                                                                 <span class="mx-1 text-secondary">/</span>
                                                                 <span
-                                                                    class="text-success font-weight-bold">${o.deliveredQty}</span>
+                                                                    class="text-primary font-weight-bold">${o.orderedQty}</span>
                                                             </td>
                                                             <td>
                                                                 <c:choose>

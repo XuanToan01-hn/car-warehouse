@@ -221,7 +221,6 @@
                                         </option>
                                     </c:forEach>
                                 </select>
-                                <small class="text-primary stock-info font-weight-bold"></small>
                             </div>
                         </div>
 
@@ -240,7 +239,7 @@
                         </div>
 
                         <div class="col-md-1 d-flex align-items-end">
-                            <button type="button" class="btn btn-outline-danger btn-block" style="border-radius: 10px; padding: 0.6rem;" onclick="this.closest('.item-row').remove()">
+                            <button type="button" class="btn btn-outline-danger btn-block" style="border-radius: 10px; padding: 0.6rem;" onclick="removeItem(this)">
                                 <i class="ri-delete-bin-line"></i>
                             </button>
                         </div>
@@ -256,34 +255,25 @@
                     const container = document.getElementById('items-container');
                     const template = document.getElementById('item-template').content.cloneNode(true);
                     container.appendChild(template);
+                    refreshAllSelects();
+                }
+
+                function removeItem(btn) {
+                    btn.closest('.item-row').remove();
+                    refreshAllSelects();
                 }
 
                 function filterDetails(mainSelect) {
                     const productId = mainSelect.value;
                     const row = mainSelect.closest('.item-row');
                     const detailSelect = row.querySelector('.product-detail-select');
-                    const stockInfo = row.querySelector('.stock-info');
                     const priceInput = row.querySelector('input[name="price"]');
-                    const options = detailSelect.options;
 
                     detailSelect.value = "";
                     detailSelect.disabled = (productId === "");
-                    stockInfo.innerText = "";
                     priceInput.value = "";
 
-                    for (let i = 0; i < options.length; i++) {
-                        const opt = options[i];
-                        const parentId = opt.getAttribute('data-product');
-                        if (parentId === "0") continue;
-                        
-                        if (parentId === productId) {
-                            opt.style.display = "block";
-                            opt.disabled = false;
-                        } else {
-                            opt.style.display = "none";
-                            opt.disabled = true;
-                        }
-                    }
+                    refreshAllSelects();
                 }
 
                 function updateRowInfo(detailSelect) {
@@ -294,12 +284,44 @@
                     const priceInput = row.querySelector('input[name="price"]');
                     const stockInfo = row.querySelector('.stock-info');
 
-                    if (selectedOption.value) {
-                        priceInput.value = price || "";
+                    if (selectedOption.value && price) {
+                        // Calculate selling price = 120% of import price
+                        const sellingPrice = (parseFloat(price) * 1.2).toFixed(2);
+                        priceInput.value = sellingPrice;
                     } else {
                         priceInput.value = "";
-                        stockInfo.innerText = "";
                     }
+                    refreshAllSelects();
+                }
+
+                function refreshAllSelects() {
+                    const allDetailSelects = document.querySelectorAll('.product-detail-select');
+                    const selectedVariants = Array.from(allDetailSelects)
+                        .map(s => s.value)
+                        .filter(v => v !== "" && v !== "0");
+
+                    document.querySelectorAll('.item-row').forEach(row => {
+                        const mainSelect = row.querySelector('.product-main-select');
+                        const detailSelect = row.querySelector('.product-detail-select');
+                        const productId = mainSelect.value;
+                        const currentDetailId = detailSelect.value;
+
+                        Array.from(detailSelect.options).forEach(opt => {
+                            const val = opt.value;
+                            if (val === "" || val === "0") return;
+
+                            const isCorrectProduct = opt.getAttribute('data-product') === productId;
+                            const isAlreadySelected = selectedVariants.includes(val) && val !== currentDetailId;
+
+                            if (isCorrectProduct) {
+                                opt.style.display = "block";
+                                opt.disabled = isAlreadySelected;
+                            } else {
+                                opt.style.display = "none";
+                                opt.disabled = true;
+                            }
+                        });
+                    });
                 }
 
                 window.onload = function () {

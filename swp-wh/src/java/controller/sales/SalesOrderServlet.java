@@ -118,47 +118,29 @@ public class SalesOrderServlet extends HttpServlet {
                 int reqQty = Integer.parseInt(quantities[i]);
                 double price = Double.parseDouble(prices[i]);
 
-                // --- BƯỚC KIỂM TRA TỒN KHO ---
-                int availableStock = lpDAO.getStockQuantity(pdId);
-                if (reqQty > availableStock) {
-                    ProductDetail pd = pdDAO.getById(pdId);
-                    String msg = "Sản phẩm [" + pd.getProduct().getName() + " - " + pd.getColor()
-                            + "] không đủ hàng. (Kho: " + availableStock + ", Yêu cầu: " + reqQty + ")";
-                    inventoryErrors.add(msg);
-                } else {
-                    // Nếu đủ hàng thì mới tính toán
-                    SalesOrderDetail detail = new SalesOrderDetail();
-                    detail.setProductDetail(pdDAO.getById(pdId));
-                    detail.setQuantity(reqQty);
-                    detail.setPrice(price);
-                    detail.setSubTotal(reqQty * price);
-                    totalAmount += detail.getSubTotal();
-                    details.add(detail);
-                }
+                // Create and add detail regardless of stock availability
+                SalesOrderDetail detail = new SalesOrderDetail();
+                detail.setProductDetail(pdDAO.getById(pdId));
+                detail.setQuantity(reqQty);
+                detail.setPrice(price);
+                detail.setSubTotal(reqQty * price);
+                totalAmount += detail.getSubTotal();
+                details.add(detail);
             }
         }
 
         // --- XỬ LÝ KẾT QUẢ ---
-        if (!inventoryErrors.isEmpty()) {
-            // Nếu có ít nhất 1 sản phẩm thiếu hàng, không lưu vào DB mà báo lỗi về trang create
-            request.setAttribute("inventoryErrors", inventoryErrors);
-            request.setAttribute("customers", customerDAO.getAll());
-            request.setAttribute("productList", new ProductDAO().getAll());
-            request.setAttribute("allDetails", new ProductDetailDAO().getAll());
-            request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
-        } else {
-            // Mọi thứ OK, tiến hành lưu đơn hàng
-            SalesOrder order = new SalesOrder();
-            order.setOrderCode(orderCode);
-            order.setCustomer(customerDAO.getById(customerId));
-            order.setStatus(1); // Trạng thái: Draft/Created
-            order.setNote(note);
-            order.setCreateBy(user);
-            order.setTotalAmount(totalAmount);
+        // Proceed to save order without blocking on inventoryErrors
+        SalesOrder order = new SalesOrder();
+        order.setOrderCode(orderCode);
+        order.setCustomer(customerDAO.getById(customerId));
+        order.setStatus(1); // Trạng thái: Draft/Created
+        order.setNote(note);
+        order.setCreateBy(user);
+        order.setTotalAmount(totalAmount);
 
-            salesOrderDAO.insert(order, details);
-            response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
-        }
+        salesOrderDAO.insert(order, details);
+        response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
     }
 
     private void cancelOrder(HttpServletRequest request, HttpServletResponse response)

@@ -225,7 +225,7 @@
                                                         <th>Product Name</th>
                                                         <th>Details (Color/Lot/Serial)</th>
                                                         <th>Mfg Date</th>
-                                                        <th class="text-center">Qty</th>
+                                                        <th class="text-center">Qty (Del/Ord)</th>
                                                         <th class="text-right">Unit Price</th>
                                                         <th class="text-right">Subtotal</th>
                                                     </tr>
@@ -262,8 +262,9 @@
                                                                 </c:choose>
                                                             </td>
                                                             <td class="text-center">
-                                                                <span
-                                                                    class="badge badge-pill badge-light font-weight-bold px-3 py-2">${d.quantity}</span>
+                                                                <span class="badge badge-pill badge-light font-weight-bold px-3 py-2">
+                                                                    ${d.deliveredQty} / ${d.quantity}
+                                                                </span>
                                                             </td>
                                                             <td class="text-right text-secondary">
                                                                 <fmt:formatNumber value="${d.price}" type="number"

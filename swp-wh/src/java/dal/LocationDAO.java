@@ -19,8 +19,6 @@ public class LocationDAO extends DBContext {
         l.setWarehouseId(rs.getInt("WarehouseID"));
         l.setLocationCode(rs.getString("LocationCode"));
         l.setLocationName(rs.getString("LocationName"));
-        
-        // Handle optional columns from complex queries
         try {
             l.setWarehouseName(rs.getString("WarehouseName"));
         } catch (SQLException ignored) {}
