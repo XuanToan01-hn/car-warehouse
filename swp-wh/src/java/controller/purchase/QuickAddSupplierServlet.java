@@ -1,13 +1,12 @@
 package controller.purchase;
 
 import dal.SupplierDAO;
-import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import model.Supplier;
 
 @WebServlet(name = "QuickAddSupplierServlet", urlPatterns = { "/quick-add-supplier" })
@@ -17,18 +16,18 @@ public class QuickAddSupplierServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
 
         SupplierDAO supplierDAO = new SupplierDAO();
+        String ctx = request.getContextPath();
 
-        try (PrintWriter out = response.getWriter()) {
+        try {
             String name = request.getParameter("name");
             String phone = request.getParameter("phone");
             String email = request.getParameter("email");
             String address = request.getParameter("address");
 
             if (name == null || name.trim().isEmpty()) {
-                out.print("{\"success\":false,\"message\":\"Tên supplier không được trống\"}");
+                response.sendRedirect(ctx + "/add-purchase-order?error=supplierName");
                 return;
             }
 
@@ -40,22 +39,13 @@ public class QuickAddSupplierServlet extends HttpServlet {
 
             int newId = supplierDAO.insert(s);
             if (newId > 0) {
-                out.print("{\"success\":true,\"supplierId\":" + newId + ",\"supplierName\":\"" + escapeJson(name.trim())
-                        + "\"}");
+                response.sendRedirect(ctx + "/add-purchase-order?supplierId=" + newId + "&info=supplierCreated");
             } else {
-                out.print("{\"success\":false,\"message\":\"Lỗi khi lưu supplier\"}");
+                response.sendRedirect(ctx + "/add-purchase-order?error=supplierSave");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            try (PrintWriter out = response.getWriter()) {
-                out.print("{\"success\":false,\"message\":\"" + escapeJson(e.getMessage()) + "\"}");
-            }
+            response.sendRedirect(ctx + "/add-purchase-order?error=supplierException");
         }
-    }
-
-    private String escapeJson(String s) {
-        if (s == null)
-            return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

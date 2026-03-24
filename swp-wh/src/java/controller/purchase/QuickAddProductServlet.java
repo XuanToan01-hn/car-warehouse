@@ -1,14 +1,12 @@
 package controller.purchase;
 
 import dal.ProductDAO;
-import dal.SupplierDAO;
-import java.io.IOException;
-import java.io.PrintWriter;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import model.Category;
 import model.Product;
 import model.Supplier;
@@ -20,20 +18,27 @@ public class QuickAddProductServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
-        response.setContentType("application/json;charset=UTF-8");
 
         ProductDAO productDAO = new ProductDAO();
+        String ctx = request.getContextPath();
 
-        try (PrintWriter out = response.getWriter()) {
+        try {
             String name = request.getParameter("name");
             String code = request.getParameter("code");
             String catIdStr = request.getParameter("categoryId");
             String supIdStr = request.getParameter("supplierId");
 
             if (name == null || name.trim().isEmpty() || code == null || code.trim().isEmpty()) {
-                out.print("{\"success\":false,\"message\":\"Tên và mã sản phẩm không được trống\"}");
+                response.sendRedirect(ctx + "/add-purchase-order?error=productFields");
                 return;
             }
+
+            if (supIdStr == null || supIdStr.isEmpty()) {
+                response.sendRedirect(ctx + "/add-purchase-order?error=productSupplier");
+                return;
+            }
+
+            int supplierId = Integer.parseInt(supIdStr);
 
             Product p = new Product();
             p.setName(name.trim());
@@ -46,42 +51,24 @@ public class QuickAddProductServlet extends HttpServlet {
                     Category cat = new Category();
                     cat.setId(Integer.parseInt(catIdStr));
                     p.setCategory(cat);
-                } catch (Exception e) {
-                    /* bỏ qua */
+                } catch (Exception ignored) {
                 }
             }
 
-            // Gán trực tiếp Supplier vào Product theo cấu trúc DB mới
-            if (supIdStr != null && !supIdStr.isEmpty()) {
-                try {
-                    Supplier sup = new Supplier();
-                    sup.setId(Integer.parseInt(supIdStr));
-                    p.setSupplier(sup);
-                } catch (Exception e) {
-                    /* bỏ qua */
-                }
-            }
+            Supplier sup = new Supplier();
+            sup.setId(supplierId);
+            p.setSupplier(sup);
 
             int newProductId = productDAO.insertAndGetId(p);
 
             if (newProductId > 0) {
-                out.print("{\"success\":true,\"productId\":" + newProductId
-                        + ",\"productName\":\"" + escapeJson(name.trim())
-                        + "\",\"productCode\":\"" + escapeJson(code.trim()) + "\"}");
+                response.sendRedirect(ctx + "/add-purchase-order?supplierId=" + supplierId + "&info=productCreated");
             } else {
-                out.print("{\"success\":false,\"message\":\"Lỗi khi lưu sản phẩm\"}");
+                response.sendRedirect(ctx + "/add-purchase-order?supplierId=" + supplierId + "&error=productSave");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            try (PrintWriter out = response.getWriter()) {
-                out.print("{\"success\":false,\"message\":\"" + escapeJson(e.getMessage()) + "\"}");
-            }
+            response.sendRedirect(ctx + "/add-purchase-order?error=productException");
         }
-    }
-
-    private String escapeJson(String s) {
-        if (s == null)
-            return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }
