@@ -229,11 +229,14 @@
                                                                 onclick="prepareEdit(this)">
                                                                 <i class="ri-pencil-line"></i> Edit
                                                             </button>
-                                                            <a href="warehouses?action=delete&id=${w.id}"
-                                                                class="btn-action btn-delete"
-                                                                onclick="return confirm('Delete this warehouse?')">
-                                                                <i class="ri-delete-bin-line"></i> Delete
-                                                            </a>
+                                                            <form action="warehouses" method="post" style="display:inline;">
+                                                                <input type="hidden" name="action" value="delete">
+                                                                <input type="hidden" name="id" value="${w.id}">
+                                                                <button type="submit" class="btn-action btn-delete"
+                                                                    onclick="return confirm('Delete this warehouse?')">
+                                                                    <i class="ri-delete-bin-line"></i> Delete
+                                                                </button>
+                                                            </form>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>

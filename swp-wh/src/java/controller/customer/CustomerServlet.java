@@ -18,21 +18,6 @@ public class CustomerServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
-        if ("delete".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null && !idStr.trim().isEmpty()) {
-                try {
-                    int id = Integer.parseInt(idStr.trim());
-                    CustomerDAO dao = new CustomerDAO();
-                    dao.delete(id);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            response.sendRedirect(request.getContextPath() + "/customers");
-            return;
-        }
-
         CustomerDAO dao = new CustomerDAO();
         List<Customer> customers = dao.getAll();
         request.setAttribute("customers", customers);
@@ -51,14 +36,12 @@ public class CustomerServlet extends HttpServlet {
 
         switch (action) {
             case "add": {
-                // Auto-generate code
                 String customerCode = dao.getNextCustomerCode();
                 String name = trimParam(request.getParameter("name"));
                 String phone = trimParam(request.getParameter("phone"));
                 String email = trimParam(request.getParameter("email"));
                 String address = trimParam(request.getParameter("address"));
 
-                // Validation
                 if (name.isEmpty() || !isValidName(name)) {
                     request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Tên phải là định dạng chữ!");
                     response.sendRedirect(request.getContextPath() + "/customers");
@@ -106,7 +89,7 @@ public class CustomerServlet extends HttpServlet {
                 String email = trimParam(request.getParameter("email"));
                 String address = trimParam(request.getParameter("address"));
 
-                // Validation
+
                 if (name.isEmpty() || !isValidName(name)) {
                     request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Tên phải là định dạng chữ!");
                     response.sendRedirect(request.getContextPath() + "/customers");

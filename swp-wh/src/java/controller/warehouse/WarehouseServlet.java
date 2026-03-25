@@ -17,21 +17,6 @@ public class WarehouseServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
-        if ("delete".equals(action)) {
-            String idStr = request.getParameter("id");
-            if (idStr != null && !idStr.trim().isEmpty()) {
-                try {
-                    int id = Integer.parseInt(idStr.trim());
-                    WarehouseDAO dao = new WarehouseDAO();
-                    dao.delete(id);
-                } catch (NumberFormatException ignored) {
-                }
-            }
-            response.sendRedirect(request.getContextPath() + "/warehouses");
-            return;
-        }
-
         WarehouseDAO dao = new WarehouseDAO();
         List<Warehouse> warehouses = dao.getAll();
         request.setAttribute("warehouses", warehouses);

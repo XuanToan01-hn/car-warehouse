@@ -261,11 +261,14 @@
                                                                 data-address="${c.address}" onclick="prepareEdit(this)">
                                                                 <i class="ri-pencil-line"></i> Edit
                                                             </button>
-                                                            <a href="customers?action=delete&id=${c.id}"
-                                                                class="btn-action btn-delete"
-                                                                onclick="return confirm('Delete this customer?')">
-                                                                <i class="ri-delete-bin-line"></i> Delete
-                                                            </a>
+                                                            <form action="customers" method="post" style="display:inline;">
+                                                                <input type="hidden" name="action" value="delete">
+                                                                <input type="hidden" name="customerId" value="${c.id}">
+                                                                <button type="submit" class="btn-action btn-delete"
+                                                                    onclick="return confirm('Delete this customer?')">
+                                                                    <i class="ri-delete-bin-line"></i> Delete
+                                                                </button>
+                                                            </form>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
