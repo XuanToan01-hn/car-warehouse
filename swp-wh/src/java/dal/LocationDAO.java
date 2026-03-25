@@ -56,6 +56,42 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
+    public List<Location> search(int warehouseId, String keyword) {
+        List<Location> list = new ArrayList<>();
+        if (connection == null) return list;
+
+        String pattern = "%" + (keyword == null ? "" : keyword) + "%";
+        boolean filterWh = warehouseId > 0;
+
+        String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName, "
+                + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
+                + "FROM Location l "
+                + "JOIN Warehouse w ON l.WarehouseID = w.WarehouseID "
+                + "LEFT JOIN Location_Product lp ON l.LocationID = lp.LocationID "
+                + (filterWh ? "WHERE l.WarehouseID = ? AND (l.LocationCode LIKE ? OR l.LocationName LIKE ?) "
+                            : "WHERE (l.LocationCode LIKE ? OR l.LocationName LIKE ?) ")
+                + "GROUP BY l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            if (filterWh) {
+                ps.setInt(1, warehouseId);
+                ps.setString(2, pattern);
+                ps.setString(3, pattern);
+            } else {
+                ps.setString(1, pattern);
+                ps.setString(2, pattern);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToLocation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public void insert(Location l) {
         String sql = "INSERT INTO Location (WarehouseID, LocationCode, LocationName, MaxCapacity) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

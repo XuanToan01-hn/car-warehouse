@@ -51,6 +51,24 @@ public class TaxDAO extends DBContext {
         return list;
     }
 
+    public List<Tax> search(String keyword) {
+        List<Tax> list = new ArrayList<>();
+        if (connection == null) return list;
+        String sql = "SELECT * FROM Tax WHERE TaxName LIKE ? ORDER BY TaxID";
+        String pattern = "%" + keyword + "%";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, pattern);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToTax(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public void insert(Tax t) {
         if (connection == null) return;
         String sql = "INSERT INTO Tax (TaxName, TaxRate, EffectiveFrom, ExpiredDate) VALUES (?, ?, ?, ?)";

@@ -19,8 +19,34 @@ public class CustomerServlet extends HttpServlet {
             throws ServletException, IOException {
 
         CustomerDAO dao = new CustomerDAO();
-        List<Customer> customers = dao.getAll();
+
+        // Server-side search
+        String search = request.getParameter("search");
+        List<Customer> customers;
+        if (search != null && !search.trim().isEmpty()) {
+            customers = dao.search(search.trim());
+            request.setAttribute("search", search.trim());
+        } else {
+            customers = dao.getAll();
+        }
         request.setAttribute("customers", customers);
+
+        // Edit mode: load the customer to be edited
+        String mode = request.getParameter("mode");
+        if ("edit".equals(mode)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr.trim());
+                    Customer editing = dao.getById(id);
+                    request.setAttribute("editCustomer", editing);
+                    request.setAttribute("mode", "edit");
+                } catch (NumberFormatException ignored) {}
+            }
+        } else if ("add".equals(mode)) {
+            request.setAttribute("mode", "add");
+        }
+
         request.getRequestDispatcher("/view/customer.jsp").forward(request, response);
     }
 

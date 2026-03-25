@@ -18,8 +18,34 @@ public class WarehouseServlet extends HttpServlet {
             throws ServletException, IOException {
 
         WarehouseDAO dao = new WarehouseDAO();
-        List<Warehouse> warehouses = dao.getAll();
+
+        // Server-side search
+        String search = request.getParameter("search");
+        List<Warehouse> warehouses;
+        if (search != null && !search.trim().isEmpty()) {
+            warehouses = dao.search(search.trim());
+            request.setAttribute("search", search.trim());
+        } else {
+            warehouses = dao.getAll();
+        }
         request.setAttribute("warehouses", warehouses);
+
+        // Edit mode: load the warehouse to be edited
+        String mode = request.getParameter("mode");
+        if ("edit".equals(mode)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr.trim());
+                    Warehouse editing = dao.getById(id);
+                    request.setAttribute("editWarehouse", editing);
+                    request.setAttribute("mode", "edit");
+                } catch (NumberFormatException ignored) {}
+            }
+        } else if ("add".equals(mode)) {
+            request.setAttribute("mode", "add");
+        }
+
         request.getRequestDispatcher("/view/warehouse.jsp").forward(request, response);
     }
 

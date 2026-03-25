@@ -67,6 +67,24 @@ public class CustomerDAO extends DBContext {
         return list;
     }
 
+    public List<Customer> search(String keyword) {
+        List<Customer> list = new ArrayList<>();
+        String sql = "SELECT * FROM Customer WHERE CustomerCode LIKE ? OR Name LIKE ? OR Phone LIKE ? ORDER BY CustomerID";
+        String pattern = "%" + keyword + "%";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, pattern);
+            ps.setString(2, pattern);
+            ps.setString(3, pattern);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapRow(rs));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public void insert(Customer c) {
         String sql = "INSERT INTO Customer (CustomerCode, Name, Phone, Email, Address) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

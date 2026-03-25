@@ -233,7 +233,7 @@
                                                                     class="btn-action btn-view mr-2">
                                                                     <i class="ri-eye-line"></i> View
                                                                 </a>
-                                                                <c:if test="${o.status == 1}">
+                                                                 <c:if test="${o.status == 1}">
                                                                     <form
                                                                         action="${pageContext.request.contextPath}/sales-order"
                                                                         method="post" style="display:inline-block;">
@@ -241,8 +241,7 @@
                                                                             value="cancel">
                                                                         <input type="hidden" name="id" value="${o.id}">
                                                                         <button type="submit"
-                                                                            class="btn-action btn-cancel"
-                                                                            onclick="return confirm('Cancel this order?')">
+                                                                            class="btn-action btn-cancel">
                                                                             <i class="ri-close-circle-line"></i> Cancel
                                                                         </button>
                                                                     </form>

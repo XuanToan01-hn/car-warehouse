@@ -25,29 +25,62 @@ public class LocationServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
+        if (action == null) action = "";
 
         LocationDAO locationDAO = new LocationDAO();
         WarehouseDAO warehouseDAO = new WarehouseDAO();
 
         switch (action) {
-            case "delete":
-                handleDelete(request, response, locationDAO);
-                break;
             case "viewDetail":
             case "getDetail":
                 handleViewDetail(request, response, locationDAO);
-                break;
+                return;
             default:
-                List<Location> locations = locationDAO.getAll();
-                List<Warehouse> warehouses = warehouseDAO.getAll();
-                request.setAttribute("locations", locations);
-                request.setAttribute("warehouses", warehouses);
-                request.getRequestDispatcher("/view/location.jsp").forward(request, response);
                 break;
         }
+
+        // Load warehouses for filter dropdown
+        List<Warehouse> warehouses = warehouseDAO.getAll();
+        request.setAttribute("warehouses", warehouses);
+
+        // Resolve warehouseId filter
+        String whIdStr = request.getParameter("warehouseId");
+        int warehouseId = 0;
+        if (whIdStr != null && !whIdStr.trim().isEmpty()) {
+            try { warehouseId = Integer.parseInt(whIdStr.trim()); } catch (NumberFormatException ignored) {}
+        }
+        // Default to first warehouse if none selected
+        if (warehouseId == 0 && !warehouses.isEmpty()) {
+            warehouseId = warehouses.get(0).getId();
+        }
+        request.setAttribute("selectedWarehouseId", warehouseId);
+
+        // Search keyword
+        String search = request.getParameter("search");
+        String keyword = (search != null) ? search.trim() : "";
+        request.setAttribute("search", keyword);
+
+        // Load filtered locations
+        List<Location> locations = locationDAO.search(warehouseId, keyword);
+        request.setAttribute("locations", locations);
+
+        // Edit mode
+        String mode = request.getParameter("mode");
+        if ("edit".equals(mode)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr.trim());
+                    Location editing = locationDAO.getById(id);
+                    request.setAttribute("editLocation", editing);
+                    request.setAttribute("mode", "edit");
+                } catch (NumberFormatException ignored) {}
+            }
+        } else if ("add".equals(mode)) {
+            request.setAttribute("mode", "add");
+        }
+
+        request.getRequestDispatcher("/view/location.jsp").forward(request, response);
     }
 
     private void handleDelete(HttpServletRequest request, HttpServletResponse response, LocationDAO dao)
@@ -149,6 +182,9 @@ public class LocationServlet extends HttpServlet {
             case "add":
             case "update":
                 handleUpsert(request, response, dao, action);
+                break;
+            case "delete":
+                handleDelete(request, response, dao);
                 break;
             default:
                 response.sendRedirect(request.getContextPath() + "/locations");

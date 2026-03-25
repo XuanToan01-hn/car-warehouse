@@ -17,37 +17,36 @@ public class TaxServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
-        if (action == null) {
-            action = "";
-        }
-
         TaxDAO dao = new TaxDAO();
 
-        switch (action) {
-            case "delete":
-                handleDelete(request, response, dao);
-                break;
-            default:
-                List<Tax> taxes = dao.getAll();
-                request.setAttribute("taxes", taxes);
-                request.getRequestDispatcher("/view/tax.jsp").forward(request, response);
-                break;
+        // Server-side search
+        String search = request.getParameter("search");
+        List<Tax> taxes;
+        if (search != null && !search.trim().isEmpty()) {
+            taxes = dao.search(search.trim());
+            request.setAttribute("search", search.trim());
+        } else {
+            taxes = dao.getAll();
         }
-    }
+        request.setAttribute("taxes", taxes);
 
-    private void handleDelete(HttpServletRequest request, HttpServletResponse response, TaxDAO dao)
-            throws IOException {
-        String idStr = request.getParameter("id");
-        if (idStr != null && !idStr.trim().isEmpty()) {
-            try {
-                int id = Integer.parseInt(idStr.trim());
-                dao.delete(id);
-                request.getSession().setAttribute("success", "Xóa thuế thành công!");
-            } catch (NumberFormatException ignored) {
+        // Edit mode: load the tax to be edited
+        String mode = request.getParameter("mode");
+        if ("edit".equals(mode)) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.trim().isEmpty()) {
+                try {
+                    int id = Integer.parseInt(idStr.trim());
+                    Tax editing = dao.getById(id);
+                    request.setAttribute("editTax", editing);
+                    request.setAttribute("mode", "edit");
+                } catch (NumberFormatException ignored) {}
             }
+        } else if ("add".equals(mode)) {
+            request.setAttribute("mode", "add");
         }
-        response.sendRedirect(request.getContextPath() + "/taxes");
+
+        request.getRequestDispatcher("/view/tax.jsp").forward(request, response);
     }
 
     @Override
@@ -67,10 +66,26 @@ public class TaxServlet extends HttpServlet {
             case "update":
                 handleUpsert(request, response, dao, action);
                 break;
+            case "delete":
+                handleDelete(request, response, dao);
+                break;
             default:
                 response.sendRedirect(request.getContextPath() + "/taxes");
                 break;
         }
+    }
+
+    private void handleDelete(HttpServletRequest request, HttpServletResponse response, TaxDAO dao)
+            throws IOException {
+        String idStr = request.getParameter("id");
+        if (idStr != null && !idStr.trim().isEmpty()) {
+            try {
+                int id = Integer.parseInt(idStr.trim());
+                dao.delete(id);
+                request.getSession().setAttribute("success", "Xóa thuế thành công!");
+            } catch (NumberFormatException ignored) {}
+        }
+        response.sendRedirect(request.getContextPath() + "/taxes");
     }
 
     private void handleUpsert(HttpServletRequest request, HttpServletResponse response, TaxDAO dao, String action)
