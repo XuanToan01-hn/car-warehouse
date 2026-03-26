@@ -49,38 +49,54 @@ public class GoodsIssueServlet extends HttpServlet {
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
 
-    private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        try {
-            String idRaw = request.getParameter("soId");
-            if (idRaw == null) {
-                response.sendRedirect("goods-issue?action=list");
-                return;
-            }
-            int soId = Integer.parseInt(idRaw);
-            SalesOrder order = soDAO.getById(soId);
-
-            if (order == null || order.getStatus() == 4 || order.getStatus() == 3) {
-                response.sendRedirect("goods-issue?action=list");
-                return;
-            }
-
-            List<Location> locations = new LocationDAO().getAll();
-            String locIdParam = request.getParameter("locationId");
-            int selectedLocId = (locIdParam != null) ? Integer.parseInt(locIdParam)
-                    : (locations.isEmpty() ? 0 : locations.get(0).getId());
-
-            List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, selectedLocId);
-
-            request.setAttribute("order", order);
-            request.setAttribute("locations", locations);
-            request.setAttribute("uiDetails", uiDetails);
-            request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
-        } catch (Exception e) {
-            e.printStackTrace();
+private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    try {
+        String idRaw = request.getParameter("soId");
+        if (idRaw == null) {
             response.sendRedirect("goods-issue?action=list");
+            return;
         }
+        int soId = Integer.parseInt(idRaw);
+        SalesOrder order = soDAO.getById(soId);
+
+        if (order == null || order.getStatus() == 4 || order.getStatus() == 3) {
+            response.sendRedirect("goods-issue?action=list");
+            return;
+        }
+
+        // 1. Lấy danh sách tất cả các kho
+        List<Warehouse> warehouses = new WarehouseDAO().getAll(); 
+        
+        // 2. Xác định Warehouse đang được chọn
+        String whIdParam = request.getParameter("warehouseId");
+        int selectedWhId = (whIdParam != null) ? Integer.parseInt(whIdParam) 
+                           : (warehouses.isEmpty() ? 0 : warehouses.get(0).getId());
+
+        // 3. Lấy danh sách Location thuộc Warehouse đó
+        List<Location> locations = new LocationDAO().getByWarehouseId(selectedWhId);
+        
+        // 4. Xác định Location đang được chọn
+        String locIdParam = request.getParameter("locationId");
+        int selectedLocId = (locIdParam != null) ? Integer.parseInt(locIdParam)
+                            : (locations.isEmpty() ? 0 : locations.get(0).getId());
+
+        // 5. Lấy dữ liệu tồn kho theo Location đã chọn
+        List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, selectedLocId);
+
+        request.setAttribute("order", order);
+        request.setAttribute("warehouses", warehouses);
+        request.setAttribute("selectedWhId", selectedWhId);
+        request.setAttribute("locations", locations);
+        request.setAttribute("selectedLocId", selectedLocId);
+        request.setAttribute("uiDetails", uiDetails);
+        
+        request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
+    } catch (Exception e) {
+        e.printStackTrace();
+        response.sendRedirect("goods-issue?action=list");
     }
+}
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

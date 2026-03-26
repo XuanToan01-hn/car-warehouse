@@ -37,13 +37,19 @@
                             <span class="ml-4">Security - permission</span>
                         </a>
                     </li>
-                    
+
                     <li>
                         <a href="inventory-report" class="svg-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
                             <span class="ml-4">Inventory Report</span>
                         </a>
                     </li> 
+                    <li>
+                        <a href="low-stock" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">Report low stock</span>
+                        </a>
+                    </li>
                 </c:if>
 
 
@@ -53,6 +59,18 @@
                         <a href="inventory-log" class="svg-icon">
                             <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
                             <span class="ml-4">Inventory Log</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="inventory-report" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">Inventory Report</span>
+                        </a>
+                    </li> 
+                    <li>
+                        <a href="low-stock" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">Report low stock</span>
                         </a>
                     </li>
 

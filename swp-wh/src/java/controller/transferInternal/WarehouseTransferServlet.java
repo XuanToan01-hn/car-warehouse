@@ -77,7 +77,6 @@ public class WarehouseTransferServlet extends HttpServlet {
         if (code != null) redirectUrl.append("code=").append(code).append("&");
         if (status != null) redirectUrl.append("status=").append(status).append("&");
         if (warehouseId != null) redirectUrl.append("warehouseId=").append(warehouseId);
-        
         response.sendRedirect(redirectUrl.toString());
     }
 }
