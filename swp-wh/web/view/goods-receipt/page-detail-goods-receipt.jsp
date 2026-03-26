@@ -229,8 +229,8 @@
                 </div>
                 <div class="wrapper">
                     <%@ include file="../sidebar.jsp" %>
-                    <jsp:include page="../header.jsp" />
-                    <div class="content-page">
+                        <jsp:include page="../header.jsp" />
+                        <div class="content-page">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-sm-12">
@@ -269,6 +269,10 @@
                                                         <c:when test="${param.error == 'confirm_failed'}">Confirm
                                                             failed.</c:when>
                                                         <c:when test="${param.error == 'cancel_failed'}">Cancel failed.
+                                                        </c:when>
+                                                        <c:when test="${param.error == 'qty_exceeds_remaining'}">Actual
+                                                            quantity exceeds remaining quantity. Please check and
+                                                            correct.
                                                         </c:when>
                                                         <c:otherwise>An error occurred. Please try again.</c:otherwise>
                                                     </c:choose>
@@ -435,18 +439,19 @@
                                                                             <th>Product Code</th>
                                                                             <th>Product Name</th>
                                                                             <th>Variant</th>
-                                                                            <th class="text-center">Order quantity</th>
-                                                                            <th class="text-center">Actual quantity
-                                                                                received
+                                                                            <th class="text-center">Order Qty</th>
+                                                                            <th class="text-center">Actual Qty
+                                                                                Received
                                                                             </th>
-                                                                            <th class="text-center">Difference</th>
+                                                                            <th class="text-center">Remaining Qty</th>
+                                                                            <th class="text-center">Current Stock</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
                                                                         <c:choose>
                                                                             <c:when test="${empty gr.details}">
                                                                                 <tr>
-                                                                                    <td colspan="7"
+                                                                                    <td colspan="8"
                                                                                         class="text-center text-muted py-5">
                                                                                         <i
                                                                                             class="fas fa-inbox mr-1"></i>
@@ -501,13 +506,19 @@
                                                                                                 class="qty-actual-input"
                                                                                                 name="qtyActual[]"
                                                                                                 min="0"
-                                                                                                max="${d.quantityExpected}"
-                                                                                                value="${d.quantityActual}"
+                                                                                                max="${d.remainingQty}"
+                                                                                                value="0"
+                                                                                                data-remaining="${d.remainingQty}"
                                                                                                 required>
                                                                                         </td>
                                                                                         <td class="text-center">
                                                                                             <span
-                                                                                                class="diff-display font-weight-bold">0</span>
+                                                                                                class="remaining-display font-weight-bold"
+                                                                                                style="color:#0EA5E9;">0</span>
+                                                                                        </td>
+                                                                                        <td class="text-center font-weight-bold"
+                                                                                            style="color:#6366F1;">
+                                                                                            ${d.currentStock}
                                                                                         </td>
                                                                                     </tr>
                                                                                 </c:forEach>
@@ -530,7 +541,8 @@
                                                                             <th class="text-center">Expected Qty</th>
                                                                             <th class="text-center">Actual Received Qty
                                                                             </th>
-                                                                            <th class="text-center">Difference</th>
+                                                                            <th class="text-center">Remaining Qty</th>
+                                                                            <th class="text-center">Current Stock</th>
                                                                         </tr>
                                                                     </thead>
                                                                     <tbody>
@@ -583,7 +595,7 @@
                                                                             </c:when>
                                                                             <c:when test="${empty gr.details}">
                                                                                 <tr>
-                                                                                    <td colspan="7"
+                                                                                    <td colspan="8"
                                                                                         class="text-center text-muted py-5">
                                                                                         <i
                                                                                             class="fas fa-inbox mr-1"></i>No
@@ -633,7 +645,14 @@
                                                                                             ${d.quantityActual}</td>
                                                                                         <td class="text-center">
                                                                                             <span
-                                                                                                class="${diff <= 0 ? 'diff-ok' : 'diff-warn'}">${diff}</span>
+                                                                                                class="font-weight-bold"
+                                                                                                style="color: ${d.remainingQty <= 0 ? '#22C55E' : '#EF4444'};">
+                                                                                                ${d.remainingQty}
+                                                                                            </span>
+                                                                                        </td>
+                                                                                        <td class="text-center font-weight-bold"
+                                                                                            style="color:#6366F1;">
+                                                                                            ${d.currentStock}
                                                                                         </td>
                                                                                     </tr>
                                                                                 </c:forEach>
@@ -751,19 +770,19 @@
 
                 <script>
                     function updateDiffRow(row) {
-                        var expectedEl = row.querySelector('.expected-qty');
                         var actualInput = row.querySelector('input[name="qtyActual[]"]');
-                        var diffSpan = row.querySelector('.diff-display');
-                        if (!expectedEl || !actualInput || !diffSpan) return;
+                        var remainingSpan = row.querySelector('.remaining-display');
+                        if (!actualInput || !remainingSpan) return;
 
-                        var expected = parseInt(expectedEl.textContent, 10) || 0;
+                        var maxRemaining = parseInt(actualInput.getAttribute('data-remaining'), 10) || 0;
                         var actual = parseInt(actualInput.value, 10) || 0;
                         if (actual < 0) { actual = 0; actualInput.value = 0; }
-                        if (actual > expected) { actual = expected; actualInput.value = expected; }
+                        if (actual > maxRemaining) { actual = maxRemaining; actualInput.value = maxRemaining; }
 
-                        var diff = expected - actual;
-                        diffSpan.textContent = diff;
-                        diffSpan.className = 'diff-display font-weight-bold ' + (diff <= 0 ? 'diff-ok' : 'diff-warn');
+                        var leftover = maxRemaining - actual;
+                        remainingSpan.textContent = leftover;
+                        remainingSpan.className = 'remaining-display font-weight-bold';
+                        remainingSpan.style.color = leftover <= 0 ? '#22C55E' : '#EF4444';
                     }
 
                     window.addEventListener('DOMContentLoaded', function () {
@@ -781,23 +800,22 @@
                             form.addEventListener('submit', function (e) {
                                 var invalid = false;
                                 document.querySelectorAll('.gr-detail-row').forEach(function (row) {
-                                    var expectedEl = row.querySelector('.expected-qty');
                                     var actualInput = row.querySelector('input[name="qtyActual[]"]');
-                                    if (!expectedEl || !actualInput) return;
-                                    var expected = parseInt(expectedEl.textContent, 10) || 0;
+                                    if (!actualInput) return;
+                                    var remaining = parseInt(actualInput.getAttribute('data-remaining'), 10) || 0;
                                     var actual = parseInt(actualInput.value, 10) || 0;
-                                    if (actual > expected) {
+                                    if (actual > remaining) {
                                         actualInput.style.borderColor = '#EF4444';
                                         actualInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,.2)';
                                         invalid = true;
                                     } else {
-                                        actualInput.style.borderColor = ''; // Reset to default or a success color
+                                        actualInput.style.borderColor = '';
                                         actualInput.style.boxShadow = '';
                                     }
                                 });
                                 if (invalid) {
                                     e.preventDefault();
-                                    alert('Actual Received Qty cannot exceed Expected Qty. Please correct the highlighted rows.');
+                                    alert('Actual Received Qty cannot exceed Remaining Qty. Please correct the highlighted rows.');
                                 }
                             });
                         }

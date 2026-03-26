@@ -663,9 +663,9 @@
                                         </form>
                                     `;
                                 } else if (data.status === 3) {
-                                    actionsRoot.innerHTML = '<span class="text-success font-weight-bold"><i class="ri-checkbox-circle-fill mr-1"></i> Đã hoàn thành vận chuyển</span>';
+                                    actionsRoot.innerHTML = '<span class="text-success font-weight-bold"><i class="ri-checkbox-circle-fill mr-1"></i> Tranfer Successfull</span>';
                                 } else {
-                                    actionsRoot.innerHTML = '<button type="button" class="btn btn-secondary px-4 rounded-xl" data-dismiss="modal">Đóng</button>';
+                                    actionsRoot.innerHTML = '<button type="button" class="btn btn-secondary px-4 rounded-xl" data-dismiss="modal">Close</button>';
                                 }
 
                                 $('#detailContent').fadeIn();

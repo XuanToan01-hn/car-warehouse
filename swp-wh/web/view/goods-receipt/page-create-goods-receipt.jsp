@@ -93,8 +93,8 @@
                 </div>
                 <div class="wrapper">
                     <%@ include file="../sidebar.jsp" %>
-                    <jsp:include page="../header.jsp" />
-                    <div class="content-page">
+                        <jsp:include page="../header.jsp" />
+                        <div class="content-page">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-sm-12">
@@ -156,8 +156,7 @@
                                                                         class="text-danger">*</span></label>
                                                                 <div id="location-group">
                                                                     <select id="locationSelect" name="locationId"
-                                                                        class="form-control" required
-                                                                        onchange="updateCapacityBadge()">
+                                                                        class="form-control" required>
                                                                         <option value="">-- Chọn Location --</option>
                                                                         <c:forEach var="loc" items="${locations}">
                                                                             <option value="${loc.id}"
@@ -215,15 +214,15 @@
                                                                     <th>Product Code</th>
                                                                     <th>Product Name</th>
                                                                     <th>Variant</th>
-                                                                    <th class="text-center">Order quantity</th>
-                                                                    <th class="text-center">Actual quantity received
-                                                                    </th>
-                                                                    <th class="text-center">Difference</th>
+                                                                    <th class="text-center">Order Qty</th>
+                                                                    <th class="text-center">Actual Qty Received</th>
+                                                                    <th class="text-center">Remaining Qty</th>
+                                                                    <th class="text-center">Current Stock</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody id="product-tbody">
                                                                 <tr id="no-po-msg-row">
-                                                                    <td colspan="7" id="no-po-msg"><i
+                                                                    <td colspan="8" id="no-po-msg"><i
                                                                             class="fas fa-hand-point-up mr-2"></i>Please
                                                                         select Purchase Order to view the product.</td>
                                                                 </tr>
@@ -310,6 +309,11 @@
                         };
                     });
 
+                    function getSelectedLocationId() {
+                        var sel = document.getElementById('locationSelect');
+                        return (sel && sel.value) ? sel.value : '';
+                    }
+
                     function loadPOProducts() {
                         var poId = document.getElementById('poSelect').value;
                         var infoArea = document.getElementById('po-info-area');
@@ -319,13 +323,17 @@
 
                         if (!poId) {
                             infoArea.classList.add('d-none');
-                            tbody.innerHTML = '<tr><td colspan="7" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="8" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
                             submitBtn.disabled = true;
                             return;
                         }
 
+                        var locationId = getSelectedLocationId();
+                        var apiUrl = '${pageContext.request.contextPath}/api/po-details?poId=' + poId;
+                        if (locationId) apiUrl += '&locationId=' + locationId;
+
                         // Fetch PO details via AJAX
-                        fetch('${pageContext.request.contextPath}/api/po-details?poId=' + poId)
+                        fetch(apiUrl)
                             .then(function (res) { return res.json(); })
                             .then(function (data) {
                                 renderProducts(poId, data.code, data.supplier, data.details);
@@ -351,10 +359,14 @@
 
                         var html = '';
                         if (!details || details.length === 0) {
-                            html = '<tr><td colspan="7" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
+                            html = '<tr><td colspan="8" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
                             submitBtn.disabled = true;
                         } else {
                             details.forEach(function (d, idx) {
+                                var remaining = (d.remainingQty !== undefined) ? d.remainingQty : d.quantity;
+                                var currentStock = (d.currentStock !== undefined) ? d.currentStock : 0;
+                                // Default actual = 0 (user enters how much received this time)
+                                var defaultActual = 0;
                                 // Build variant display
                                 var variantHtml = '';
                                 if (d.pdId && d.pdId > 0) {
@@ -371,11 +383,13 @@
                                     '<td class="text-center font-weight-bold">' + d.quantity + '</td>' +
                                     '<td class="text-center">' +
                                     '<input type="number" class="form-control qty-actual-input text-center" ' +
-                                    'name="qtyActual[]" form="groForm" min="0" max="' + d.quantity + '" value="' + d.quantity + '" required style="width:100px;margin:auto;" data-min="0">' +
+                                    'name="qtyActual[]" form="groForm" min="0" max="' + remaining + '" value="' + defaultActual + '" ' +
+                                    'data-remaining="' + remaining + '" required style="width:100px;margin:auto;">' +
                                     '<input type="hidden" name="productId[]" form="groForm" value="' + d.productId + '">' +
                                     '<input type="hidden" name="qtyExpected[]" form="groForm" value="' + d.quantity + '">' +
                                     '</td>' +
-                                    '<td class="text-center"><span class="diff-display">0</span></td>' +
+                                    '<td class="text-center"><span class="remaining-display font-weight-bold" style="color:#0EA5E9;">0</span></td>' +
+                                    '<td class="text-center font-weight-bold" style="color:#6366F1;">' + currentStock + '</td>' +
                                     '</tr>';
                             });
                             submitBtn.disabled = false;
@@ -384,6 +398,8 @@
                         tbody.querySelectorAll('.qty-actual-input').forEach(function (input) {
                             input.addEventListener('input', updateDiffInRow);
                             input.addEventListener('change', updateDiffInRow);
+                            // Trigger initial diff calculation
+                            updateDiffInRow({ target: input });
                         });
                         // Re-check capacity whenever PO products are loaded
                         updateCapacityBadge();
@@ -393,22 +409,22 @@
                         var row = e.target.closest('tr');
                         if (!row) return;
                         var actualInput = row.querySelector('input[name="qtyActual[]"]');
-                        var expectedInput = row.querySelector('input[name="qtyExpected[]"]');
-                        var span = row.querySelector('.diff-display');
-                        if (!actualInput || !expectedInput || !span) return;
+                        var span = row.querySelector('.remaining-display');
+                        if (!actualInput || !span) return;
+                        var maxRemaining = parseInt(actualInput.getAttribute('data-remaining'), 10) || 0;
                         var actual = parseInt(actualInput.value, 10) || 0;
                         if (actual < 0) {
                             actual = 0;
                             actualInput.value = 0;
                         }
-                        var expected = parseInt(expectedInput.value, 10) || 0;
-                        if (actual > expected) {
-                            actual = expected;
-                            actualInput.value = expected;
+                        if (actual > maxRemaining) {
+                            actual = maxRemaining;
+                            actualInput.value = maxRemaining;
                         }
-                        var diff = expected - actual;
-                        span.textContent = diff === 0 ? '0' : (diff > 0 ? diff : diff);
-                        span.className = 'diff-display ' + (diff <= 0 ? 'diff-ok' : 'diff-warn');
+                        var leftover = maxRemaining - actual;
+                        span.textContent = leftover;
+                        span.className = 'remaining-display font-weight-bold ' + (leftover <= 0 ? 'diff-ok' : 'diff-warn');
+                        span.style.color = leftover <= 0 ? '#22C55E' : '#EF4444';
                         // Re-check qty vs capacity whenever actual qty changes
                         var sel = document.getElementById('locationSelect');
                         var opt = sel ? sel.options[sel.selectedIndex] : null;
@@ -435,6 +451,13 @@
                         }
                         // Also bind change event
                         document.getElementById('poSelect').addEventListener('change', loadPOProducts);
+                        // When location changes, reload PO products to get updated stock & remaining
+                        document.getElementById('locationSelect').addEventListener('change', function () {
+                            updateCapacityBadge();
+                            // Re-fetch PO products with new locationId for stock data
+                            var poId = document.getElementById('poSelect').value;
+                            if (poId) loadPOProducts();
+                        });
                     });
 
                     // ---- Location capacity badge & full-validation ----
@@ -530,11 +553,10 @@
                         var invalid = false;
                         document.querySelectorAll('#product-tbody tr').forEach(function (row) {
                             var actualInput = row.querySelector('input[name="qtyActual[]"]');
-                            var expectedInput = row.querySelector('input[name="qtyExpected[]"]');
-                            if (!actualInput || !expectedInput) return;
-                            var expected = parseInt(expectedInput.value, 10) || 0;
+                            if (!actualInput) return;
+                            var remaining = parseInt(actualInput.getAttribute('data-remaining'), 10) || 0;
                             var actual = parseInt(actualInput.value, 10) || 0;
-                            if (actual > expected) {
+                            if (actual > remaining) {
                                 actualInput.style.borderColor = '#EF4444';
                                 actualInput.style.boxShadow = '0 0 0 3px rgba(239,68,68,.2)';
                                 invalid = true;
@@ -546,7 +568,7 @@
 
                         if (invalid) {
                             e.preventDefault();
-                            alert('Actual Received Qty cannot exceed Expected Qty. Please correct the highlighted rows.');
+                            alert('Actual Received Qty cannot exceed Remaining Qty. Please correct the highlighted rows.');
                         }
                     });
 

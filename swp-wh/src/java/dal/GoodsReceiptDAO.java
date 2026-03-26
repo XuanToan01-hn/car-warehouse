@@ -69,6 +69,53 @@ public class GoodsReceiptDAO extends DBContext {
         return null;
     }
 
+    /**
+     * Sum of QuantityActual already delivered by completed/partial GROs
+     * for a given PO, grouped by ProductDetailID.
+     */
+    public Map<Integer, Integer> getDeliveredQtyByPO(int poId) {
+        Map<Integer, Integer> map = new HashMap<>();
+        String sql = "SELECT grd.ProductDetailID, SUM(grd.QuantityActual) AS Delivered "
+                + "FROM Goods_Receipt_Detail grd "
+                + "JOIN Goods_Receipt gr ON grd.ReceiptID = gr.ReceiptID "
+                + "WHERE gr.PurchaseOrderID = ? AND gr.Status IN (2, 4) "
+                + "GROUP BY grd.ProductDetailID";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, poId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    map.put(rs.getInt("ProductDetailID"), rs.getInt("Delivered"));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
+    /**
+     * Get current stock at a location for a list of ProductDetailIDs.
+     */
+    public Map<Integer, Integer> getStockAtLocation(int locationId, List<Integer> productDetailIds) {
+        Map<Integer, Integer> map = new HashMap<>();
+        if (productDetailIds == null || productDetailIds.isEmpty() || locationId <= 0) return map;
+        String sql = "SELECT ProductDetailID, Quantity FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            for (int pdId : productDetailIds) {
+                ps.setInt(1, locationId);
+                ps.setInt(2, pdId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        map.put(pdId, rs.getInt("Quantity"));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return map;
+    }
+
     // =========================
     // Query single receipt
     // =========================
@@ -182,6 +229,75 @@ public class GoodsReceiptDAO extends DBContext {
             e.printStackTrace();
         }
         gr.setDetails(details);
+
+        // --- Compute remainingQty & currentStock for each detail line ---
+        if (gr.getPurchaseOrder() != null && !details.isEmpty()) {
+            int poId = gr.getPurchaseOrder().getId();
+            int locationId = (gr.getLocation() != null) ? gr.getLocation().getId() : 0;
+
+            // Sum of QuantityActual already delivered by ALL completed/partial GROs
+            // for the same PO, INCLUDING this GRO's current saved actual
+            String sqlDelivered = "SELECT grd.ProductDetailID, SUM(grd.QuantityActual) AS Delivered "
+                    + "FROM Goods_Receipt_Detail grd "
+                    + "JOIN Goods_Receipt gr2 ON grd.ReceiptID = gr2.ReceiptID "
+                    + "WHERE gr2.PurchaseOrderID = ? "
+                    + "  AND gr2.Status IN (2, 4) "
+                    + "GROUP BY grd.ProductDetailID";
+            Map<Integer, Integer> deliveredMap = new HashMap<>();
+            try (PreparedStatement psD = connection.prepareStatement(sqlDelivered)) {
+                psD.setInt(1, poId);
+                try (ResultSet rsD = psD.executeQuery()) {
+                    while (rsD.next()) {
+                        deliveredMap.put(rsD.getInt("ProductDetailID"), rsD.getInt("Delivered"));
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            // Stock at the receipt's location for each ProductDetailID
+            String sqlStock = "SELECT Quantity FROM Location_Product WHERE LocationID = ? AND ProductDetailID = ?";
+
+            // Also need HOW MUCH was ordered per ProductDetailID in the PO
+            String sqlPoQty = "SELECT ProductDetailID, Quantity FROM Purchase_Order_Detail WHERE PurchaseOrderID = ?";
+            Map<Integer, Integer> poQtyMap = new HashMap<>();
+            try (PreparedStatement psPQ = connection.prepareStatement(sqlPoQty)) {
+                psPQ.setInt(1, poId);
+                try (ResultSet rsPQ = psPQ.executeQuery()) {
+                    while (rsPQ.next()) {
+                        poQtyMap.put(rsPQ.getInt("ProductDetailID"), rsPQ.getInt("Quantity"));
+                    }
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+
+            for (GoodsReceiptDetail d : details) {
+                int pdId = (d.getProductDetail() != null) ? d.getProductDetail().getId() : 0;
+
+                // Remaining = PO ordered qty - already delivered by other GROs
+                int poOrderedQty = poQtyMap.getOrDefault(pdId, d.getQuantityExpected());
+                int alreadyDelivered = deliveredMap.getOrDefault(pdId, 0);
+                int remaining = poOrderedQty - alreadyDelivered;
+                if (remaining < 0) remaining = 0;
+                d.setRemainingQty(remaining);
+
+                // Current stock at location
+                if (locationId > 0 && pdId > 0) {
+                    try (PreparedStatement psS = connection.prepareStatement(sqlStock)) {
+                        psS.setInt(1, locationId);
+                        psS.setInt(2, pdId);
+                        try (ResultSet rsS = psS.executeQuery()) {
+                            if (rsS.next()) {
+                                d.setCurrentStock(rsS.getInt("Quantity"));
+                            }
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
 
         // Load PO details (for PO section in detail page), if PO exists
         if (gr.getPurchaseOrder() != null) {
@@ -471,7 +587,7 @@ public class GoodsReceiptDAO extends DBContext {
      */
     public boolean confirmDraft(int receiptId, List<GoodsReceiptDetail> updatedDetails) {
         String sqlUpdateDetail = "UPDATE Goods_Receipt_Detail "
-                + "SET QuantityActual = ? "
+                + "SET QuantityActual = QuantityActual + ? "
                 + "WHERE ReceiptDetailID = ? AND ReceiptID = ?";
 
         // For recalculating PO status

@@ -180,10 +180,10 @@
                                         <h1 class="font-weight-bold mb-1">Goods Receipt Orders</h1>
                                         <p class="text-secondary mb-0">Track and manage all goods receipt entries.</p>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/create-goods-receipt"
+<!--                                    <a href="${pageContext.request.contextPath}/create-goods-receipt"
                                         class="btn btn-add">
                                         <i class="ri-add-line"></i> Create New GRO
-                                    </a>
+                                    </a>-->
                                 </div>
 
                                 <!-- Filters -->

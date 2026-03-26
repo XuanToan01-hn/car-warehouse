@@ -5,6 +5,7 @@ import dal.LocationDAO;
 import dal.PurchaseOrderDAO;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -99,6 +100,39 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 }
             }
             // ---- End capacity validation ----
+
+            // ---- Validate remaining qty (actual qty must not exceed what PO still needs) ----
+            Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
+            PurchaseOrder poForValidation = poDAO.getById(poId);
+            if (poForValidation != null && poForValidation.getDetails() != null && qtyActual != null) {
+                // Build a map of ProductDetailID -> PO ordered qty
+                Map<Integer, Integer> poQtyMap = new java.util.HashMap<>();
+                for (PurchaseOrderDetail pod : poForValidation.getDetails()) {
+                    if (pod.getProductDetail() != null) {
+                        poQtyMap.put(pod.getProductDetail().getId(), pod.getQuantity());
+                    }
+                }
+                boolean overLimit = false;
+                for (int i = 0; i < productDetailIds.length && i < qtyActual.length; i++) {
+                    int pdId = Integer.parseInt(productDetailIds[i]);
+                    int actual = Integer.parseInt(qtyActual[i]);
+                    int poQty = poQtyMap.getOrDefault(pdId, 0);
+                    int delivered = deliveredMap.getOrDefault(pdId, 0);
+                    int remainingQty = poQty - delivered;
+                    if (remainingQty < 0) remainingQty = 0;
+                    if (actual > remainingQty) {
+                        overLimit = true;
+                        break;
+                    }
+                }
+                if (overLimit) {
+                    request.setAttribute("error",
+                        "Số lượng nhập vượt quá số lượng còn lại có thể nhận. Vui lòng kiểm tra và sửa lại.");
+                    doGet(request, response);
+                    return;
+                }
+            }
+            // ---- End remaining qty validation ----
 
             // Build GoodsReceipt header
             GoodsReceipt gr = new GoodsReceipt();

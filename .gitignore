@@ -1,4 +1,6 @@
 swp-wh/build/
+dist/
+nbproject/private/
 swp-wh/dist
 .idea/
 out/
