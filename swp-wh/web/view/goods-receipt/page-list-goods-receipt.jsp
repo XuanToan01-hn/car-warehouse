@@ -180,10 +180,7 @@
                                         <h1 class="font-weight-bold mb-1">Goods Receipt Orders</h1>
                                         <p class="text-secondary mb-0">Track and manage all goods receipt entries.</p>
                                     </div>
-                                    <a href="${pageContext.request.contextPath}/create-goods-receipt"
-                                        class="btn btn-add">
-                                        <i class="ri-add-line"></i> Create New GRO
-                                    </a>
+
                                 </div>
 
                                 <!-- Filters -->
@@ -298,7 +295,14 @@
                                                                         class="btn btn-sm btn-outline-primary btn-detail">
                                                                         <i class="ri-eye-line"></i> View
                                                                     </a>
+                                                                    <c:if test="${gr.status != 2 && gr.status != 3}">
+                                                                        <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${gr.purchaseOrder.id}"
+                                                                            class="btn btn-sm btn-outline-success btn-detail ml-1">
+                                                                            <i class="ri-add-line"></i> Create GRO
+                                                                        </a>
+                                                                    </c:if>
                                                                 </td>
+
                                                             </tr>
                                                         </c:forEach>
                                                     </c:otherwise>

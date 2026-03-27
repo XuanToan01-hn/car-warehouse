@@ -132,7 +132,8 @@
                                                                         class="fas fa-file-invoice mr-1 text-primary"></i>Purchase
                                                                     Order <span class="text-danger">*</span></label>
                                                                 <select id="poSelect" name="poId" class="form-control"
-                                                                    required onchange="loadPOProducts()">
+                                                                    required onchange="loadPOProducts()"
+                                                                    ${selectedPO != null ? 'disabled' : ''}>
                                                                     <option value="">-- Chọn Purchase Order --</option>
                                                                     <c:forEach var="po" items="${confirmedPOs}">
                                                                         <option value="${po.id}"
@@ -144,6 +145,9 @@
                                                                         </option>
                                                                     </c:forEach>
                                                                 </select>
+                                                                <c:if test="${selectedPO != null}">
+                                                                    <input type="hidden" name="poId" value="${selectedPO.id}">
+                                                                </c:if>
                                                             </div>
                                                         </div>
 
@@ -216,6 +220,7 @@
                                                                     <th>Product Name</th>
                                                                     <th>Variant</th>
                                                                     <th class="text-center">Order quantity</th>
+                                                                    <th class="text-center text-warning">Remaining</th>
                                                                     <th class="text-center">Actual quantity received
                                                                     </th>
                                                                     <th class="text-center">Difference</th>
@@ -223,7 +228,7 @@
                                                             </thead>
                                                             <tbody id="product-tbody">
                                                                 <tr id="no-po-msg-row">
-                                                                    <td colspan="7" id="no-po-msg"><i
+                                                                    <td colspan="8" id="no-po-msg"><i
                                                                             class="fas fa-hand-point-up mr-2"></i>Please
                                                                         select Purchase Order to view the product.</td>
                                                                 </tr>
@@ -244,29 +249,38 @@
                                         <!-- JSP-rendered products for pre-selected PO -->
                                         <c:if test="${not empty selectedPO}">
                                             <script>
+                                                var poId = parseInt('${selectedPO.id}') || 0;
+                                                var poCode = '${selectedPO.orderCode}';
+                                                var poSupplier = '${selectedPO.supplier.name}';
+                                                var poDetails = [];
+                                                
+                                                <c:forEach var="d" items="${selectedPO.details}" varStatus="st">
+                                                    <c:set var="vLbl" value="-" />
+                                                    <c:if test="${d.productDetail != null}">
+                                                        <c:set var="vLbl" value="${d.productDetail.serialNumber}" />
+                                                        <c:if test="${not empty d.productDetail.color}">
+                                                            <c:set var="vLbl" value="${vLbl} (${d.productDetail.color})" />
+                                                        </c:if>
+                                                    </c:if>
+                                                    <c:set var="rem" value="${d.quantity - d.receivedQuantity}" />
+                                                    <c:if test="${rem < 0}"><c:set var="rem" value="0" /></c:if>
+                                                    
+                                                    poDetails.push({
+                                                        productId: parseInt('${d.product.id}') || 0,
+                                                        code: '${d.product.code}',
+                                                        name: '${d.product.name}',
+                                                        quantity: parseInt('${d.quantity}') || 0,
+                                                        remaining: parseInt('${rem}') || 0,
+                                                        pdId: parseInt('${d.productDetail != null ? d.productDetail.id : 0}') || 0,
+                                                        variantLabel: '${vLbl}'
+                                                    });
+                                                </c:forEach>
+
                                                 window.preloadedPO = {
-                                                    id: ${ selectedPO.id },
-                                                code: '${selectedPO.orderCode}',
-                                                    supplier: '${selectedPO.supplier.name}',
-                                                        details: [
-                                                            <c:forEach var="d" items="${selectedPO.details}" varStatus="st">
-                                                                <c:set var="vLbl" value="-" />
-                                                                <c:if test="${d.productDetail != null}">
-                                                                    <c:set var="vLbl" value="${d.productDetail.serialNumber}" />
-                                                                    <c:if test="${not empty d.productDetail.color}">
-                                                                        <c:set var="vLbl" value="${vLbl} (${d.productDetail.color})" />
-                                                                    </c:if>
-                                                                </c:if>
-                                                                {
-                                                                    productId: ${d.product.id},
-                                                                code: '${d.product.code}',
-                                                                name: '${d.product.name}',
-                                                                quantity: ${d.quantity},
-                                                                pdId: ${d.productDetail != null ? d.productDetail.id : 0},
-                                                                variantLabel: '${vLbl}'
-                                                            }<c:if test="${!st.last}">,</c:if>
-                                                            </c:forEach>
-                                                        ]
+                                                    id: poId,
+                                                    code: poCode,
+                                                    supplier: poSupplier,
+                                                    details: poDetails
                                                 };
                                             </script>
                                         </c:if>
@@ -319,7 +333,7 @@
 
                         if (!poId) {
                             infoArea.classList.add('d-none');
-                            tbody.innerHTML = '<tr><td colspan="7" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="8" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
                             submitBtn.disabled = true;
                             return;
                         }
@@ -350,11 +364,17 @@
                         infoArea.classList.remove('d-none');
 
                         var html = '';
+                        var hasItems = false;
                         if (!details || details.length === 0) {
-                            html = '<tr><td colspan="7" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
+                            html = '<tr><td colspan="8" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
                             submitBtn.disabled = true;
                         } else {
+                            var displayIdx = 1;
                             details.forEach(function (d, idx) {
+                                var qtyExpected = d.remaining !== undefined ? d.remaining : d.quantity;
+                                if (qtyExpected <= 0) return; // skip fully received items
+                                hasItems = true;
+
                                 // Build variant display
                                 var variantHtml = '';
                                 if (d.pdId && d.pdId > 0) {
@@ -363,22 +383,34 @@
                                 } else {
                                     variantHtml = '<span class="text-muted">-</span><input type="hidden" name="productDetailId[]" form="groForm" value="0">';
                                 }
+                                var qtyDisplay = d.quantity;
+                                var remainingDisplay = qtyExpected;
+                                if (d.remaining !== undefined && d.remaining < d.quantity) {
+                                    var received = d.quantity - d.remaining;
+                                    remainingDisplay = d.remaining + '<br><small class="text-info">(Received: ' + received + ')</small>';
+                                }
                                 html += '<tr>' +
-                                    '<td>' + (idx + 1) + '</td>' +
+                                    '<td>' + displayIdx++ + '</td>' +
                                     '<td><code>' + (d.code || d.productCode || '') + '</code></td>' +
                                     '<td>' + (d.name || d.productName || '') + '</td>' +
                                     '<td>' + variantHtml + '</td>' +
-                                    '<td class="text-center font-weight-bold">' + d.quantity + '</td>' +
+                                    '<td class="text-center font-weight-bold text-secondary">' + qtyDisplay + '</td>' +
+                                    '<td class="text-center font-weight-bold text-warning">' + remainingDisplay + '</td>' +
                                     '<td class="text-center">' +
                                     '<input type="number" class="form-control qty-actual-input text-center" ' +
-                                    'name="qtyActual[]" form="groForm" min="0" max="' + d.quantity + '" value="' + d.quantity + '" required style="width:100px;margin:auto;" data-min="0">' +
+                                    'name="qtyActual[]" form="groForm" min="0" max="' + qtyExpected + '" value="' + qtyExpected + '" required style="width:100px;margin:auto;" data-min="0">' +
                                     '<input type="hidden" name="productId[]" form="groForm" value="' + d.productId + '">' +
-                                    '<input type="hidden" name="qtyExpected[]" form="groForm" value="' + d.quantity + '">' +
+                                    '<input type="hidden" name="qtyExpected[]" form="groForm" value="' + qtyExpected + '">' +
                                     '</td>' +
                                     '<td class="text-center"><span class="diff-display">0</span></td>' +
                                     '</tr>';
                             });
-                            submitBtn.disabled = false;
+                            if (!hasItems) {
+                                html = '<tr><td colspan="8" class="text-center text-success"><i class="fas fa-check-circle mr-2"></i>Tất cả sản phẩm trong PO này đã được nhận đủ.</td></tr>';
+                                submitBtn.disabled = true;
+                            } else {
+                                submitBtn.disabled = false;
+                            }
                         }
                         tbody.innerHTML = html;
                         tbody.querySelectorAll('.qty-actual-input').forEach(function (input) {

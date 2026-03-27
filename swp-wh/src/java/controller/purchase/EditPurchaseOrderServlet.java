@@ -11,9 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import model.Product;
 import model.ProductDetail;
@@ -26,66 +24,99 @@ import model.dto.PurchaseLineDraft;
 import model.dto.PurchaseOrderFormDraft;
 import utils.PurchaseValidator;
 
-@WebServlet(name = "AddPurchaseOrderServlet", urlPatterns = { "/add-purchase-order" })
-public class AddPurchaseOrderServlet extends HttpServlet {
+@WebServlet(name = "EditPurchaseOrderServlet", urlPatterns = { "/edit-purchase-order" })
+public class EditPurchaseOrderServlet extends HttpServlet {
 
-    private static final String DRAFT_KEY = "purchaseOrderFormDraft";
+    private static final String EDIT_DRAFT_KEY = "editPurchaseOrderDraft";
+    private static final String EDIT_PO_ID_KEY = "editPurchaseOrderId";
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         HttpSession session = request.getSession(true);
+        User currentUser = (User) session.getAttribute("user");
 
-        if ("1".equals(request.getParameter("reset"))) {
-            session.removeAttribute(DRAFT_KEY);
+        // Only Purchasing Staff (role 5) can edit
+        if (currentUser == null || currentUser.getRole() == null || currentUser.getRole().getId() != 5) {
+            response.sendRedirect(request.getContextPath() + "/purchase-orders?error=unauthorized");
+            return;
         }
 
-        PurchaseOrderFormDraft draft = getOrCreateDraft(session);
+        String idParam = request.getParameter("id");
+        if (idParam == null || idParam.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/purchase-orders");
+            return;
+        }
 
-        String sidParam = request.getParameter("supplierId");
-        if (sidParam != null && !sidParam.isEmpty()) {
-            try {
-                int sid = Integer.parseInt(sidParam);
-                if (sid > 0 && draft.getSupplierId() != sid) {
-                    draft.setSupplierId(sid);
+        try {
+            int poId = Integer.parseInt(idParam);
+            PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
+            PurchaseOrder po = poDAO.getById(poId);
+
+            if (po == null) {
+                response.sendRedirect(request.getContextPath() + "/purchase-orders");
+                return;
+            }
+
+            // Only Draft (status 1) can be edited
+            if (po.getStatus() != 1) {
+                response.sendRedirect(request.getContextPath() + "/detail-purchase-order?id=" + poId);
+                return;
+            }
+
+            // Check if we need to initialize the edit draft (first load or different PO)
+            Integer storedPoId = (Integer) session.getAttribute(EDIT_PO_ID_KEY);
+            PurchaseOrderFormDraft draft = (PurchaseOrderFormDraft) session.getAttribute(EDIT_DRAFT_KEY);
+
+            if (draft == null || storedPoId == null || storedPoId != poId
+                    || "1".equals(request.getParameter("reload"))) {
+                // Initialize draft from existing PO
+                draft = new PurchaseOrderFormDraft();
+                draft.setOrderCode(po.getOrderCode());
+                draft.setSupplierId(po.getSupplier().getId());
+
+                // Load existing lines
+                draft.getLines().clear();
+                if (po.getDetails() != null) {
+                    for (PurchaseOrderDetail d : po.getDetails()) {
+                        PurchaseLineDraft line = new PurchaseLineDraft();
+                        if (d.getProductDetail() != null) {
+                            line.setProductDetailId(d.getProductDetail().getId());
+                        }
+                        line.setQuantity(d.getQuantity());
+                        line.setPrice(d.getPrice());
+                        draft.addLine(line);
+                    }
+                }
+                if (draft.getLines().isEmpty()) {
                     draft.resetLinesOneEmpty();
                 }
-            } catch (NumberFormatException ignored) {
+                session.setAttribute(EDIT_DRAFT_KEY, draft);
+                session.setAttribute(EDIT_PO_ID_KEY, poId);
             }
-        }
 
-        if (draft.getOrderCode() == null || draft.getOrderCode().isEmpty()) {
-            draft.setOrderCode(generateOrderCode());
-        }
+            // Handle supplier change via GET param
+            String sidParam = request.getParameter("supplierId");
+            if (sidParam != null && !sidParam.isEmpty()) {
+                try {
+                    int sid = Integer.parseInt(sidParam);
+                    if (sid > 0 && draft.getSupplierId() != sid) {
+                        draft.setSupplierId(sid);
+                        draft.resetLinesOneEmpty();
+                    }
+                } catch (NumberFormatException ignored) {
+                }
+            }
 
-        if (draft.getSupplierId() > 0 && draft.getLines().isEmpty()) {
-            draft.resetLinesOneEmpty();
-        }
+            request.setAttribute("poId", poId);
+            prepareFormView(request, draft);
+            request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
+                    .forward(request, response);
 
-        mapInfoFlash(request);
-        mapQueryError(request);
-
-        prepareFormView(request, draft);
-        request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
-                .forward(request, response);
-    }
-
-    private void mapQueryError(HttpServletRequest request) {
-        if (request.getAttribute("error") != null) {
-            return;
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/purchase-orders");
         }
-        String err = request.getParameter("error");
-        if (err == null || err.isEmpty()) {
-            return;
-        }
-        if ("noSupplier".equals(err)) {
-            request.setAttribute("error", "Please select a supplier.");
-        }
-    }
-
-    private void mapInfoFlash(HttpServletRequest request) {
-        // No quick-add flows remain
     }
 
     @Override
@@ -94,30 +125,38 @@ public class AddPurchaseOrderServlet extends HttpServlet {
         request.setCharacterEncoding("UTF-8");
 
         HttpSession session = request.getSession(true);
-        PurchaseOrderFormDraft draft = getOrCreateDraft(session);
+        User currentUser = (User) session.getAttribute("user");
+
+        if (currentUser == null || currentUser.getRole() == null || currentUser.getRole().getId() != 5) {
+            response.sendRedirect(request.getContextPath() + "/purchase-orders?error=unauthorized");
+            return;
+        }
+
+        PurchaseOrderFormDraft draft = (PurchaseOrderFormDraft) session.getAttribute(EDIT_DRAFT_KEY);
+        Integer poId = (Integer) session.getAttribute(EDIT_PO_ID_KEY);
         String ctx = request.getContextPath();
+
+        if (draft == null || poId == null) {
+            response.sendRedirect(ctx + "/purchase-orders");
+            return;
+        }
 
         try {
             if (request.getParameter("setSupplier") != null) {
                 syncDraftFromRequest(request, draft);
                 int sid = Integer.parseInt(request.getParameter("supplierId"));
-                if (sid <= 0) {
-                    response.sendRedirect(ctx + "/add-purchase-order?error=noSupplier");
-                    return;
+                if (sid > 0) {
+                    draft.setSupplierId(sid);
+                    draft.resetLinesOneEmpty();
                 }
-                draft.setSupplierId(sid);
-                draft.resetLinesOneEmpty();
-                if (draft.getOrderCode() == null || draft.getOrderCode().isEmpty()) {
-                    draft.setOrderCode(generateOrderCode());
-                }
-                response.sendRedirect(ctx + "/add-purchase-order");
+                response.sendRedirect(ctx + "/edit-purchase-order?id=" + poId);
                 return;
             }
 
             if (request.getParameter("addLine") != null) {
                 syncDraftFromRequest(request, draft);
                 draft.addLine(new PurchaseLineDraft());
-                response.sendRedirect(ctx + "/add-purchase-order");
+                response.sendRedirect(ctx + "/edit-purchase-order?id=" + poId);
                 return;
             }
 
@@ -125,65 +164,65 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 syncDraftFromRequest(request, draft);
                 int idx = Integer.parseInt(request.getParameter("removeLine"));
                 draft.removeLine(idx);
-                response.sendRedirect(ctx + "/add-purchase-order");
+                response.sendRedirect(ctx + "/edit-purchase-order?id=" + poId);
                 return;
             }
 
-            if (request.getParameter("createPO") != null) {
+            if (request.getParameter("savePO") != null) {
                 syncDraftFromRequest(request, draft);
-                createPurchaseOrder(request, response, session, draft);
+                savePurchaseOrder(request, response, session, draft, poId);
                 return;
             }
 
-            response.sendRedirect(ctx + "/add-purchase-order");
+            response.sendRedirect(ctx + "/edit-purchase-order?id=" + poId);
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "An error occurred: " + e.getMessage());
+            request.setAttribute("poId", poId);
             prepareFormView(request, draft);
-            request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+            request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                     .forward(request, response);
         }
     }
 
-    private void createPurchaseOrder(HttpServletRequest request, HttpServletResponse response,
-            HttpSession session, PurchaseOrderFormDraft draft)
+    private void savePurchaseOrder(HttpServletRequest request, HttpServletResponse response,
+            HttpSession session, PurchaseOrderFormDraft draft, int poId)
             throws ServletException, IOException {
 
-        User loginUser = (User) session.getAttribute("user");
         ProductDetailDAO productDetailDAO = new ProductDetailDAO();
         PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
 
+        // Verify PO still exists and is Draft
+        PurchaseOrder existingPo = poDAO.getById(poId);
+        if (existingPo == null || existingPo.getStatus() != 1) {
+            response.sendRedirect(request.getContextPath() + "/purchase-orders");
+            return;
+        }
+
         if (draft.getSupplierId() <= 0) {
             request.setAttribute("error", "Please select a supplier.");
+            request.setAttribute("poId", poId);
             prepareFormView(request, draft);
-            request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+            request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                     .forward(request, response);
             return;
         }
 
         String orderCode = draft.getOrderCode();
-        if (orderCode == null || orderCode.trim().isEmpty()) {
-            request.setAttribute("error", "Order code is required.");
+        if (!PurchaseValidator.isValidOrderCode(orderCode)) {
+            request.setAttribute("error", "Order code format is invalid.");
+            request.setAttribute("poId", poId);
             prepareFormView(request, draft);
-            request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+            request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                     .forward(request, response);
             return;
         }
 
-        // Validate order code format
-        if (!PurchaseValidator.isValidOrderCode(orderCode.trim())) {
-            request.setAttribute("error", "Order code format is invalid. Expected: PO-YYYYMMDD-NNNN");
+        if (!PurchaseValidator.isOrderCodeUnique(orderCode, poId)) {
+            request.setAttribute("error", "Order code already exists.");
+            request.setAttribute("poId", poId);
             prepareFormView(request, draft);
-            request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
-                    .forward(request, response);
-            return;
-        }
-
-        // Validate order code uniqueness
-        if (!PurchaseValidator.isOrderCodeUnique(orderCode.trim())) {
-            request.setAttribute("error", "Order code already exists. Please reset the form to generate a new one.");
-            prepareFormView(request, draft);
-            request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+            request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                     .forward(request, response);
             return;
         }
@@ -191,35 +230,35 @@ public class AddPurchaseOrderServlet extends HttpServlet {
         List<PurchaseLineDraft> lines = draft.getLines();
         if (lines.isEmpty()) {
             request.setAttribute("error", "At least 1 product line is required.");
+            request.setAttribute("poId", poId);
             prepareFormView(request, draft);
-            request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+            request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                     .forward(request, response);
             return;
         }
 
         for (PurchaseLineDraft line : lines) {
             if (line.getProductDetailId() == null || line.getProductDetailId() <= 0) {
-                request.setAttribute("error", "Each line must have a selected variant (product detail).");
+                request.setAttribute("error", "Each line must have a selected variant.");
+                request.setAttribute("poId", poId);
                 prepareFormView(request, draft);
-                request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+                request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                         .forward(request, response);
                 return;
             }
-        }
-
-        // Server-side validation for price and quantity
-        for (PurchaseLineDraft line : lines) {
             if (line.getPrice() == null || line.getPrice() <= 0) {
-                request.setAttribute("error", "Unit price for each line must be greater than 0.");
+                request.setAttribute("error", "Unit price must be greater than 0.");
+                request.setAttribute("poId", poId);
                 prepareFormView(request, draft);
-                request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+                request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                         .forward(request, response);
                 return;
             }
             if (line.getQuantity() < 1) {
-                request.setAttribute("error", "Quantity for each line must be at least 1.");
+                request.setAttribute("error", "Quantity must be at least 1.");
+                request.setAttribute("poId", poId);
                 prepareFormView(request, draft);
-                request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+                request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                         .forward(request, response);
                 return;
             }
@@ -245,28 +284,29 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 totalAmount += sub;
             }
 
+            // Update PO header
             PurchaseOrder po = new PurchaseOrder();
+            po.setId(poId);
             po.setOrderCode(orderCode.trim());
             Supplier s = new Supplier();
             s.setId(draft.getSupplierId());
             po.setSupplier(s);
-            po.setStatus(1);
             po.setTotalAmount(totalAmount);
-            if (loginUser != null) {
-                po.setCreateBy(loginUser);
+
+            boolean updated = poDAO.update(po);
+            if (!updated) {
+                throw new Exception("Failed to update PO.");
             }
 
-            int newPoId = poDAO.insert(po);
-            if (newPoId <= 0) {
-                throw new Exception("Failed to create PO");
-            }
+            // Delete old details and re-insert
+            poDAO.deleteDetailsByOrderId(poId);
 
             for (int i = 0; i < lines.size(); i++) {
                 PurchaseLineDraft line = lines.get(i);
                 ProductDetail pd = detailRows.get(i);
 
                 PurchaseOrderDetail pod = new PurchaseOrderDetail();
-                pod.setPurchaseOrderId(newPoId);
+                pod.setPurchaseOrderId(poId);
 
                 Product p = new Product();
                 if (pd.getProduct() == null) {
@@ -282,14 +322,17 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 poDAO.insertDetail(pod);
             }
 
-            session.removeAttribute(DRAFT_KEY);
-            request.setAttribute("success", "created");
-            doGet(request, response);
+            // Clear edit draft
+            session.removeAttribute(EDIT_DRAFT_KEY);
+            session.removeAttribute(EDIT_PO_ID_KEY);
+
+            response.sendRedirect(request.getContextPath() + "/detail-purchase-order?id=" + poId);
         } catch (Exception e) {
             e.printStackTrace();
             request.setAttribute("error", "An error occurred: " + e.getMessage());
+            request.setAttribute("poId", poId);
             prepareFormView(request, draft);
-            request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+            request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
                     .forward(request, response);
         }
     }
@@ -357,15 +400,9 @@ public class AddPurchaseOrderServlet extends HttpServlet {
     private double computeGrandTotal(PurchaseOrderFormDraft draft) {
         double total = 0;
         for (PurchaseLineDraft line : draft.getLines()) {
-            if (line.getProductDetailId() == null || line.getProductDetailId() <= 0) {
-                continue;
-            }
-            if (line.getPrice() == null || line.getPrice() <= 0) {
-                continue;
-            }
-            double price = line.getPrice();
-            int qty = line.getQuantity();
-            total += qty * price;
+            if (line.getProductDetailId() == null || line.getProductDetailId() <= 0) continue;
+            if (line.getPrice() == null || line.getPrice() <= 0) continue;
+            total += line.getQuantity() * line.getPrice();
         }
         return total;
     }
@@ -378,9 +415,7 @@ public class AddPurchaseOrderServlet extends HttpServlet {
             List<ProductDetail> details = productDetailDAO.getAllDetailsByProductId(p.getId());
             for (ProductDetail pd : details) {
                 String color = pd.getColor();
-                if (color == null || color.isEmpty()) {
-                    color = "";
-                }
+                if (color == null || color.isEmpty()) color = "";
                 options.add(new ProductDetailOption(
                         pd.getId(),
                         buildVariantLabel(p, pd),
@@ -396,9 +431,7 @@ public class AddPurchaseOrderServlet extends HttpServlet {
         StringBuilder sb = new StringBuilder();
         sb.append(p.getName()).append(" [").append(p.getCode()).append("] — ");
         String color = pd.getColor();
-        if (color == null || color.isEmpty()) {
-            color = "No Color";
-        }
+        if (color == null || color.isEmpty()) color = "No Color";
         sb.append(color);
         List<String> extra = new ArrayList<>();
         if (pd.getLotNumber() != null && !pd.getLotNumber().isEmpty() && !"N/A".equalsIgnoreCase(pd.getLotNumber())) {
@@ -412,19 +445,5 @@ public class AddPurchaseOrderServlet extends HttpServlet {
             sb.append(" (").append(String.join(", ", extra)).append(")");
         }
         return sb.toString();
-    }
-
-    private PurchaseOrderFormDraft getOrCreateDraft(HttpSession session) {
-        PurchaseOrderFormDraft d = (PurchaseOrderFormDraft) session.getAttribute(DRAFT_KEY);
-        if (d == null) {
-            d = new PurchaseOrderFormDraft();
-            session.setAttribute(DRAFT_KEY, d);
-        }
-        return d;
-    }
-
-    private String generateOrderCode() {
-        return "PO-" + new SimpleDateFormat("yyyyMMdd").format(new Date())
-                + "-" + (int) (Math.random() * 9000 + 1000);
     }
 }

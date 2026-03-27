@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Create Purchase Order</title>
+    <title>Edit Purchase Order</title>
     <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
@@ -31,7 +31,7 @@
         }
 
         .step-badge.active {
-            background: #17AEDF;
+            background: #F59E0B;
         }
 
         .step-badge.inactive {
@@ -47,7 +47,7 @@
         }
 
         .total-bar {
-            background: #17AEDF;
+            background: #F59E0B;
             color: #fff;
             border-radius: 8px;
             padding: 14px 20px;
@@ -66,13 +66,6 @@
         <div class="content-page">
             <div class="container-fluid add-form-list">
 
-                <c:if test="${param.success == 'created' || success == 'created'}">
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <strong>Success.</strong> Purchase order has been created.
-                        <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
-                    </div>
-                </c:if>
-
                 <c:if test="${not empty error}">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <strong>Error.</strong> ${error}
@@ -80,16 +73,16 @@
                     </div>
                 </c:if>
 
-                <form action="${pageContext.request.contextPath}/add-purchase-order" method="post" id="poForm">
+                <form action="${pageContext.request.contextPath}/edit-purchase-order?id=${poId}" method="post" id="poForm">
 
                     <div class="card mb-3">
                         <div class="card-header d-flex align-items-center justify-content-between flex-wrap">
                             <div class="d-flex align-items-center">
                                 <span class="step-badge active mr-2">1</span>
-                                <h5 class="mb-0">Order Info &amp; Supplier</h5>
+                                <h5 class="mb-0">Edit Purchase Order</h5>
                             </div>
-                            <a href="${pageContext.request.contextPath}/add-purchase-order?reset=1"
-                                class="btn btn-sm btn-outline-secondary">Reset Form</a>
+                            <a href="${pageContext.request.contextPath}/edit-purchase-order?id=${poId}&reload=1"
+                                class="btn btn-sm btn-outline-secondary">Reload Original</a>
                         </div>
                         <div class="card-body">
                             <div class="row">
@@ -97,8 +90,8 @@
                                     <div class="form-group">
                                         <label>Order Code *</label>
                                         <input type="text" name="orderCode" id="orderCode" class="form-control"
-                                            value="${draft.orderCode}" placeholder="PO-YYYYMMDD-NNNN" required>
-                                        <small class="text-muted">Format: PO-YYYYMMDD-NNNN</small>
+                                            value="${draft.orderCode}" placeholder="Order Code" readonly
+                                            style="background-color:#e9ecef;">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -124,13 +117,13 @@
                                             </div>
                                             <input type="hidden" name="setSupplier" id="setSupplierInput" disabled value="1">
                                         </div>
-                                        <small class="text-muted">Select a supplier then click <strong>Apply</strong> to load products / variants.</small>
+                                        <small class="text-muted">Changing supplier will reset all product lines.</small>
                                     </div>
                                 </div>
                             </div>
                             <c:if test="${draft.supplierId gt 0}">
-                                <div class="alert alert-info py-2">
-                                    Supplier selected. Add product lines below.
+                                <div class="alert alert-warning py-2">
+                                    Editing draft PO — changes will not affect status.
                                 </div>
                             </c:if>
                         </div>
@@ -220,18 +213,16 @@
                     </c:if>
 
                     <div class="d-flex justify-content-between mb-4">
-                        <a href="${pageContext.request.contextPath}/purchase-orders" class="btn btn-secondary btn-lg">
-                            Cancel
+                        <a href="${pageContext.request.contextPath}/detail-purchase-order?id=${poId}" class="btn btn-secondary btn-lg">
+                            Back to Detail
                         </a>
                         <c:if test="${draft.supplierId gt 0 and not empty detailOptions}">
-                            <button type="submit" name="createPO" value="1" class="btn btn-primary btn-lg"
-                                style="background-color:#17AEDF;border-color:#17AEDF">
-                                Create Purchase Order
+                            <button type="submit" name="savePO" value="1" class="btn btn-warning btn-lg">
+                                Save Changes
                             </button>
                         </c:if>
                     </div>
                 </form>
-
             </div>
         </div>
     </div>
@@ -277,12 +268,10 @@
             }
             if (hasProductLines && currentSupplierId !== '0' && currentSupplierId !== '' && newVal !== currentSupplierId) {
                 if (!confirm('Changing the supplier will clear all current product lines. Do you want to continue?')) {
-                    // revert selection
                     sel.value = currentSupplierId;
                     return;
                 }
             }
-            // enable the hidden input and submit
             document.getElementById('setSupplierInput').disabled = false;
             document.getElementById('poForm').submit();
         }
@@ -293,13 +282,11 @@
             var color = selectedOption.getAttribute('data-color') || '';
             var price = selectedOption.getAttribute('data-price') || '';
 
-            // Update color display
             var colorInput = row.querySelector('.color-display');
             if (colorInput) {
                 colorInput.value = color;
             }
 
-            // Suggest default price from product detail if price field is empty
             var priceInput = row.querySelector('input[name="price"]');
             if (priceInput && (!priceInput.value || priceInput.value === '0')) {
                 priceInput.value = price;

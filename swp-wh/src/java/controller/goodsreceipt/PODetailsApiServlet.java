@@ -57,6 +57,8 @@ public class PODetailsApiServlet extends HttpServlet {
                     sb.append("\"code\":\"").append(escapeJson(d.getProduct().getCode())).append("\",");
                     sb.append("\"name\":\"").append(escapeJson(d.getProduct().getName())).append("\",");
                     sb.append("\"quantity\":").append(d.getQuantity()).append(",");
+                    int remaining = Math.max(0, d.getQuantity() - d.getReceivedQuantity());
+                    sb.append("\"remaining\":").append(remaining).append(",");
 
                     if (d.getProductDetail() != null) {
                         sb.append("\"pdId\":").append(d.getProductDetail().getId()).append(",");

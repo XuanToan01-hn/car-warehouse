@@ -95,7 +95,7 @@ public class PurchaseOrderDAO extends DBContext {
                        ISNULL((SELECT SUM(grd.QuantityActual)
                                FROM Goods_Receipt gr
                                JOIN Goods_Receipt_Detail grd ON gr.ReceiptID = grd.ReceiptID
-                               WHERE gr.PurchaseOrderID = po.PurchaseOrderID AND gr.Status = 2), 0) AS ReceivedQty
+                               WHERE gr.PurchaseOrderID = po.PurchaseOrderID AND gr.Status IN (2, 4)), 0) AS ReceivedQty
                 FROM Purchase_Order po
                 LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
                 WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
@@ -191,7 +191,13 @@ public class PurchaseOrderDAO extends DBContext {
                            pod.Price, pod.SubTotal, pod.TaxID, pod.ProductDetailID,
                            p.Name AS ProductName, p.Code AS ProductCode, p.ProductID,
                            t.TaxName, t.TaxRate,
-                           pd.LotNumber, pd.SerialNumber, pd.Color
+                           pd.LotNumber, pd.SerialNumber, pd.Color,
+                           ISNULL((SELECT SUM(grd.QuantityActual)
+                                   FROM Goods_Receipt_Detail grd
+                                   JOIN Goods_Receipt gr ON grd.ReceiptID = gr.ReceiptID
+                                   WHERE gr.PurchaseOrderID = pod.PurchaseOrderID
+                                     AND gr.Status IN (2, 4)
+                                     AND grd.ProductDetailID = pod.ProductDetailID), 0) AS ReceivedQty
                     FROM Purchase_Order_Detail pod
                     LEFT JOIN Product_Detail pd ON pod.ProductDetailID = pd.ProductDetailID
                     LEFT JOIN Product p ON pd.ProductID = p.ProductID
@@ -245,6 +251,10 @@ public class PurchaseOrderDAO extends DBContext {
                     pod.setProductDetail(pd);
                 }
 
+                try {
+                    pod.setReceivedQuantity(rs.getInt("ReceivedQty"));
+                } catch (SQLException ignored) {}
+
                 list.add(pod);
             }
         } catch (SQLException e) {
@@ -288,7 +298,7 @@ public class PurchaseOrderDAO extends DBContext {
     public void insertDetail(PurchaseOrderDetail pod) {
         String sql = """
                     INSERT INTO Purchase_Order_Detail (PurchaseOrderID, Quantity, Price, TaxID, SubTotal, ProductDetailID)
-                    VALUES (?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, NULL, ?, ?)
                 """;
 
         try {
@@ -296,16 +306,11 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setInt(1, pod.getPurchaseOrderId());
             ps.setInt(2, pod.getQuantity());
             ps.setDouble(3, pod.getPrice());
-            if (pod.getTax() != null) {
-                ps.setInt(4, pod.getTax().getId());
-            } else {
-                ps.setNull(4, java.sql.Types.INTEGER);
-            }
-            ps.setDouble(5, pod.getSubTotal());
+            ps.setDouble(4, pod.getSubTotal());
             if (pod.getProductDetail() != null) {
-                ps.setInt(6, pod.getProductDetail().getId());
+                ps.setInt(5, pod.getProductDetail().getId());
             } else {
-                ps.setNull(6, java.sql.Types.INTEGER);
+                ps.setNull(5, java.sql.Types.INTEGER);
             }
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -322,6 +327,68 @@ public class PurchaseOrderDAO extends DBContext {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, status);
             ps.setInt(2, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // ===============================
+    // EXISTS BY ORDER CODE
+    // ===============================
+    public boolean existsByOrderCode(String orderCode) {
+        String sql = "SELECT COUNT(*) FROM Purchase_Order WHERE OrderCode = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, orderCode);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean existsByOrderCodeExcluding(String orderCode, int excludePoId) {
+        String sql = "SELECT COUNT(*) FROM Purchase_Order WHERE OrderCode = ? AND PurchaseOrderID != ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, orderCode);
+            ps.setInt(2, excludePoId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // ===============================
+    // UPDATE PURCHASE ORDER (for edit)
+    // ===============================
+    public boolean update(PurchaseOrder po) {
+        String sql = "UPDATE Purchase_Order SET OrderCode = ?, SupplierID = ?, TotalAmount = ? WHERE PurchaseOrderID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, po.getOrderCode());
+            ps.setInt(2, po.getSupplier().getId());
+            ps.setDouble(3, po.getTotalAmount());
+            ps.setInt(4, po.getId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // ===============================
+    // DELETE DETAILS BY ORDER ID (for re-insert on edit)
+    // ===============================
+    public void deleteDetailsByOrderId(int purchaseOrderId) {
+        String sql = "DELETE FROM Purchase_Order_Detail WHERE PurchaseOrderID = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, purchaseOrderId);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

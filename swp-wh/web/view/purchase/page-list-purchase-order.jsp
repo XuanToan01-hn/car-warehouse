@@ -224,6 +224,13 @@
                                                             style="border-radius: 8px;">
                                                             <i class="ri-eye-line"></i> View
                                                         </a>
+                                                        <c:if test="${po.status == 1 && sessionScope.user.role.id == 5}">
+                                                            <a href="${pageContext.request.contextPath}/edit-purchase-order?id=${po.id}"
+                                                                class="btn btn-sm btn-outline-warning ml-1"
+                                                                style="border-radius: 8px;">
+                                                                <i class="ri-edit-line"></i> Edit
+                                                            </a>
+                                                        </c:if>
                                                     </td>
                                                 </tr>
                                             </c:forEach>

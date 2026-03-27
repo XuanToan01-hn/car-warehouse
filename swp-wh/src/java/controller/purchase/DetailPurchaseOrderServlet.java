@@ -26,6 +26,7 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
                 return;
             }
             request.setAttribute("po", po);
+
             request.getRequestDispatcher("/view/purchase/page-detail-purchase-order.jsp")
                     .forward(request, response);
         } catch (Exception e) {

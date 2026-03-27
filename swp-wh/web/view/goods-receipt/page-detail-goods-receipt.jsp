@@ -383,8 +383,8 @@
                                                 </c:if>
                                             </div>
 
-                                            <!-- Action bar: shown for Draft (1) OR Partially Received (4) -->
-                                            <c:if test="${gr.status == 1 || gr.status == 4}">
+                                            <!-- Action bar: shown for Draft (1) -->
+                                            <c:if test="${gr.status == 1}">
                                                 <div class="action-bar">
                                                     <button type="submit" form="confirmForm" class="btn btn-success"
                                                         onclick="return confirm('Confirm and update inventory? This action cannot be undone.');">
@@ -404,44 +404,36 @@
                                                         </form>
                                                     </c:if>
 
-                                                    <c:if test="${gr.status == 4}">
-                                                        <span class="partial-note">
-                                                            <i class="fas fa-info-circle"></i>
-                                                            Some items were partially received. Update the actual
-                                                            quantities below before re-confirming.
-                                                        </span>
-                                                    </c:if>
+
                                                 </div>
                                             </c:if>
                                         </div>
 
                                         <!-- ===== RECEIPT DETAILS TABLE ===== -->
+                                        <c:if test="${gr.status == 1}">
                                         <div class="card-table">
                                             <div class="card-table-header">
                                                 <i class="fas fa-list mr-2 text-primary"></i>Receipt Details
                                             </div>
                                             <div class="table-responsive">
 
-                                                <%-- Editable: Draft (1) OR Partially Received (4) --%>
-                                                    <c:choose>
-                                                        <c:when test="${gr.status == 1 || gr.status == 4}">
-                                                            <form id="confirmForm" method="post"
-                                                                action="${pageContext.request.contextPath}/confirm-goods-receipt">
-                                                                <input type="hidden" name="receiptId" value="${gr.id}">
-                                                                <table class="table mb-0">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>#</th>
-                                                                            <th>Product Code</th>
-                                                                            <th>Product Name</th>
-                                                                            <th>Variant</th>
-                                                                            <th class="text-center">Order quantity</th>
-                                                                            <th class="text-center">Actual quantity
-                                                                                received
-                                                                            </th>
-                                                                            <th class="text-center">Difference</th>
-                                                                        </tr>
-                                                                    </thead>
+                                                    <form id="confirmForm" method="post"
+                                                        action="${pageContext.request.contextPath}/confirm-goods-receipt">
+                                                        <input type="hidden" name="receiptId" value="${gr.id}">
+                                                        <table class="table mb-0">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>#</th>
+                                                                    <th>Product Code</th>
+                                                                    <th>Product Name</th>
+                                                                    <th>Variant</th>
+                                                                    <th class="text-center">Order quantity</th>
+                                                                    <th class="text-center">Actual quantity
+                                                                        received
+                                                                    </th>
+                                                                    <th class="text-center">Difference</th>
+                                                                </tr>
+                                                            </thead>
                                                                     <tbody>
                                                                         <c:choose>
                                                                             <c:when test="${empty gr.details}">
@@ -514,138 +506,12 @@
                                                                             </c:otherwise>
                                                                         </c:choose>
                                                                     </tbody>
-                                                                </table>
-                                                            </form>
-                                                        </c:when>
-
-                                                        <%-- Read-only: Completed (2), Cancelled (3), etc. --%>
-                                                            <c:otherwise>
-                                                                <table class="table mb-0">
-                                                                    <thead>
-                                                                        <tr>
-                                                                            <th>#</th>
-                                                                            <th>Product Code</th>
-                                                                            <th>Product Name</th>
-                                                                            <th>Variant</th>
-                                                                            <th class="text-center">Expected Qty</th>
-                                                                            <th class="text-center">Actual Received Qty
-                                                                            </th>
-                                                                            <th class="text-center">Difference</th>
-                                                                        </tr>
-                                                                    </thead>
-                                                                    <tbody>
-                                                                        <c:choose>
-                                                                            <c:when
-                                                                                test="${empty gr.details && not empty gr.purchaseOrder && not empty gr.purchaseOrder.details}">
-                                                                                <c:forEach var="pod"
-                                                                                    items="${gr.purchaseOrder.details}"
-                                                                                    varStatus="st">
-                                                                                    <tr>
-                                                                                        <td>${st.index + 1}</td>
-                                                                                        <td><code
-                                                                                                class="mono">${pod.product.code}</code>
-                                                                                        </td>
-                                                                                        <td>${pod.product.name}</td>
-                                                                                        <td>
-                                                                                            <c:if
-                                                                                                test="${not empty pod.productDetail}">
-                                                                                                <small
-                                                                                                    class="text-info font-weight-bold">
-                                                                                                    <c:if
-                                                                                                        test="${not empty pod.productDetail.lotNumber && pod.productDetail.lotNumber != 'N/A'}">
-                                                                                                        Lot:
-                                                                                                        ${pod.productDetail.lotNumber}
-                                                                                                        |
-                                                                                                    </c:if>
-                                                                                                    Ser:
-                                                                                                    ${pod.productDetail.serialNumber}
-                                                                                                    <c:if
-                                                                                                        test="${not empty pod.productDetail.color}">
-                                                                                                        (${pod.productDetail.color})
-                                                                                                    </c:if>
-                                                                                                </small>
-                                                                                            </c:if>
-                                                                                            <c:if
-                                                                                                test="${empty pod.productDetail}">
-                                                                                                —</c:if>
-                                                                                        </td>
-                                                                                        <td
-                                                                                            class="text-center font-weight-bold">
-                                                                                            ${pod.quantity}</td>
-                                                                                        <td
-                                                                                            class="text-center text-muted">
-                                                                                            —</td>
-                                                                                        <td
-                                                                                            class="text-center text-muted">
-                                                                                            —</td>
-                                                                                    </tr>
-                                                                                </c:forEach>
-                                                                            </c:when>
-                                                                            <c:when test="${empty gr.details}">
-                                                                                <tr>
-                                                                                    <td colspan="7"
-                                                                                        class="text-center text-muted py-5">
-                                                                                        <i
-                                                                                            class="fas fa-inbox mr-1"></i>No
-                                                                                        detailed data available.
-                                                                                    </td>
-                                                                                </tr>
-                                                                            </c:when>
-                                                                            <c:otherwise>
-                                                                                <c:forEach var="d" items="${gr.details}"
-                                                                                    varStatus="st">
-                                                                                    <c:set var="diff"
-                                                                                        value="${d.quantityExpected - d.quantityActual}" />
-                                                                                    <tr>
-                                                                                        <td>${st.index + 1}</td>
-                                                                                        <td><code
-                                                                                                class="mono">${d.product.code}</code>
-                                                                                        </td>
-                                                                                        <td>${d.product.name}</td>
-                                                                                        <td>
-                                                                                            <c:if
-                                                                                                test="${not empty d.productDetail}">
-                                                                                                <small
-                                                                                                    class="text-info font-weight-bold">
-                                                                                                    <c:if
-                                                                                                        test="${not empty d.productDetail.lotNumber && d.productDetail.lotNumber != 'N/A'}">
-                                                                                                        Lot:
-                                                                                                        ${d.productDetail.lotNumber}
-                                                                                                        |
-                                                                                                    </c:if>
-                                                                                                    Ser:
-                                                                                                    ${d.productDetail.serialNumber}
-                                                                                                    <c:if
-                                                                                                        test="${not empty d.productDetail.color}">
-                                                                                                        (${d.productDetail.color})
-                                                                                                    </c:if>
-                                                                                                </small>
-                                                                                            </c:if>
-                                                                                            <c:if
-                                                                                                test="${empty d.productDetail}">
-                                                                                                —</c:if>
-                                                                                        </td>
-                                                                                        <td
-                                                                                            class="text-center font-weight-bold">
-                                                                                            ${d.quantityExpected}</td>
-                                                                                        <td
-                                                                                            class="text-center font-weight-bold">
-                                                                                            ${d.quantityActual}</td>
-                                                                                        <td class="text-center">
-                                                                                            <span
-                                                                                                class="${diff <= 0 ? 'diff-ok' : 'diff-warn'}">${diff}</span>
-                                                                                        </td>
-                                                                                    </tr>
-                                                                                </c:forEach>
-                                                                            </c:otherwise>
-                                                                        </c:choose>
-                                                                    </tbody>
-                                                                </table>
-                                                            </c:otherwise>
-                                                    </c:choose>
+                                                        </table>
+                                                    </form>
 
                                             </div>
                                         </div>
+                                        </c:if>
 
                                         <!-- ===== PO DETAILS TABLE ===== -->
                                         <c:if

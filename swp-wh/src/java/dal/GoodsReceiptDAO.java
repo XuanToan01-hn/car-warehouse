@@ -346,7 +346,13 @@ public class GoodsReceiptDAO extends DBContext {
 
                 // Load details (for create page pre-load)
                 String sqlDetails = "SELECT pod.PurchaseOrderDetailID, pod.Quantity, "
-                        + "pd.ProductDetailID, pd.ProductID, p.Code AS ProductCode, p.Name AS ProductName "
+                        + "pd.ProductDetailID, pd.ProductID, p.Code AS ProductCode, p.Name AS ProductName, "
+                        + "ISNULL((SELECT SUM(grd.QuantityActual) "
+                        + "        FROM Goods_Receipt_Detail grd "
+                        + "        JOIN Goods_Receipt gr ON grd.ReceiptID = gr.ReceiptID "
+                        + "        WHERE gr.PurchaseOrderID = pod.PurchaseOrderID "
+                        + "          AND gr.Status IN (2, 4) "
+                        + "          AND grd.ProductDetailID = pod.ProductDetailID), 0) AS ReceivedQty "
                         + "FROM Purchase_Order_Detail pod "
                         + "LEFT JOIN Product_Detail pd ON pod.ProductDetailID = pd.ProductDetailID "
                         + "LEFT JOIN Product p ON pd.ProductID = p.ProductID "
@@ -360,6 +366,9 @@ public class GoodsReceiptDAO extends DBContext {
                             d.setId(rs2.getInt("PurchaseOrderDetailID"));
                             d.setPurchaseOrderId(po.getId());
                             d.setQuantity(rs2.getInt("Quantity"));
+                            try {
+                                d.setReceivedQuantity(rs2.getInt("ReceivedQty"));
+                            } catch (SQLException ignored) {}
                             Product p = new Product();
                             // Handle cases where ProductID might be missing in broken lines
                             int productId = rs2.getInt("ProductID");
@@ -833,7 +842,7 @@ public class GoodsReceiptDAO extends DBContext {
                 + "COALESCE((SELECT SUM(grd.QuantityActual) "
                 + "        FROM Goods_Receipt gr "
                 + "        JOIN Goods_Receipt_Detail grd ON gr.ReceiptID = grd.ReceiptID "
-                + "        WHERE gr.PurchaseOrderID = ? AND gr.Status = 2), 0) AS ReceivedQty";
+                + "        WHERE gr.PurchaseOrderID = ? AND gr.Status IN (2, 4)), 0) AS ReceivedQty";
 
         int ordered = 0;
         int received = 0;
