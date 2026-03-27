@@ -18,6 +18,8 @@ public class SalesOrderServlet extends HttpServlet {
     private final SalesOrderDAO salesOrderDAO = new SalesOrderDAO();
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final ProductDetailDAO productDetailDAO = new ProductDetailDAO();
+    private final WarehouseDAO warehouseDAO = new WarehouseDAO();
+    private final ProductDAO productDAO = new ProductDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -41,6 +43,12 @@ public class SalesOrderServlet extends HttpServlet {
                 break;
             case "view":
                 viewOrder(request, response);
+                break;
+            case "ajax-get-products":
+                ajaxGetProducts(request, response);
+                break;
+            case "ajax-get-details":
+                ajaxGetDetails(request, response);
                 break;
             default:
                 listOrders(request, response);
@@ -102,21 +110,38 @@ public class SalesOrderServlet extends HttpServlet {
         request.getRequestDispatcher("/view/sales-order-list.jsp").forward(request, response);
     }
 
- private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    // 1. Load danh sách khách hàng
-    request.setAttribute("customers", customerDAO.getAll());
-    
-    // 2. Load danh sách Product (Bảng cha - để chọn tên SP)
-    ProductDAO pDAO = new ProductDAO();
-    request.setAttribute("productList", pDAO.getAll());
-    
-    // 3. Load TOÀN BỘ ProductDetail (Bảng con - chứa Lot, Serial, Price...)
-    ProductDetailDAO pdDAO = new ProductDetailDAO();
-    request.setAttribute("allDetails", pdDAO.getAll());
-    
-    request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
-}
+    private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setAttribute("customers", customerDAO.getAll());
+        request.setAttribute("warehouses", warehouseDAO.getAll());
+        request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
+    }
+
+    private void ajaxGetProducts(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int warehouseId = Integer.parseInt(request.getParameter("warehouseId"));
+        List<Product> products = productDAO.getProductsByWarehouse(warehouseId);
+        
+        response.setContentType("text/html;charset=UTF-8");
+        response.getWriter().write("<option value=''>-- Select Product --</option>");
+        for (Product p : products) {
+            response.getWriter().write("<option value='" + p.getId() + "'>" + p.getName() + "</option>");
+        }
+    }
+
+    private void ajaxGetDetails(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        int productId = Integer.parseInt(request.getParameter("productId"));
+        int warehouseId = Integer.parseInt(request.getParameter("warehouseId"));
+        List<ProductDetail> details = productDetailDAO.getByProductIdAndWarehouse(productId, warehouseId);
+        
+        response.setContentType("text/html;charset=UTF-8");
+        response.getWriter().write("<option value=''>-- Select Variant --</option>");
+        for (ProductDetail pd : details) {
+            response.getWriter().write("<option value='" + pd.getId() + "' data-price='" + pd.getPrice() + "'>" +
+                "Lot: " + pd.getLotNumber() + " | SN: " + pd.getSerialNumber() + " | Color: " + pd.getColor() + "</option>");
+        }
+    }
 
     private void viewOrder(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -134,6 +159,7 @@ public class SalesOrderServlet extends HttpServlet {
             user = new UserDAO().getById(1); // Mock user nếu chưa login
         }
         int customerId = Integer.parseInt(request.getParameter("customerId"));
+        int warehouseId = Integer.parseInt(request.getParameter("warehouseId"));
         String note = request.getParameter("note");
         String orderCode = "SO-" + System.currentTimeMillis();
 
@@ -170,6 +196,7 @@ public class SalesOrderServlet extends HttpServlet {
         SalesOrder order = new SalesOrder();
         order.setOrderCode(orderCode);
         order.setCustomer(customerDAO.getById(customerId));
+        order.setWarehouse(warehouseDAO.getById(warehouseId));
         order.setStatus(1); // Trạng thái: Draft/Created
         order.setNote(note);
         order.setCreateBy(user);

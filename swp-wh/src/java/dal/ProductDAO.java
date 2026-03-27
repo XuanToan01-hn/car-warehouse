@@ -18,6 +18,24 @@ public class ProductDAO extends DBContext {
     UnitDAO unitDAO = new UnitDAO();
     SupplierDAO supplierDAO = new SupplierDAO();
 
+    public List<Product> getProductsByWarehouse(int warehouseId) {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT DISTINCT p.* FROM Product p " +
+                     "JOIN Product_Detail pd ON p.ProductID = pd.ProductID " +
+                     "JOIN Location_Product lp ON pd.ProductDetailID = lp.ProductDetailID " +
+                     "JOIN Location l ON lp.LocationID = l.LocationID " +
+                     "WHERE l.WarehouseID = ? AND lp.Quantity > 0 " +
+                     "ORDER BY p.Name ASC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, warehouseId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToProduct(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
     // ===============================
     // 1. GET FILTERED PRODUCTS
     // ===============================

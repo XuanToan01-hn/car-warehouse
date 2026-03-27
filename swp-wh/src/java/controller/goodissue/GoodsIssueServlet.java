@@ -65,11 +65,14 @@ private void showCreateForm(HttpServletRequest request, HttpServletResponse resp
             return;
         }
 
-        List<Warehouse> warehouses = new WarehouseDAO().getAll(); 
+        // 2. Lấy Warehouse từ Sales Order (KHÔNG cho chọn thủ công nữa)
+        int selectedWhId = (order.getWarehouse() != null) ? order.getWarehouse().getId() : 0;
         
-        String whIdParam = request.getParameter("warehouseId");
-        int selectedWhId = (whIdParam != null) ? Integer.parseInt(whIdParam) 
-                           : (warehouses.isEmpty() ? 0 : warehouses.get(0).getId());
+        // Nếu là đơn hàng cũ không có Warehouse, lấy mặc định từ list (nếu cần)
+        if (selectedWhId == 0) {
+            List<Warehouse> allWhs = new WarehouseDAO().getAll();
+            if (!allWhs.isEmpty()) selectedWhId = allWhs.get(0).getId();
+        }
 
         // 3. Lấy danh sách Location thuộc Warehouse đó
         List<Location> locations = new LocationDAO().getByWarehouseId(selectedWhId);
@@ -83,7 +86,6 @@ private void showCreateForm(HttpServletRequest request, HttpServletResponse resp
         List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, selectedLocId);
 
         request.setAttribute("order", order);
-        request.setAttribute("warehouses", warehouses);
         request.setAttribute("selectedWhId", selectedWhId);
         request.setAttribute("locations", locations);
         request.setAttribute("selectedLocId", selectedLocId);
@@ -180,7 +182,9 @@ private void showCreateForm(HttpServletRequest request, HttpServletResponse resp
             throws ServletException, IOException {
         request.setAttribute("errors", errors);
         request.setAttribute("order", order);
-        request.setAttribute("locations", new LocationDAO().getAll());
+        int whId = (order.getWarehouse() != null) ? order.getWarehouse().getId() : 0;
+        request.setAttribute("locations", new LocationDAO().getByWarehouseId(whId));
+        request.setAttribute("selectedLocId", locId);
         request.setAttribute("uiDetails", giDAO.getDetailsForUI(soId, locId));
         request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
     }

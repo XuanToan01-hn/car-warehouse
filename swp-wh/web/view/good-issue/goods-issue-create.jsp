@@ -76,18 +76,13 @@
                                     <%-- Hidden ID để Submit --%>
                                     <input type="hidden" name="soId" value="${order.id}">
 
-                                    <%-- BỘ CHỌN 2 TẦNG: NHÀ KHO & VỊ TRÍ --%>
+                                    <%-- BỘ CHỌN: KHO CỐ ĐỊNH & VỊ TRÍ --%>
                                     <div class="row mb-4 p-3 bg-light rounded">
                                         <div class="col-md-5">
                                             <div class="form-group mb-0">
-                                                <label class="select-label"><i class="fas fa-warehouse mr-1"></i> Chọn Nhà Kho:</label>
-                                                <select name="warehouseId" id="warehouseSelect" class="form-control mt-1">
-                                                    <c:forEach items="${warehouses}" var="w">
-                                                        <option value="${w.id}" ${selectedWhId == w.id ? 'selected' : ''}>
-                                                            ${w.warehouseName} (${w.warehouseCode})
-                                                        </option>
-                                                    </c:forEach>
-                                                </select>
+                                                <label class="select-label"><i class="fas fa-warehouse mr-1"></i> Nhà Kho (Cố định từ Đơn hàng):</label>
+                                                <input type="text" class="form-control mt-1" value="${order.getWarehouse().getWarehouseName()} (${order.getWarehouse().getWarehouseCode()})" readonly>
+                                                <input type="hidden" name="warehouseId" id="warehouseSelect" value="${order.warehouse.id}">
                                             </div>
                                         </div>
                                         <div class="col-md-5">
@@ -189,18 +184,10 @@
     <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
     
     <script>
-        // Khi thay đổi NHÀ KHO -> Load lại trang để lấy danh sách Vị Trí tương ứng
-        document.getElementById('warehouseSelect').addEventListener('change', function () {
-            const whId = this.value;
-            // Gọi action create, chỉ truyền soId và warehouseId (locationId sẽ lấy mặc định đầu tiên trong Servlet)
-            window.location.href = "goods-issue?action=create&soId=${order.id}&warehouseId=" + whId;
-        });
-
         // Khi thay đổi VỊ TRÍ -> Load lại trang để cập nhật Tồn kho (Stock) tại vị trí đó
         document.getElementById('locationSelect').addEventListener('change', function () {
-            const whId = document.getElementById('warehouseSelect').value;
             const locId = this.value;
-            window.location.href = "goods-issue?action=create&soId=${order.id}&warehouseId=" + whId + "&locationId=" + locId;
+            window.location.href = "goods-issue?action=create&soId=${order.id}&locationId=" + locId;
         });
     </script>
 </body>

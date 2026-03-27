@@ -248,6 +248,35 @@ public class ProductDetailDAO extends DBContext {
         }
         return list;
     }
+
+    public List<ProductDetail> getByProductIdAndWarehouse(int productId, int warehouseId) {
+        List<ProductDetail> list = new ArrayList<>();
+        String sql = "SELECT pd.*, SUM(lp.Quantity) AS StockQty " +
+                     "FROM Product_Detail pd " +
+                     "JOIN Location_Product lp ON pd.ProductDetailID = lp.ProductDetailID " +
+                     "JOIN Location l ON lp.LocationID = l.LocationID " +
+                     "WHERE pd.ProductID = ? AND l.WarehouseID = ? " +
+                     "GROUP BY pd.ProductDetailID, pd.LotNumber, pd.SerialNumber, pd.ManufactureDate, pd.ProductID, pd.Color, pd.Price " +
+                     "HAVING SUM(lp.Quantity) > 0 " +
+                     "ORDER BY pd.ProductDetailID ASC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, productId);
+            ps.setInt(2, warehouseId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                ProductDetail pd = new ProductDetail();
+                pd.setId(rs.getInt("ProductDetailID"));
+                pd.setLotNumber(rs.getString("LotNumber"));
+                pd.setSerialNumber(rs.getString("SerialNumber"));
+                pd.setManufactureDate(rs.getDate("ManufactureDate"));
+                pd.setColor(rs.getString("Color"));
+                pd.setPrice(rs.getDouble("Price"));
+                list.add(pd);
+            }
+        } catch (SQLException e) { e.printStackTrace(); }
+        return list;
+    }
+
     /**
      * Lấy toàn bộ danh sách ProductDetail theo ProductID không quan tâm tồn kho (Dùng cho nhập hàng/PO).
      */

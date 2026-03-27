@@ -189,6 +189,10 @@
                                                 <div class="value">${order.customer.name}</div>
                                             </div>
                                             <div class="info-item">
+                                                <label>Warehouse (Ship From)</label>
+                                                <div class="value">${order.warehouse.warehouseName} (${order.warehouse.warehouseCode})</div>
+                                            </div>
+                                            <div class="info-item">
                                                 <label>Creation Date</label>
                                                 <div class="value">
                                                     <fmt:formatDate value="${order.createdDate}"
