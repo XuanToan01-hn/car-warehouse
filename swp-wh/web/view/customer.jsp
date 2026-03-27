@@ -345,81 +345,113 @@
                      SEARCH + TABLE — always shown
                      ============================================================ --%>
 
-                <%-- Search form (GET) --%>
-                <form action="customers" method="get" class="search-section">
-                    <i class="ri-search-line"></i>
-                    <input type="text" name="search"
-                           placeholder="Search by code, name or phone..."
-                           value="${search}">
-                    <button type="submit" title="Search">
-                        <i class="ri-arrow-right-line"></i>
-                    </button>
-                    <c:if test="${not empty search}">
-                        <a href="customers" style="color:#94a3b8; font-size:1.1rem;" title="Clear search">
-                            <i class="ri-close-line"></i>
-                        </a>
-                    </c:if>
-                </form>
+                <c:if test="${empty mode}">
+                    <%-- ============================================================
+                         SEARCH + TABLE — hidden when mode is not empty
+                         ============================================================ --%>
 
-                <div class="card card-main">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>#</th>
-                                        <th>Code</th>
-                                        <th>Name</th>
-                                        <th>Contact Info</th>
-                                        <th>Address</th>
-                                        <th class="text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach var="c" items="${customers}" varStatus="status">
+                    <%-- Search form (GET) --%>
+                    <form action="customers" method="get" class="search-section">
+                        <i class="ri-search-line"></i>
+                        <input type="text" name="search"
+                               placeholder="Search by code, name or phone..."
+                               value="${search}">
+                        <button type="submit" title="Search">
+                            <i class="ri-arrow-right-line"></i>
+                        </button>
+                        <c:if test="${not empty search}">
+                            <a href="customers" style="color:#94a3b8; font-size:1.1rem;" title="Clear search">
+                                <i class="ri-close-line"></i>
+                            </a>
+                        </c:if>
+                    </form>
+
+                    <div class="card card-main">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead>
                                         <tr>
-                                            <td><span class="text-secondary">${status.index + 1}</span></td>
-                                            <td><span class="font-weight-bold text-primary">${c.customerCode}</span></td>
-                                            <td><span class="font-weight-bold text-dark">${c.name}</span></td>
-                                            <td>
-                                                <div class="d-flex flex-column">
-                                                    <span class="font-weight-bold">
-                                                        <i class="ri-phone-line mr-1 text-primary"></i>${c.phone}
-                                                    </span>
-                                                    <small class="text-secondary">
-                                                        <i class="ri-mail-line mr-1 text-primary"></i>${c.email}
-                                                    </small>
-                                                </div>
-                                            </td>
-                                            <td><span class="text-secondary">${c.address}</span></td>
-                                            <td class="text-right">
-                                                <%-- Edit: link to same page with mode=edit&id=... --%>
-                                                <a href="customers?mode=edit&id=${c.id}" class="btn-action btn-edit mr-2">
-                                                    <i class="ri-pencil-line"></i> Edit
-                                                </a>
-                                                <%-- Delete: POST form, no JS confirm --%>
-                                                <form action="customers" method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="customerId" value="${c.id}">
-                                                    <button type="submit" class="btn-action btn-delete">
-                                                        <i class="ri-delete-bin-line"></i> Delete
-                                                    </button>
-                                                </form>
-                                            </td>
+                                            <th>#</th>
+                                            <th>Code</th>
+                                            <th>Name</th>
+                                            <th>Contact Info</th>
+                                            <th>Address</th>
+                                            <th class="text-right">Actions</th>
                                         </tr>
-                                    </c:forEach>
-                                    <c:if test="${empty customers}">
-                                        <tr>
-                                            <td colspan="6" class="text-center text-secondary py-4">
-                                                No customers found.
-                                            </td>
-                                        </tr>
-                                    </c:if>
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach var="c" items="${customers}" varStatus="status">
+                                            <tr>
+                                                <td><span class="text-secondary">${(currentPage - 1) * 5 + status.index + 1}</span></td>
+                                                <td><span class="font-weight-bold text-primary">${c.customerCode}</span></td>
+                                                <td><span class="font-weight-bold text-dark">${c.name}</span></td>
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <span class="font-weight-bold">
+                                                            <i class="ri-phone-line mr-1 text-primary"></i>${c.phone}
+                                                        </span>
+                                                        <small class="text-secondary">
+                                                            <i class="ri-mail-line mr-1 text-primary"></i>${c.email}
+                                                        </small>
+                                                    </div>
+                                                </td>
+                                                <td><span class="text-secondary">${c.address}</span></td>
+                                                <td class="text-right">
+                                                    <%-- Edit: link to same page with mode=edit&id=... --%>
+                                                    <a href="customers?mode=edit&id=${c.id}" class="btn-action btn-edit mr-2">
+                                                        <i class="ri-pencil-line"></i> Edit
+                                                    </a>
+                                                    <%-- Delete: POST form, no JS confirm --%>
+                                                    <form action="customers" method="post" style="display:inline;">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="customerId" value="${c.id}">
+                                                        <button type="submit" class="btn-action btn-delete"
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa khách hàng &quot;${c.name}&quot; không?')">
+                                                            <i class="ri-delete-bin-line"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                        <c:if test="${empty customers}">
+                                            <tr>
+                                                <td colspan="6" class="text-center text-secondary py-4">
+                                                    No customers found.
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <%-- Pagination --%>
+                            <c:if test="${totalPages > 1}">
+                                <nav aria-label="Page navigation" class="mt-4 pb-4">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                            <a class="page-link"
+                                               href="customers?page=${currentPage - 1}&search=${search}"
+                                               tabindex="-1">Previous</a>
+                                        </li>
+
+                                        <c:forEach begin="1" end="${totalPages}" var="i">
+                                            <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                <a class="page-link"
+                                                   href="customers?page=${i}&search=${search}">${i}</a>
+                                            </li>
+                                        </c:forEach>
+
+                                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                            <a class="page-link"
+                                               href="customers?page=${currentPage + 1}&search=${search}">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </c:if>
                         </div>
                     </div>
-                </div>
+                </c:if>
 
             </div>
         </div>

@@ -61,8 +61,44 @@ public class SalesOrderServlet extends HttpServlet {
 
     private void listOrders(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<SalesOrder> list = salesOrderDAO.getAll();
-        request.setAttribute("orders", list);
+        String statusStr = request.getParameter("status");
+        Integer status = null;
+        if (statusStr != null && !statusStr.trim().isEmpty()) {
+            try {
+                status = Integer.parseInt(statusStr.trim());
+            } catch (NumberFormatException ignored) {}
+        }
+
+        List<SalesOrder> allOrders;
+        if (status != null) {
+            allOrders = salesOrderDAO.getByStatus(status);
+        } else {
+            allOrders = salesOrderDAO.getAll();
+        }
+
+        // Pagination Logic
+        int pageSize = 5;
+        String pageStr = request.getParameter("page");
+        int currentPage = (pageStr != null && !pageStr.trim().isEmpty()) ? Integer.parseInt(pageStr.trim()) : 1;
+
+        int totalOrders = allOrders.size();
+        int totalPages = (int) Math.ceil((double) totalOrders / pageSize);
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        int start = (currentPage - 1) * pageSize;
+        int end = Math.min(start + pageSize, totalOrders);
+
+        List<SalesOrder> pagedOrders = new java.util.ArrayList<>();
+        if (start < totalOrders) {
+            pagedOrders = allOrders.subList(start, end);
+        }
+
+        request.setAttribute("orders", pagedOrders);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("currentStatus", status);
+
         request.getRequestDispatcher("/view/sales-order-list.jsp").forward(request, response);
     }
 

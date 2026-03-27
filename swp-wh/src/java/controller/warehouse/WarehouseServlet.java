@@ -18,17 +18,38 @@ public class WarehouseServlet extends HttpServlet {
             throws ServletException, IOException {
 
         WarehouseDAO dao = new WarehouseDAO();
-
-        // Server-side search
         String search = request.getParameter("search");
-        List<Warehouse> warehouses;
+
+        // Load filtered warehouses
+        List<Warehouse> allWarehouses;
         if (search != null && !search.trim().isEmpty()) {
-            warehouses = dao.search(search.trim());
+            allWarehouses = dao.search(search.trim());
             request.setAttribute("search", search.trim());
         } else {
-            warehouses = dao.getAll();
+            allWarehouses = dao.getAll();
         }
-        request.setAttribute("warehouses", warehouses);
+
+        // Pagination Logic
+        int pageSize = 5;
+        String pageStr = request.getParameter("page");
+        int currentPage = (pageStr != null && !pageStr.trim().isEmpty()) ? Integer.parseInt(pageStr.trim()) : 1;
+
+        int totalWarehouses = allWarehouses.size();
+        int totalPages = (int) Math.ceil((double) totalWarehouses / pageSize);
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        int start = (currentPage - 1) * pageSize;
+        int end = Math.min(start + pageSize, totalWarehouses);
+
+        List<Warehouse> pagedWarehouses = new java.util.ArrayList<>();
+        if (start < totalWarehouses) {
+            pagedWarehouses = allWarehouses.subList(start, end);
+        }
+
+        request.setAttribute("warehouses", pagedWarehouses);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
 
         // Edit mode: load the warehouse to be edited
         String mode = request.getParameter("mode");
