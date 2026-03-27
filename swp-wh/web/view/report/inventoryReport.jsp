@@ -37,6 +37,27 @@
         .badge-loc { background-color: #f0f9ff; color: #0369a1; border: 1px solid #bae6fd; padding: 0.4rem 0.7rem; border-radius: 8px; font-weight: 700; font-size: 0.8rem; }
         .badge-qty { padding: 0.5rem 0.8rem; border-radius: 8px; font-weight: 800; font-size: 0.9rem; }
         
+        /* Color swatch badge */
+        .color-swatch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 0.35rem 0.7rem;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: #334155;
+        }
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+        
         .filter-section { background: white; padding: 1.25rem; border-radius: 16px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03); margin-bottom: 1.5rem; }
         .form-control-modern { border-radius: 10px; border: 2px solid #e2e8f0; font-weight: 600; height: 45px; transition: all 0.2s; }
     </style>
@@ -89,6 +110,7 @@
                                         <tr>
                                             <th>Product Information</th>
                                             <th>Lot Number</th>
+                                            <th>Color</th>            <%-- thêm cột Color --%>
                                             <th>Warehouse</th>
                                             <th>Bin Location</th>
                                             <th class="text-center">Quantity</th>
@@ -108,14 +130,32 @@
                                                         </div>
                                                     </div>
                                                 </td>
-                                                <td><span class="badge badge-soft-dark p-2 font-weight-bold">${pd.lotNumber}</span></td>
+                                                <td>
+                                                    <span class="badge badge-soft-dark p-2 font-weight-bold">${pd.lotNumber}</span>
+                                                </td>
+
+                                                <%-- Cột Color mới --%>
+                                                <td>
+                                                    <c:choose>
+                                                        <c:when test="${not empty pd.color}">
+                                                            <span class="color-swatch">
+                                                                <span class="color-dot" style="background-color: ${pd.color};"></span>
+                                                                ${pd.color}
+                                                            </span>
+                                                        </c:when>
+                                                        <c:otherwise>
+                                                            <span class="text-muted small">—</span>
+                                                        </c:otherwise>
+                                                    </c:choose>
+                                                </td>
+
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <i class="ri-community-line text-secondary mr-2"></i>
                                                         <span>${pd.location.warehouseName}</span>
                                                     </div>
                                                 </td>
-                                                <td><span class="badge badge-loc">${pd.location.locationCode}</span></td>
+                                                <td><span class="badge-loc">${pd.location.locationCode}</span></td>
                                                 <td class="text-center">
                                                     <span class="badge-qty text-primary bg-light">${pd.quantity}</span>
                                                 </td>
@@ -123,7 +163,7 @@
                                         </c:forEach>
                                         <c:if test="${empty pdList}">
                                             <tr>
-                                                <td colspan="5" class="text-center py-5 text-secondary">
+                                                <td colspan="6" class="text-center py-5 text-secondary">
                                                     No inventory data found.
                                                 </td>
                                             </tr>
@@ -158,7 +198,6 @@
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
 
-            // Document Header
             doc.setFontSize(18);
             doc.setFont("helvetica", "bold");
             doc.text("DETAILED INVENTORY REPORT", 14, 20);
@@ -169,7 +208,6 @@
             doc.text("Generated Date: " + new Date().toLocaleString(), 14, 28);
             doc.text("Source: InventoryPro Management System", 14, 34);
 
-            // Table Generation
             doc.autoTable({
                 html: '#inventoryTable',
                 startY: 40,
@@ -177,7 +215,16 @@
                 headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontStyle: 'bold' },
                 styles: { fontSize: 9, cellPadding: 3, font: "helvetica" },
                 columnStyles: {
-                    4: { halign: 'center' } 
+                    5: { halign: 'center' }  // Quantity ở cột index 5 (đã shift do thêm Color)
+                },
+                // Bỏ color dot khi export PDF, chỉ lấy text
+                didParseCell: function(data) {
+                    if (data.column.index === 2 && data.cell.raw) {
+                        const swatch = data.cell.raw.querySelector('.color-swatch');
+                        if (swatch) {
+                            data.cell.text = [swatch.textContent.trim()];
+                        }
+                    }
                 }
             });
 

@@ -65,10 +65,8 @@ private void showCreateForm(HttpServletRequest request, HttpServletResponse resp
             return;
         }
 
-        // 1. Lấy danh sách tất cả các kho
         List<Warehouse> warehouses = new WarehouseDAO().getAll(); 
         
-        // 2. Xác định Warehouse đang được chọn
         String whIdParam = request.getParameter("warehouseId");
         int selectedWhId = (whIdParam != null) ? Integer.parseInt(whIdParam) 
                            : (warehouses.isEmpty() ? 0 : warehouses.get(0).getId());

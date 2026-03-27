@@ -88,7 +88,7 @@ public class UpdateUserServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-  @Override
+ @Override
 protected void doPost(HttpServletRequest request, HttpServletResponse response)
         throws ServletException, IOException {
     HttpSession session = request.getSession();
@@ -96,7 +96,6 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
     String keyword = request.getParameter("keyword");
 
     try {
-        // 1. Lấy các thông tin từ form
         String idStr = request.getParameter("userId");
         String fullName = request.getParameter("fullName");
         String maleStr = request.getParameter("male");
@@ -105,11 +104,8 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         String phone = request.getParameter("phone");
         String roleIdStr = request.getParameter("roleId");
         String warehouseIdStr = request.getParameter("warehouseId");
+        // KHÔNG lấy userCode và userName từ form — bỏ hoàn toàn
 
-        // Lưu ý: userCode và userName được gửi về từ input readonly, 
-        // nhưng chúng ta sẽ không dùng chúng để cập nhật vào DB cho an toàn.
-
-        // 2. Validate ID
         if (InputValidator.isEmpty(idStr)) {
             session.setAttribute("error", "Không tìm thấy ID người dùng!");
             response.sendRedirect("userlist?page=" + page);
@@ -117,7 +113,6 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         }
         int userId = Integer.parseInt(idStr);
 
-        // 3. Lấy dữ liệu hiện tại từ Database
         UserDAO userService = new UserDAO();
         User existing = userService.getById(userId);
 
@@ -127,50 +122,62 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
             return;
         }
 
-        // 4. Validate các trường ĐƯỢC PHÉP sửa
+        // Validate fullName
         if (InputValidator.isEmpty(fullName) || !InputValidator.isValid(fullName, InputValidator.NAME_USER)) {
             session.setAttribute("error", "Họ tên không hợp lệ!");
             redirectBack(response, page, keyword);
             return;
         }
 
+        // Validate email
         if (InputValidator.isEmpty(email) || !InputValidator.isValid(email, InputValidator.EMAIL_REGEX)) {
             session.setAttribute("error", "Email không hợp lệ!");
             redirectBack(response, page, keyword);
             return;
         }
 
+        // Validate phone
         if (InputValidator.isEmpty(phone) || !InputValidator.isValid(phone, InputValidator.PHONE_NUMBER)) {
             session.setAttribute("error", "Số điện thoại không hợp lệ!");
             redirectBack(response, page, keyword);
             return;
         }
 
-        // Kiểm tra 18 tuổi
+        // Validate ngày sinh không được trong tương lai
+        if (InputValidator.isEmpty(dateOfBirthStr)) {
+            session.setAttribute("error", "Ngày sinh không được để trống!");
+            redirectBack(response, page, keyword);
+            return;
+        }
         LocalDate dob = LocalDate.parse(dateOfBirthStr);
+        if (!dob.isBefore(LocalDate.now())) {
+            session.setAttribute("error", "Ngày sinh không được là hôm nay hoặc trong tương lai!");
+            redirectBack(response, page, keyword);
+            return;
+        }
         if (!InputValidator.isOver18(dob)) {
             session.setAttribute("error", "Người dùng phải từ 18 tuổi trở lên!");
             redirectBack(response, page, keyword);
             return;
         }
 
-        // 5. Kiểm tra trùng lặp Email và Phone (chỉ kiểm tra nếu có sự thay đổi)
-        if (!email.equals(existing.getEmail()) && userService.isEmailExist(email)) {
+        // FIX: Kiểm tra trùng email — so sánh ignore case cho chắc
+        if (!email.equalsIgnoreCase(existing.getEmail()) && userService.isEmailExist(email)) {
             session.setAttribute("error", "Email đã tồn tại trong hệ thống!");
             redirectBack(response, page, keyword);
             return;
         }
 
+        // FIX: Kiểm tra trùng phone
         if (!phone.equals(existing.getPhone()) && userService.isPhoneExist(phone)) {
             session.setAttribute("error", "Số điện thoại đã tồn tại!");
             redirectBack(response, page, keyword);
             return;
         }
 
-        // 6. Xử lý logic Warehouse và Role
+        // Validate warehouse theo role
         int roleId = Integer.parseInt(roleIdStr);
         Integer warehouseId = null;
-        // Kiểm tra các Role yêu cầu có Warehouse (ví dụ ID: 3, 4, 5)
         if (roleId == 3 || roleId == 4 || roleId == 5) {
             if (InputValidator.isEmpty(warehouseIdStr) || "0".equals(warehouseIdStr)) {
                 session.setAttribute("error", "Vui lòng chọn Kho hàng cho vai trò này!");
@@ -180,22 +187,15 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
             warehouseId = Integer.parseInt(warehouseIdStr);
         }
 
-        // 7. CẬP NHẬT ĐỐI TƯỢNG (Chỉ set các trường được phép thay đổi)
+        // Chỉ set các trường được phép thay đổi
+        // KHÔNG set UserCode, KHÔNG set Username — giữ nguyên từ existing
         existing.setFullName(fullName);
         existing.setMale(Integer.parseInt(maleStr));
         existing.setDateOfBirth(dateOfBirthStr);
         existing.setEmail(email);
         existing.setPhone(phone);
         existing.setRole(new Role(roleId));
-        
-        if (warehouseId != null && warehouseId > 0) {
-            existing.setWarehouse(new Warehouse(warehouseId));
-        } else {
-            existing.setWarehouse(null);
-        }
-
-        // Lưu ý: KHÔNG gọi existing.setUserCode() và existing.setUserName() 
-        // để giữ nguyên dữ liệu gốc trong DB.
+        existing.setWarehouse(warehouseId != null && warehouseId > 0 ? new Warehouse(warehouseId) : null);
 
         boolean updated = userService.update(existing);
 
