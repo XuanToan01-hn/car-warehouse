@@ -383,8 +383,8 @@
                                                 </c:if>
                                             </div>
 
-                                            <!-- Action bar: shown for Draft (1) -->
-                                            <c:if test="${gr.status == 1}">
+                                            <!-- Action bar: shown for Draft (1) OR Partially Received (4) -->
+                                            <c:if test="${gr.status == 1 || gr.status == 4}">
                                                 <div class="action-bar">
                                                     <button type="submit" form="confirmForm" class="btn btn-success"
                                                         onclick="return confirm('Confirm and update inventory? This action cannot be undone.');">
@@ -405,12 +405,18 @@
                                                     </c:if>
 
 
+                                                    <c:if test="${gr.status == 4}">
+                                                        <span class="partial-note">
+                                                            <i class="fas fa-info-circle"></i>
+                                                            Some items were partially received. Update the actual quantities below before re-confirming.
+                                                        </span>
+                                                    </c:if>
                                                 </div>
                                             </c:if>
                                         </div>
 
                                         <!-- ===== RECEIPT DETAILS TABLE ===== -->
-                                        <c:if test="${gr.status == 1}">
+                                        <c:if test="${gr.status == 1 || gr.status == 4}">
                                         <div class="card-table">
                                             <div class="card-table-header">
                                                 <i class="fas fa-list mr-2 text-primary"></i>Receipt Details
@@ -492,7 +498,7 @@
                                                                                             <input type="number"
                                                                                                 class="qty-actual-input"
                                                                                                 name="qtyActual[]"
-                                                                                                min="0"
+                                                                                                min="${gr.status == 4 ? d.quantityActual : 0}"
                                                                                                 max="${d.quantityExpected}"
                                                                                                 value="${d.quantityActual}"
                                                                                                 required>

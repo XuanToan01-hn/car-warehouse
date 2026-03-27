@@ -596,7 +596,7 @@ public class GoodsReceiptDAO extends DBContext {
      */
     public boolean confirmDraft(int receiptId, List<GoodsReceiptDetail> updatedDetails) {
         String sqlUpdateDetail = "UPDATE Goods_Receipt_Detail "
-                + "SET QuantityActual = QuantityActual + ? "
+                + "SET QuantityActual = ? "
                 + "WHERE ReceiptDetailID = ? AND ReceiptID = ?";
 
         // For recalculating PO status
@@ -784,6 +784,25 @@ public class GoodsReceiptDAO extends DBContext {
             e.printStackTrace();
             return false;
         }
+    }
+
+    /**
+     * Find existing GRO (Draft=1 or Partial=4) for a given PO.
+     * @return ReceiptID if found, -1 otherwise
+     */
+    public int getReceiptIdByPO(int poId) {
+        String sql = "SELECT TOP 1 ReceiptID FROM Goods_Receipt WHERE PurchaseOrderID = ? AND Status IN (1, 4) ORDER BY ReceiptID DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, poId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("ReceiptID");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     /**

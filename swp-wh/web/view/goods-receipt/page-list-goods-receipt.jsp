@@ -172,172 +172,172 @@
                     <jsp:include page="../sidebar.jsp" />
                     <jsp:include page="../header.jsp" />
                     <div class="content-page">
-                            <div class="container-fluid">
+                        <div class="container-fluid">
 
-                                <!-- Page Header -->
-                                <div class="page-header">
-                                    <div>
-                                        <h1 class="font-weight-bold mb-1">Goods Receipt Orders</h1>
-                                        <p class="text-secondary mb-0">Track and manage all goods receipt entries.</p>
-                                    </div>
-
-                                </div>
-
-                                <!-- Filters -->
-                                <div class="filter-section">
-                                    <form method="get" action="${pageContext.request.contextPath}/goods-receipt">
-                                        <div class="row align-items-end">
-                                            <div class="col-md-5">
-                                                <label
-                                                    class="small font-weight-bold text-uppercase text-secondary">Search</label>
-                                                <input type="text" name="keyword" class="form-control"
-                                                    placeholder="GRO code, PO code..." value="${keyword}">
-                                            </div>
-                                            <div class="col-md-3">
-                                                <label
-                                                    class="small font-weight-bold text-uppercase text-secondary">Status
-                                                    Filter</label>
-                                                <select name="status" class="form-control">
-                                                    <option value="0" ${status==0 ? 'selected' : '' }>All Statuses
-                                                    </option>
-                                                    <option value="1" ${status==1 ? 'selected' : '' }>Draft</option>
-                                                    <option value="2" ${status==2 ? 'selected' : '' }>Completed</option>
-                                                    <option value="4" ${status==4 ? 'selected' : '' }>Partially Received
-                                                    </option>
-                                                    <option value="3" ${status==3 ? 'selected' : '' }>Cancelled</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-4 d-flex" style="gap:0.5rem;">
-                                                <button type="submit" class="btn btn-primary flex-grow-1"
-                                                    style="border-radius:12px;font-weight:700;background:var(--primary);border:none;padding:0.75rem;">
-                                                    Apply Filters
-                                                </button>
-                                                <a href="${pageContext.request.contextPath}/goods-receipt"
-                                                    class="btn btn-light"
-                                                    style="border-radius:12px;font-weight:700;padding:0.75rem;">
-                                                    Reset
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Table -->
-                                <div class="card-main">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover mb-0">
-                                            <thead>
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th>GRO Code</th>
-                                                    <th>Purchase Order</th>
-                                                    <th>Location</th>
-                                                    <th>Entry Date</th>
-                                                    <th>Status</th>
-                                                    <th class="text-center">QTY (Exp / Act)</th>
-                                                    <th class="text-right">Action</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <c:choose>
-                                                    <c:when test="${empty grList}">
-                                                        <tr>
-                                                            <td colspan="8" class="text-center text-muted py-5">
-                                                                <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                                                                No goods receipt orders found.
-                                                            </td>
-                                                        </tr>
-                                                    </c:when>
-                                                    <c:otherwise>
-                                                        <c:forEach var="gr" items="${grList}" varStatus="st">
-                                                            <tr>
-                                                                <td>${(page-1)*pageSize + st.index + 1}</td>
-                                                                <td><span class="gro-code">${gr.receiptCode}</span></td>
-                                                                <td><span
-                                                                        class="po-code">${gr.purchaseOrder.orderCode}</span>
-                                                                </td>
-                                                                <td>${gr.location.locationName}</td>
-                                                                <td>
-                                                                    <fmt:formatDate value="${gr.receiptDate}"
-                                                                        pattern="dd/MM/yyyy HH:mm" />
-                                                                </td>
-                                                                <td>
-                                                                    <c:choose>
-                                                                        <c:when test="${gr.status == 1}">
-                                                                            <span
-                                                                                class="badge-status badge-draft">DRAFT</span>
-                                                                        </c:when>
-                                                                        <c:when test="${gr.status == 2}">
-                                                                            <span
-                                                                                class="badge-status badge-completed">COMPLETED</span>
-                                                                        </c:when>
-                                                                        <c:when test="${gr.status == 3}">
-                                                                            <span
-                                                                                class="badge-status badge-cancelled">CANCELLED</span>
-                                                                        </c:when>
-                                                                        <c:when test="${gr.status == 4}">
-                                                                            <span
-                                                                                class="badge-status badge-partial">PARTIAL</span>
-                                                                        </c:when>
-                                                                        <c:otherwise>
-                                                                            <span class="badge-status"
-                                                                                style="background:#e2e8f0;color:#64748b;">${gr.status}</span>
-                                                                        </c:otherwise>
-                                                                    </c:choose>
-                                                                </td>
-                                                                <td class="text-center qty-cell">
-                                                                    <span class="qty-exp">${gr.totalExpected}</span>
-                                                                    <span class="qty-sep">/</span>
-                                                                    <span class="qty-act">${gr.totalActual}</span>
-                                                                </td>
-                                                                <td class="text-right">
-                                                                    <a href="${pageContext.request.contextPath}/detail-goods-receipt?id=${gr.id}"
-                                                                        class="btn btn-sm btn-outline-primary btn-detail">
-                                                                        <i class="ri-eye-line"></i> View
-                                                                    </a>
-                                                                    <c:if test="${gr.status != 2 && gr.status != 3}">
-                                                                        <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${gr.purchaseOrder.id}"
-                                                                            class="btn btn-sm btn-outline-success btn-detail ml-1">
-                                                                            <i class="ri-add-line"></i> Create GRO
-                                                                        </a>
-                                                                    </c:if>
-                                                                </td>
-
-                                                            </tr>
-                                                        </c:forEach>
-                                                    </c:otherwise>
-                                                </c:choose>
-                                            </tbody>
-                                        </table>
-                                    </div>
-
-                                    <!-- Pagination -->
-                                    <c:if test="${totalPages > 1}">
-                                        <nav class="mt-4">
-                                            <ul class="pagination justify-content-center">
-                                                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                                    <a class="page-link"
-                                                        href="?keyword=${keyword}&status=${status}&page=${page-1}">«</a>
-                                                </li>
-                                                <c:forEach begin="1" end="${totalPages}" var="p">
-                                                    <li class="page-item ${p == page ? 'active' : ''}">
-                                                        <a class="page-link"
-                                                            href="?keyword=${keyword}&status=${status}&page=${p}">${p}</a>
-                                                    </li>
-                                                </c:forEach>
-                                                <li class="page-item ${page >= totalPages ? 'disabled' : ''}">
-                                                    <a class="page-link"
-                                                        href="?keyword=${keyword}&status=${status}&page=${page+1}">»</a>
-                                                </li>
-                                            </ul>
-                                        </nav>
-                                    </c:if>
-                                    <p class="text-muted text-center mt-2 mb-0">Total: <strong>${total}</strong>
-                                        receipts</p>
+                            <!-- Page Header -->
+                            <div class="page-header">
+                                <div>
+                                    <h1 class="font-weight-bold mb-1">Goods Receipt Orders</h1>
+                                    <p class="text-secondary mb-0">Track and manage all goods receipt entries.</p>
                                 </div>
 
                             </div>
+
+                            <!-- Filters -->
+                            <div class="filter-section">
+                                <form method="get" action="${pageContext.request.contextPath}/goods-receipt">
+                                    <div class="row align-items-end">
+                                        <div class="col-md-5">
+                                            <label
+                                                class="small font-weight-bold text-uppercase text-secondary">Search</label>
+                                            <input type="text" name="keyword" class="form-control"
+                                                placeholder="GRO code, PO code..." value="${keyword}">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="small font-weight-bold text-uppercase text-secondary">Status
+                                                Filter</label>
+                                            <select name="status" class="form-control">
+                                                <option value="0" ${status==0 ? 'selected' : '' }>All Statuses
+                                                </option>
+                                                <option value="1" ${status==1 ? 'selected' : '' }>Draft</option>
+                                                <option value="2" ${status==2 ? 'selected' : '' }>Completed</option>
+                                                <option value="4" ${status==4 ? 'selected' : '' }>Partially Received
+                                                </option>
+                                                <option value="3" ${status==3 ? 'selected' : '' }>Cancelled</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 d-flex" style="gap:0.5rem;">
+                                            <button type="submit" class="btn btn-primary flex-grow-1"
+                                                style="border-radius:12px;font-weight:700;background:var(--primary);border:none;padding:0.75rem;">
+                                                Apply Filters
+                                            </button>
+                                            <a href="${pageContext.request.contextPath}/goods-receipt"
+                                                class="btn btn-light"
+                                                style="border-radius:12px;font-weight:700;padding:0.75rem;">
+                                                Reset
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="card-main">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>GRO Code</th>
+                                                <th>Purchase Order</th>
+                                                <th>Location</th>
+                                                <th>Entry Date</th>
+                                                <th>Status</th>
+                                                <th class="text-center">QTY (Exp / Act)</th>
+                                                <th class="text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <c:choose>
+                                                <c:when test="${empty grList}">
+                                                    <tr>
+                                                        <td colspan="8" class="text-center text-muted py-5">
+                                                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
+                                                            No goods receipt orders found.
+                                                        </td>
+                                                    </tr>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <c:forEach var="gr" items="${grList}" varStatus="st">
+                                                        <tr>
+                                                            <td>${(page-1)*pageSize + st.index + 1}</td>
+                                                            <td><span class="gro-code">${gr.receiptCode}</span></td>
+                                                            <td><span
+                                                                    class="po-code">${gr.purchaseOrder.orderCode}</span>
+                                                            </td>
+                                                            <td>${gr.location.locationName}</td>
+                                                            <td>
+                                                                <fmt:formatDate value="${gr.receiptDate}"
+                                                                    pattern="dd/MM/yyyy HH:mm" />
+                                                            </td>
+                                                            <td>
+                                                                <c:choose>
+                                                                    <c:when test="${gr.status == 1}">
+                                                                        <span
+                                                                            class="badge-status badge-draft">DRAFT</span>
+                                                                    </c:when>
+                                                                    <c:when test="${gr.status == 2}">
+                                                                        <span
+                                                                            class="badge-status badge-completed">COMPLETED</span>
+                                                                    </c:when>
+                                                                    <c:when test="${gr.status == 3}">
+                                                                        <span
+                                                                            class="badge-status badge-cancelled">CANCELLED</span>
+                                                                    </c:when>
+                                                                    <c:when test="${gr.status == 4}">
+                                                                        <span
+                                                                            class="badge-status badge-partial">PARTIAL</span>
+                                                                    </c:when>
+                                                                    <c:otherwise>
+                                                                        <span class="badge-status"
+                                                                            style="background:#e2e8f0;color:#64748b;">${gr.status}</span>
+                                                                    </c:otherwise>
+                                                                </c:choose>
+                                                            </td>
+                                                            <td class="text-center qty-cell">
+                                                                <span class="qty-exp">${gr.totalExpected}</span>
+                                                                <span class="qty-sep">/</span>
+                                                                <span class="qty-act">${gr.totalActual}</span>
+                                                            </td>
+                                                            <td class="text-right">
+                                                                <a href="${pageContext.request.contextPath}/detail-goods-receipt?id=${gr.id}"
+                                                                    class="btn btn-sm btn-outline-primary btn-detail">
+                                                                    <i class="ri-eye-line"></i> View
+                                                                </a>
+                                                                <c:if test="${gr.status == 4}">
+                                                                    <a href="${pageContext.request.contextPath}/detail-goods-receipt?id=${gr.id}"
+                                                                        class="btn btn-sm btn-outline-warning btn-detail ml-1"
+                                                                        title="Continue updating this partial receipt">
+                                                                        <i class="ri-edit-line"></i> Continue GRO
+                                                                    </a>
+                                                                </c:if>
+                                                            </td>
+
+                                                        </tr>
+                                                    </c:forEach>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Pagination -->
+                                <c:if test="${totalPages > 1}">
+                                    <nav class="mt-4">
+                                        <ul class="pagination justify-content-center">
+                                            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                                                <a class="page-link"
+                                                    href="?keyword=${keyword}&status=${status}&page=${page-1}">«</a>
+                                            </li>
+                                            <c:forEach begin="1" end="${totalPages}" var="p">
+                                                <li class="page-item ${p == page ? 'active' : ''}">
+                                                    <a class="page-link"
+                                                        href="?keyword=${keyword}&status=${status}&page=${p}">${p}</a>
+                                                </li>
+                                            </c:forEach>
+                                            <li class="page-item ${page >= totalPages ? 'disabled' : ''}">
+                                                <a class="page-link"
+                                                    href="?keyword=${keyword}&status=${status}&page=${page+1}">»</a>
+                                            </li>
+                                        </ul>
+                                    </nav>
+                                </c:if>
+                                <p class="text-muted text-center mt-2 mb-0">Total: <strong>${total}</strong>
+                                    receipts</p>
+                            </div>
+
                         </div>
+                    </div>
                 </div>
 
                 <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>

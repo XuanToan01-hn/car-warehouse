@@ -110,9 +110,9 @@ public class PODetailsApiServlet extends HttpServlet {
 
                     // Remaining qty = PO qty - already delivered by other GROs
                     int delivered = deliveredMap.getOrDefault(pdId, 0);
-                    int remaining = d.getQuantity() - delivered;
-                    if (remaining < 0) remaining = 0;
-                    sb.append("\"remainingQty\":").append(remaining).append(",");
+                    int remainingQty = d.getQuantity() - delivered;
+                    if (remainingQty < 0) remainingQty = 0;
+                    sb.append("\"remainingQty\":").append(remainingQty).append(",");
 
                     // Current stock at location
                     int stock = stockMap.getOrDefault(pdId, 0);

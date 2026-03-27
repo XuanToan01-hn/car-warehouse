@@ -200,17 +200,30 @@
                                                             <c:if
                                                                 test="${po.status == 3 && sessionScope.user.role.id == 3}">
                                                                 <div class="border-top pt-3 mt-2">
-                                                                    <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
-                                                                        class="btn btn-success btn-lg">
-                                                                        <i class="fas fa-truck-loading mr-2"></i>Create
-                                                                        Goods
-                                                                        Receipt Order
-                                                                    </a>
-                                                                    <small class="text-muted ml-3">
-                                                                        <i class="fas fa-info-circle mr-1"></i>
-                                                                        PO is Marked Received — ready to create goods
-                                                                        receipt
-                                                                    </small>
+                                                                    <c:choose>
+                                                                        <c:when test="${not empty existingGroId}">
+                                                                            <a href="${pageContext.request.contextPath}/detail-goods-receipt?id=${existingGroId}"
+                                                                                class="btn btn-warning btn-lg">
+                                                                                <i class="fas fa-edit mr-2"></i>Continue
+                                                                                Goods Receipt Order
+                                                                            </a>
+                                                                            <small class="text-muted ml-3">
+                                                                                <i class="fas fa-info-circle mr-1"></i>
+                                                                                A GRO already exists for this PO — continue updating it
+                                                                            </small>
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
+                                                                                class="btn btn-success btn-lg">
+                                                                                <i class="fas fa-truck-loading mr-2"></i>Create
+                                                                                Goods Receipt Order
+                                                                            </a>
+                                                                            <small class="text-muted ml-3">
+                                                                                <i class="fas fa-info-circle mr-1"></i>
+                                                                                PO is Marked Received — ready to create goods receipt
+                                                                            </small>
+                                                                        </c:otherwise>
+                                                                    </c:choose>
                                                                 </div>
                                                             </c:if>
                                             </div>
