@@ -158,9 +158,20 @@ public class RegisterUserServlet extends HttpServlet {
             request.setAttribute("error_email", "Email đã tồn tại!");
             hasError = true;
         }
-        if (utils.InputValidator.isEmpty(dateOfBirthStr)) { // Thêm cái này
-            request.setAttribute("error_dateOfBirth", "Ngày sinh không được để trống!");
+        if (utils.InputValidator.isEmpty(dateOfBirthStr)) {
+            request.setAttribute("error_dateOfBirth", "Date of birth is required!");
             hasError = true;
+        } else {
+            try {
+                LocalDate dob = LocalDate.parse(dateOfBirthStr);
+                if (!dob.isBefore(LocalDate.now())) {
+                    request.setAttribute("error_dateOfBirth", "Date of birth cannot be today or in the future!");
+                    hasError = true;
+                }
+            } catch (Exception e) {
+                request.setAttribute("error_dateOfBirth", "Invalid date format!");
+                hasError = true;
+            }
         }
 
         // 4. Xử lý khi có lỗi nhập liệu (Validation Fail)

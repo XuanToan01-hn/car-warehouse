@@ -56,8 +56,11 @@
                                         </div>
                                     </form>
                                 </div>
-                                <c:if test="${not empty errorS}">
-                                    <div class="alert alert-danger">${errorS}</div>
+                                <c:if test="${not empty error}">
+                                    <div class="alert alert-danger">${error}</div>
+                                </c:if>
+                                 <c:if test="${not empty success}">
+                                    <div class="alert alert-danger">${success}</div>
                                 </c:if>
                                 <a href="registeruser" class="btn btn-primary add-list">Add User</a>
                             </div>
@@ -162,13 +165,7 @@
                     <input type="hidden" name="keyword" id="editKeyword">
 
                     <div class="custom-input-group"><label>Full Name</label><input type="text" name="fullName" id="editFullName" required></div>
-                    <div class="custom-input-group"><label>User Code</label><input type="text" name="userCode" id="editUserCode" required></div>
                     
-                    <div class="custom-input-group">
-                        <label>Username</label>
-                        <input type="text" name="userName" id="editUserName" readonly title="Username cannot be changed">
-                    </div>
-
                     <div class="custom-input-group">
                         <label>Gender</label>
                         <select name="male" id="editMale">
@@ -251,9 +248,7 @@
 
             function openEditModel(id, code, name, user, male, dob, email, phone, roleId, page, kw, whId) {
                 document.getElementById("editUserId").value = id;
-                document.getElementById("editUserCode").value = code;
                 document.getElementById("editFullName").value = name;
-                document.getElementById("editUserName").value = user; // Ô này giờ đã readonly
                 document.getElementById("editMale").value = male;
                 document.getElementById("editDateOfBirth").value = dob;
                 document.getElementById("editEmail").value = email;

@@ -640,11 +640,13 @@ public class ReportDAO extends DBContext {
         }
         return 0;
     }
-        public List<ProductDetail> getInventoryFlatReport(String txtSearch, int page, int size) {
+public List<ProductDetail> getInventoryFlatReport(String txtSearch, int page, int size) {
     List<ProductDetail> list = new ArrayList<>();
-    // SQL JOIN 4 bảng để lấy chi tiết từng vị trí
-    String sql = "SELECT p.Name, p.Code, pd.LotNumber, pd.ProductDetailID, "
-               + "w.WarehouseName, l.LocationCode, lp.Quantity "
+
+    String sql = "SELECT p.Name, p.Code, "
+               + "pd.ProductDetailID, pd.LotNumber, pd.Color, "
+               + "w.WarehouseName, l.LocationCode, "
+               + "lp.Quantity "
                + "FROM Location_Product lp "
                + "JOIN Product_Detail pd ON lp.ProductDetailID = pd.ProductDetailID "
                + "JOIN Product p ON pd.ProductID = p.ProductID "
@@ -653,14 +655,15 @@ public class ReportDAO extends DBContext {
                + "WHERE p.Name LIKE ? OR p.Code LIKE ? OR pd.LotNumber LIKE ? "
                + "ORDER BY p.Name ASC "
                + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
+
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
         String search = "%" + (txtSearch == null ? "" : txtSearch) + "%";
         ps.setString(1, search);
         ps.setString(2, search);
         ps.setString(3, search);
         ps.setInt(4, (page - 1) * size);
         ps.setInt(5, size);
+
         ResultSet rs = ps.executeQuery();
         while (rs.next()) {
             Product p = new Product();
@@ -674,9 +677,10 @@ public class ReportDAO extends DBContext {
             ProductDetail pd = new ProductDetail();
             pd.setId(rs.getInt("ProductDetailID"));
             pd.setLotNumber(rs.getString("LotNumber"));
-            pd.setQuantity(rs.getInt("Quantity")); // Số lượng tại vị trí này
+            pd.setColor(rs.getString("Color"));    // <-- từ Product_Detail
+            pd.setQuantity(rs.getInt("Quantity")); // <-- từ Location_Product
             pd.setProduct(p);
-            pd.setLocation(loc); // Gán thông tin vị trí vào ProductDetail
+            pd.setLocation(loc);
 
             list.add(pd);
         }
