@@ -281,9 +281,34 @@ public class LocationServlet extends HttpServlet {
                     return;
                 }
             }
+
+            // Duplicate validation for update
+            if (dao.isLocationCodeExists(warehouseId, locationCode, location.getId())) {
+                request.getSession().setAttribute("error", "Cập nhật thất bại. Location Code \"" + locationCode + "\" đã tồn tại trong kho này!");
+                response.sendRedirect(request.getContextPath() + "/locations?mode=edit&id=" + idRaw);
+                return;
+            }
+            if (dao.isLocationNameExists(warehouseId, locationName, location.getId())) {
+                request.getSession().setAttribute("error", "Cập nhật thất bại. Location Name \"" + locationName + "\" đã tồn tại trong kho này!");
+                response.sendRedirect(request.getContextPath() + "/locations?mode=edit&id=" + idRaw);
+                return;
+            }
+
             dao.update(location);
             request.getSession().setAttribute("success", "Cập nhật vị trí thành công!");
         } else {
+            // Duplicate validation for add
+            if (dao.isLocationCodeExists(warehouseId, locationCode, 0)) {
+                request.getSession().setAttribute("error", "Thêm mới thất bại. Location Code \"" + locationCode + "\" đã tồn tại trong kho này!");
+                response.sendRedirect(request.getContextPath() + "/locations?mode=add");
+                return;
+            }
+            if (dao.isLocationNameExists(warehouseId, locationName, 0)) {
+                request.getSession().setAttribute("error", "Thêm mới thất bại. Location Name \"" + locationName + "\" đã tồn tại trong kho này!");
+                response.sendRedirect(request.getContextPath() + "/locations?mode=add");
+                return;
+            }
+
             dao.insert(location);
             request.getSession().setAttribute("success", "Thêm vị trí mới thành công!");
         }

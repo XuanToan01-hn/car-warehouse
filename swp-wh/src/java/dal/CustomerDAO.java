@@ -139,4 +139,38 @@ public class CustomerDAO extends DBContext {
     private static String trim(String s) {
         return s == null ? "" : s.trim();
     }
+
+    public boolean isEmailExists(String email, int excludeId) {
+        if (email == null || email.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM Customer WHERE Email = ? AND CustomerID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, email.trim());
+            ps.setInt(2, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isPhoneExists(String phone, int excludeId) {
+        if (phone == null || phone.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM Customer WHERE Phone = ? AND CustomerID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, phone.trim());
+            ps.setInt(2, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }

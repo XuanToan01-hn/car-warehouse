@@ -331,4 +331,38 @@ public class LocationDAO extends DBContext {
         }
         return list;
     }
+
+    public boolean isLocationCodeExists(int warehouseId, String code, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Location WHERE WarehouseID = ? AND LocationCode = ? AND LocationID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, warehouseId);
+            ps.setString(2, code);
+            ps.setInt(3, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isLocationNameExists(int warehouseId, String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Location WHERE WarehouseID = ? AND LocationName = ? AND LocationID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, warehouseId);
+            ps.setString(2, name);
+            ps.setInt(3, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
