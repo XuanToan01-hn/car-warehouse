@@ -39,6 +39,7 @@
                 <h5 class="mb-0 font-weight-bold"><i class="ri-checkbox-circle-fill"></i> ${successMsg}</h5>
             </div>
         </c:if>
+        <div id="js-flash-msg"></div>
 
         <form action="transfer-create" method="post" id="transferForm">
             <div class="card mb-4 border-0 shadow-sm">
@@ -116,11 +117,17 @@
 
     <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
     <script>
+        function showFlashMsg(msg) {
+            var container = document.getElementById('js-flash-msg');
+            container.innerHTML = '<div class="alert alert-danger shadow-sm border-left-danger" role="alert"><h5 class="alert-heading font-weight-bold mb-0"><i class="ri-error-warning-fill mr-2"></i>' + msg + '</h5></div>';
+            window.scrollTo(0, 0);
+        }
+
         // Mở Modal và load HTML từ Servlet TransferCreate (doGet với action=get-stock)
         function openProductModal() {
             const locId = document.getElementById('fromLocationId').value;
             if(!locId) {
-                alert("Please select a Source Location first!");
+                showFlashMsg("Please select a Source Location first!");
                 return;
             }
 
@@ -145,7 +152,7 @@
             const container = document.getElementById('itemsContainer');
             
             if(document.querySelector(`input[name="productDetailId"][value="${id}"]`)) {
-                alert("Product already selected!");
+                showFlashMsg("Product already selected!");
                 return;
             }
 
@@ -189,12 +196,12 @@
             const from = document.getElementById('fromLocationId').value;
             const to = document.getElementById('toLocationId').value;
             if(from === to) {
-                alert("Source and Destination warehouses must be different!");
+                showFlashMsg("Source and Destination warehouses must be different!");
                 e.preventDefault();
                 return false;
             }
             if(document.querySelectorAll('.item-row').length === 0) {
-                alert("Please add at least one product to transfer!");
+                showFlashMsg("Please add at least one product to transfer!");
                 e.preventDefault();
                 return false;
             }

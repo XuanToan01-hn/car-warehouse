@@ -169,19 +169,20 @@
         <body>
             <div class="wrapper">
                 <%@ include file="sidebar.jsp" %>
-                <jsp:include page="header.jsp" />
+                    <jsp:include page="header.jsp" />
                     <div class="content-page">
                         <div class="container-fluid">
                             <div class="page-header">
                                 <div>
-                                    <h1 class="font-weight-bold h2">${isExternal ? 'External' : 'Internal'} Transfers</h1>
+                                    <h1 class="font-weight-bold h2">${isExternal ? 'External' : 'Internal'} Transfers
+                                    </h1>
                                     <p class="text-muted mb-0">Create Request & Approve Note</p>
                                 </div>
                                 <div>
                                     <a href="warehouse-transfer" class="btn btn-outline-primary"><i
                                             class="ri-truck-line"></i> Warehouse Ops</a>
-                                    <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=form" class="btn btn-success ml-2"><i
-                                            class="ri-add-line"></i> Create New Request</a>
+                                    <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=form"
+                                        class="btn btn-success ml-2"><i class="ri-add-line"></i> Create New Request</a>
                                 </div>
                             </div>
 
@@ -226,15 +227,25 @@
                                                                     class="badge badge-light border px-2 py-1">${item.toLocationName}</span>
                                                             </div>
                                                         </td>
-                                                        <td>ID: ${item.productDetailId}</td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${item.productId > 1}">
+                                                                    <span class="text-muted"><i
+                                                                            class="ri-stack-line"></i> Multiple
+                                                                        items</span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    ID: ${item.productDetailId}
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
                                                         <td class="font-weight-bold text-primary">${item.quantity}</td>
                                                         <td><span class="badge-pending">Pending</span></td>
                                                         <td class="text-right px-4">
-                                                            <button type="button"
-                                                                class="btn btn-info btn-sm rounded-pill px-4"
-                                                                onclick="viewDetail(${item.id})">
+                                                            <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=detail&id=${item.id}"
+                                                                class="btn btn-info btn-sm rounded-pill px-4">
                                                                 <i class="ri-eye-line mr-1"></i> View Detail
-                                                            </button>
+                                                            </a>
                                                         </td>
                                                     </tr>
                                                 </c:forEach>
@@ -256,144 +267,8 @@
                         </div>
                     </div>
             </div>
-            <!-- Detail Modal -->
-            <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-hidden="true">
-                <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title font-weight-bold">Details of warehouse transfer request</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <div id="loadingDetail" class="text-center py-4">
-                                <div class="spinner-border text-primary" role="status"></div>
-                                <p class="mt-2 text-muted">Loading information...</p>
-                            </div>
-                            <div id="detailContent" style="display: none;">
-                                <!-- Header Info -->
-                                <div class="row mb-3">
-                                    <div class="col-md-7">
-                                        <span class="detail-label text-primary">Order ID</span>
-                                        <span id="dtCode" class="detail-value h5 font-weight-bold mb-0"></span>
-                                    </div>
-                                    <div class="col-md-5 text-md-right border-left pl-4">
-                                        <span class="detail-label">Quantity</span>
-                                        <div class="d-flex align-items-baseline justify-content-md-end">
-                                            <span id="dtQty" class="text-dark font-weight-bold h3 mb-0"></span>
-                                            <span class="text-muted ml-1" style="font-size: 1rem;">pcs</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="row">
-                                    <!-- Left Column: Product & Note -->
-                                    <div class="col-md-6">
-                                        <div class="product-banner mb-3">
-                                            <span class="detail-label text-primary">Car / Product</span>
-                                            <div id="dtProduct" class="detail-value font-weight-bold truncate-2"
-                                                style="font-size: 1.15rem;"></div>
-                                        </div>
-                                        <div class="info-section mb-0" style="padding: 1rem;">
-                                            <span class="detail-label">Reason / Note</span>
-                                            <div class="p-2 border rounded bg-white text-muted"
-                                                style="min-height: 80px;">
-                                                <span id="dtNote"
-                                                    style="font-style: italic; line-height: 1.5; display: block; font-size: 0.95rem;"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Right Column: Route -->
-                                    <div class="col-md-6">
-                                        <div class="info-section h-100 mb-0">
-                                            <span class="detail-label"> Shipping Route</span>
-                                            <div class="d-flex flex-column gap-3 mt-2">
-                                                <div class="route-node">
-                                                    <i class="ri-map-pin-2-fill text-danger mr-3"
-                                                        style="font-size: 1.2rem;"></i>
-                                                    <div style="line-height: 1.3;">
-                                                        <small class="text-muted d-block"
-                                                            style="font-size: 0.75rem;">SOURCE</small>
-                                                        <span id="dtFrom" style="font-size: 1rem;"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="text-center my-1">
-                                                    <i class="ri-arrow-down-line text-muted h4 mb-0"></i>
-                                                </div>
-                                                <div class="route-node">
-                                                    <i class="ri-checkbox-circle-fill text-success mr-3"
-                                                        style="font-size: 1.2rem;"></i>
-                                                    <div style="line-height: 1.3;">
-                                                        <small class="text-muted d-block"
-                                                            style="font-size: 0.75rem;">DESTINATION</small>
-                                                        <span id="dtTo" style="font-size: 1rem;"></span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Actions -->
-                                <div class="d-flex justify-content-end mt-4 pt-3 border-top">
-                                    <form action="${isExternal ? 'external-transfer' : 'internal-transfer'}" method="POST" class="mr-2">
-                                        <input type="hidden" name="action" value="cancel">
-                                        <input type="hidden" name="transferId" id="cancelId">
-                                        <button type="submit"
-                                            class="btn btn-outline-danger px-4 rounded-xl font-weight-bold"
-                                            onclick="return confirm('Are you sure you want to CANCEL this request?')">
-                                            Cancel Request
-                                        </button>
-                                    </form>
-                                    <form action="${isExternal ? 'external-transfer' : 'internal-transfer'}" method="POST">
-                                        <input type="hidden" name="action" value="approve">
-                                        <input type="hidden" name="transferId" id="approveId">
-                                        <button type="submit"
-                                            class="btn btn-approve px-5 rounded-xl font-weight-bold shadow-sm"
-                                            onclick="return confirm('Are you sure you want to APPROVE this request?')">
-                                            <i class="ri-check-line mr-1"></i> Approve
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
             <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
-            <script>
-                function viewDetail(id) {
-                    $('#detailModal').modal('show');
-                    $('#loadingDetail').show();
-                    $('#detailContent').hide();
-
-                    fetch('${pageContext.request.contextPath}/internal-transfer?action=getDetail&id=' + id)
-                        .then(res => res.json())
-                        .then(data => {
-                            $('#loadingDetail').hide();
-                            $('#dtCode').text(data.code);
-                            $('#dtFrom').text(data.from);
-                            $('#dtTo').text(data.to);
-                            $('#dtProduct').text(data.product);
-                            $('#dtQty').text(data.qty);
-                            $('#dtNote').text(data.note || 'No note');
-
-                            $('#approveId').val(data.id);
-                            $('#cancelId').val(data.id);
-
-                            $('#detailContent').fadeIn();
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert('Error loading detail data');
-                            $('#detailModal').modal('hide');
-                        });
-                }
-            </script>
         </body>
 
         </html>

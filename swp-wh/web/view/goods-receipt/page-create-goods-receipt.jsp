@@ -117,10 +117,20 @@
                                             <div class="card-body">
 
                                                 <!-- Error -->
-                                                <c:if test="${not empty error}">
+                                                <c:if test="${not empty sessionScope.error}">
                                                     <div class="alert alert-danger"><i
-                                                            class="fas fa-exclamation-triangle mr-2"></i>${error}</div>
+                                                            class="fas fa-exclamation-triangle mr-2"></i>${sessionScope.error}
+                                                    </div>
+                                                    <c:remove var="error" scope="session" />
                                                 </c:if>
+                                                <c:if test="${not empty sessionScope.success}">
+                                                    <div class="alert alert-success"><i
+                                                            class="fas fa-check-circle mr-2"></i>${sessionScope.success}
+                                                    </div>
+                                                    <c:remove var="success" scope="session" />
+                                                </c:if>
+
+                                                <div id="js-flash-msg"></div>
 
                                                 <form id="groForm" method="post"
                                                     action="${pageContext.request.contextPath}/create-goods-receipt">
@@ -152,8 +162,14 @@
                                                             <div class="form-group">
                                                                 <label class="font-weight-bold"><i
                                                                         class="fas fa-map-marker-alt mr-1 text-danger"></i>Receiving
-                                                                    Warehouse location<span
-                                                                        class="text-danger">*</span></label>
+                                                                    Warehouse location
+                                                                    <c:if test="${not empty sessionScope.user.warehouse}">
+                                                                        <span class="badge badge-info ml-1" style="font-size: 0.75rem;">
+                                                                            <i class="fas fa-warehouse mr-1"></i>${sessionScope.user.warehouse.warehouseName}
+                                                                        </span>
+                                                                    </c:if>
+                                                                    <span class="text-danger">*</span>
+                                                                </label>
                                                                 <div id="location-group">
                                                                     <select id="locationSelect" name="locationId"
                                                                         class="form-control" required>
@@ -541,12 +557,20 @@
                         }
                     }
 
+                    function showFlashMsg(msg, isError) {
+                        var container = document.getElementById('js-flash-msg');
+                        var alertClass = isError ? 'alert-danger' : 'alert-success';
+                        var iconClass = isError ? 'fa-exclamation-triangle' : 'fa-check-circle';
+                        container.innerHTML = '<div class="alert ' + alertClass + ' alert-dismissible fade show"><i class="fas ' + iconClass + ' mr-2"></i>' + msg + '<button type="button" class="close" data-dismiss="alert">&times;</button></div>';
+                        window.scrollTo(0, 0);
+                    }
+
                     // Form validation
                     document.getElementById('groForm').addEventListener('submit', function (e) {
                         var items = document.querySelectorAll('input[name="productId[]"]');
                         if (items.length === 0) {
                             e.preventDefault();
-                            alert('Vui lòng chọn Purchase Order trước khi xác nhận!');
+                            showFlashMsg('Please select Purchase Order before confirming!', true);
                             return;
                         }
 
@@ -568,7 +592,7 @@
 
                         if (invalid) {
                             e.preventDefault();
-                            alert('Actual Received Qty cannot exceed Remaining Qty. Please correct the highlighted rows.');
+                            showFlashMsg('Actual Received Qty cannot exceed Remaining Qty. Please correct the highlighted rows.', true);
                         }
                     });
 
