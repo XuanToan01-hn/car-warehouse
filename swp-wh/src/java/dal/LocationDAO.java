@@ -113,18 +113,18 @@ public class LocationDAO extends DBContext {
         List<Location> list = new ArrayList<>();
         if (connection == null) return list;
         
-        String sql = "SELECT * FROM Location WHERE WarehouseID = ?";
+        String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName, "
+                + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
+                + "FROM Location l "
+                + "JOIN Warehouse w ON l.WarehouseID = w.WarehouseID "
+                + "LEFT JOIN Location_Product lp ON l.LocationID = lp.LocationID "
+                + "WHERE l.WarehouseID = ? "
+                + "GROUP BY l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, warehouseId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Location l = new Location();
-                    l.setId(rs.getInt("LocationID"));
-                    l.setWarehouseId(rs.getInt("WarehouseID"));
-                    l.setLocationCode(rs.getString("LocationCode"));
-                    l.setLocationName(rs.getString("LocationName"));
-                    l.setMaxCapacity(rs.getObject("MaxCapacity") != null ? rs.getInt("MaxCapacity") : 0);
-                    list.add(l);
+                    list.add(mapResultSetToLocation(rs));
                 }
             }
         } catch (SQLException e) {

@@ -18,7 +18,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.User;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import model.TransferOrder;
+import model.TransferOrderDetail;
 
 /**
  *
@@ -74,52 +78,96 @@ public class TransferController extends HttpServlet {
         TransferDAO transDAO = new TransferDAO();
 
         if (action.equals("form")) {
-            // Đổ danh sách Xe (ProductDetail) có trong kho
-            request.setAttribute("productDetails", pdDAO.getAll()); // Hoặc viết thêm hàm chỉ lấy xe đang có hàng
-            request.setAttribute("locations", locDAO.getAll()); // Cho To Location
+            // Only show locations from the user's assigned warehouse
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("user");
+            if (user != null && user.getWarehouse() != null) {
+                int userWhId = user.getWarehouse().getId();
+                request.setAttribute("locations", locDAO.getByWarehouseId(userWhId));
+                request.setAttribute("userWarehouseName", user.getWarehouse().getWarehouseName());
+                request.setAttribute("userWarehouseId", userWhId);
+            } else {
+                request.setAttribute("locations", locDAO.getAll());
+                request.setAttribute("userWarehouseName", "Unknown");
+            }
             request.getRequestDispatcher("/view/create-transfer.jsp").forward(request, response);
-        } else if (action.equals("getLocationsByProduct")) {
-            String pdIdStr = request.getParameter("pdId");
-            if (pdIdStr == null || pdIdStr.trim().isEmpty()) {
+        } else if (action.equals("detail")) {
+            String idStr = request.getParameter("id");
+            if (idStr != null && !idStr.isEmpty()) {
+                int id = Integer.parseInt(idStr);
+                List<TransferOrder> orders = transDAO.getTransfersById(id);
+                if (!orders.isEmpty()) {
+                    List<Map<String, Object>> productDetailsList = new ArrayList<>();
+                    int totalQty = 0;
+                    for (TransferOrder to : orders) {
+                        model.ProductDetail pd = pdDAO.getById(to.getProductDetailId());
+                        String pName = (pd != null && pd.getProduct() != null)
+                                ? "[" + pd.getSerialNumber() + "] " + pd.getProduct().getName() + " - " + pd.getColor()
+                                : "Unknown Product #" + to.getProductDetailId();
+                        
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("name", pName);
+                        map.put("qty", to.getQuantity());
+                        productDetailsList.add(map);
+                        totalQty += to.getQuantity();
+                    }
+                    
+                    request.setAttribute("t", orders.get(0));
+                    request.setAttribute("productList", productDetailsList);
+                    request.setAttribute("totalQuantity", totalQty);
+                    request.getRequestDispatcher("/view/transfer-detail.jsp").forward(request, response);
+                    return;
+                }
+            }
+        } else if (action.equals("getProductsByLocation")) {
+            String locIdStr = request.getParameter("locId");
+            if (locIdStr == null || locIdStr.trim().isEmpty()) {
                 response.setContentType("application/json");
                 response.getWriter().print("[]");
                 return;
             }
-            int pdId = Integer.parseInt(pdIdStr);
-            System.out.println("[DEBUG] TransferController: Fetching locations for pdId=" + pdId);
-            List<model.Location> locs = locDAO.getLocationsByProductDetail(pdId);
-            System.out.println("[DEBUG] TransferController: Found " + locs.size() + " locations for pdId=" + pdId);
-            
+            int locId = Integer.parseInt(locIdStr);
+            List<model.LocationProduct> products = locDAO.getProductsByLocation(locId);
+
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             java.io.PrintWriter out = response.getWriter();
             StringBuilder json = new StringBuilder("[");
-            for (int i = 0; i < locs.size(); i++) {
-                model.Location l = locs.get(i);
-                int reserved = transDAO.getReservedQuantity(l.getId(), pdId);
-                // Đảm bảo available không âm
-                int available = Math.max(0, l.getCurrentStock() - reserved);
-                
+            for (int i = 0; i < products.size(); i++) {
+                model.LocationProduct lp = products.get(i);
+                int reserved = transDAO.getReservedQuantity(locId, lp.getProductDetail().getId());
+                int available = Math.max(0, lp.getQuantity() - reserved);
+                if (available <= 0)
+                    continue;
+
+                if (json.length() > 1)
+                    json.append(",");
                 json.append("{");
-                json.append("\"id\":").append(l.getId()).append(",");
-                json.append("\"name\":\"").append(l.getLocationName().replace("\"", "\\\"")).append(" (").append(l.getWarehouseName().replace("\"", "\\\"")).append(")\",");
-                json.append("\"available\":").append(available).append(",");
-                json.append("\"max\":").append(l.getMaxCapacity());
+                json.append("\"pdId\":").append(lp.getProductDetail().getId()).append(",");
+                json.append("\"productName\":\"").append(lp.getProduct().getName().replace("\"", "\\\"")).append("\",");
+                json.append("\"serialNumber\":\"").append(lp.getProductDetail().getSerialNumber().replace("\"", "\\\""))
+                        .append("\",");
+                json.append("\"color\":\"")
+                        .append(lp.getProductDetail().getColor() != null
+                                ? lp.getProductDetail().getColor().replace("\"", "\\\"")
+                                : "")
+                        .append("\",");
+                json.append("\"available\":").append(available);
                 json.append("}");
-                if (i < locs.size() - 1) json.append(",");
             }
             json.append("]");
-            System.out.println("[DEBUG] TransferController JSON: " + json.toString());
             out.print(json.toString());
             out.flush();
             return;
         } else if (action.equals("getDetail")) {
             String idStr = request.getParameter("id");
-            if (idStr == null || idStr.trim().isEmpty()) return;
-            
+            if (idStr == null || idStr.trim().isEmpty())
+                return;
+
             int id = Integer.parseInt(idStr);
             TransferOrder t = transDAO.getById(id);
-            if (t == null) return;
+            if (t == null)
+                return;
 
             // Lấy thêm tên sản phẩm
             String productName = "Unknown";
@@ -134,11 +182,14 @@ public class TransferController extends HttpServlet {
             StringBuilder json = new StringBuilder("{");
             json.append("\"id\":").append(t.getId()).append(",");
             json.append("\"code\":\"").append(t.getTransferCode()).append("\",");
-            json.append("\"from\":\"").append(t.getFromLocationName()).append(" (").append(t.getFromWarehouseName()).append(")\",");
-            json.append("\"to\":\"").append(t.getToLocationName()).append(" (").append(t.getToWarehouseName()).append(")\",");
+            json.append("\"from\":\"").append(t.getFromLocationName()).append(" (").append(t.getFromWarehouseName())
+                    .append(")\",");
+            json.append("\"to\":\"").append(t.getToLocationName()).append(" (").append(t.getToWarehouseName())
+                    .append(")\",");
             json.append("\"product\":\"").append(productName.replace("\"", "\\\"")).append("\",");
             json.append("\"qty\":").append(t.getQuantity()).append(",");
-            json.append("\"note\":\"").append(t.getNote() != null ? t.getNote().replace("\"", "\\\"") : "").append("\",");
+            json.append("\"note\":\"").append(t.getNote() != null ? t.getNote().replace("\"", "\\\"") : "")
+                    .append("\",");
             json.append("\"status\":").append(t.getStatus());
             json.append("}");
             out.print(json.toString());
@@ -173,53 +224,69 @@ public class TransferController extends HttpServlet {
         TransferDAO dao = new TransferDAO();
 
         if ("create".equals(action)) {
-            // Lấy thông tin từ form theo kiểu cũ
-            int pdId = Integer.parseInt(request.getParameter("pdId"));
             int fromLocId = Integer.parseInt(request.getParameter("fromLoc"));
-            int qty = Integer.parseInt(request.getParameter("qty"));
+            int toLocId = Integer.parseInt(request.getParameter("toLoc"));
+            String note = request.getParameter("note");
+            String[] selectedProducts = request.getParameterValues("selectedProducts");
 
-            // Kiểm tra tồn kho khả dụng (Physical - Reserved)
-            int physical = dao.getPhysicalQuantity(fromLocId, pdId);
-            int reserved = dao.getReservedQuantity(fromLocId, pdId);
-            if (qty > (physical - reserved)) {
-                request.getSession().setAttribute("err", "Số lượng yêu cầu (" + qty + ") vượt quá tồn kho khả dụng (" + (physical - reserved) + ")!");
+            if (selectedProducts == null || selectedProducts.length == 0) {
+                request.getSession().setAttribute("err", "Please select at least one product!");
                 response.sendRedirect("internal-transfer?action=form");
                 return;
             }
 
-            TransferOrder o = new TransferOrder();
-            o.setFromLocationId(fromLocId);
-            o.setToLocationId(Integer.parseInt(request.getParameter("toLoc")));
-            o.setProductDetailId(pdId);
-            o.setQuantity(qty);
-            o.setNote(request.getParameter("note")); // Lý do chuyển kho
             HttpSession session = request.getSession();
             User user = (User) session.getAttribute("user");
-            if (user != null) {
-                o.setCreateBy(user.getId());
-            } else {
-                o.setCreateBy(1); // Default to admin for now if no session
+            int userId = (user != null) ? user.getId() : 1;
+
+            TransferOrder o = new TransferOrder();
+            o.setFromLocationId(fromLocId);
+            o.setToLocationId(toLocId);
+            o.setNote(note);
+            o.setCreateBy(userId);
+
+            List<TransferOrderDetail> details = new ArrayList<>();
+            for (String pdIdStr : selectedProducts) {
+                int pdId = Integer.parseInt(pdIdStr);
+                String qtyStr = request.getParameter("qty_" + pdId);
+                int qty = (qtyStr != null) ? Integer.parseInt(qtyStr) : 1;
+
+                int physical = dao.getPhysicalQuantity(fromLocId, pdId);
+                int reserved = dao.getReservedQuantity(fromLocId, pdId);
+                if (qty > (physical - reserved)) {
+                    request.getSession().setAttribute("err",
+                            "Quantity for product #" + pdId + " exceeds available stock!");
+                    response.sendRedirect("internal-transfer?action=form");
+                    return;
+                }
+
+                TransferOrderDetail d = new TransferOrderDetail();
+                d.setProductDetailId(pdId);
+                d.setQuantity(qty);
+                details.add(d);
             }
 
-            if (dao.createTransferRequest(o)) {
-                request.getSession().setAttribute("msg", "Gửi yêu cầu chuyển kho thành công! Chờ quản lý duyệt.");
-                response.sendRedirect("internal-transfer?action=view");
+            if (dao.createTransferRequest(o, details)) {
+                request.getSession().setAttribute("msg", "Transfer request created successfully!");
+            } else {
+                request.getSession().setAttribute("err", "Failed to create transfer request!");
             }
+            response.sendRedirect("internal-transfer?action=view");
         } else if ("approve".equals(action)) {
             // Bước 2: Phê duyệt -> Tạo phiếu chuyển kho nội bộ (Approved)
             int id = Integer.parseInt(request.getParameter("transferId"));
             if (dao.approveRequest(id)) {
-                request.getSession().setAttribute("msg", "Đã phê duyệt và tạo phiếu chuyển kho nội bộ!");
+                request.getSession().setAttribute("msg", "Approved transfer request!");
             } else {
-                request.getSession().setAttribute("err", "Phê duyệt thất bại!");
+                request.getSession().setAttribute("err", "Failed to approve transfer request!");
             }
             response.sendRedirect("internal-transfer?action=view");
         } else if ("cancel".equals(action)) {
             int id = Integer.parseInt(request.getParameter("transferId"));
             if (dao.cancelRequest(id)) {
-                request.getSession().setAttribute("msg", "Đã hủy yêu cầu chuyển kho!");
+                request.getSession().setAttribute("msg", "Cancelled transfer request!");
             } else {
-                request.getSession().setAttribute("err", "Hủy yêu cầu thất bại!");
+                request.getSession().setAttribute("err", "Failed to cancel transfer request!");
             }
             response.sendRedirect("internal-transfer?action=view");
         }
