@@ -95,7 +95,7 @@ public class PurchaseOrderDAO extends DBContext {
                        ISNULL((SELECT SUM(grd.QuantityActual)
                                FROM Goods_Receipt gr
                                JOIN Goods_Receipt_Detail grd ON gr.ReceiptID = grd.ReceiptID
-                               WHERE gr.PurchaseOrderID = po.PurchaseOrderID AND gr.Status = 2), 0) AS ReceivedQty
+                               WHERE gr.PurchaseOrderID = po.PurchaseOrderID AND gr.Status IN (2, 4)), 0) AS ReceivedQty
                 FROM Purchase_Order po
                 LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
                 WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
@@ -210,7 +210,8 @@ public class PurchaseOrderDAO extends DBContext {
                 pod.setPrice(rs.getDouble("Price"));
                 pod.setSubTotal(rs.getDouble("SubTotal"));
 
-                // Since ProductID might not exist if ProductDetailID is null (due to DB schema missing ProductID)
+                // Since ProductID might not exist if ProductDetailID is null (due to DB schema
+                // missing ProductID)
                 int productId = rs.getInt("ProductID");
                 if (!rs.wasNull()) {
                     Product p = new Product();
