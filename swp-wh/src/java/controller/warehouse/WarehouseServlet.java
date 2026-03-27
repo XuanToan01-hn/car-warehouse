@@ -128,7 +128,20 @@ public class WarehouseServlet extends HttpServlet {
                 if (idStr != null && !idStr.trim().isEmpty()) {
                     try {
                         int id = Integer.parseInt(idStr.trim());
-                        dao.delete(id);
+                        
+                        // Safeguard: Check if warehouse has locations
+                        dal.LocationDAO locationDAO = new dal.LocationDAO();
+                        List<model.Location> locations = locationDAO.getByWarehouseId(id);
+                        
+                        if (!locations.isEmpty()) {
+                            request.getSession().setAttribute("error", "Không thể xóa kho vì vẫn còn vị trí bên trong!");
+                        } else {
+                            if (dao.delete(id)) {
+                                request.getSession().setAttribute("success", "Xóa kho thành công!");
+                            } else {
+                                request.getSession().setAttribute("error", "Xóa kho thất bại. Vui lòng thử lại!");
+                            }
+                        }
                     } catch (NumberFormatException ignored) {
                     }
                 }

@@ -378,7 +378,8 @@
                                                 <form action="warehouses" method="post" style="display:inline;">
                                                     <input type="hidden" name="action" value="delete">
                                                     <input type="hidden" name="id" value="${w.id}">
-                                                    <button type="submit" class="btn-action btn-delete">
+                                                    <button type="submit" class="btn-action btn-delete"
+                                                            onclick="return confirm('Bạn có chắc chắn muốn xóa kho &quot;${w.warehouseName}&quot; không? Tất cả các dữ liệu liên quan sẽ bị ảnh hưởng.')">
                                                         <i class="ri-delete-bin-line"></i> Delete
                                                     </button>
                                                 </form>

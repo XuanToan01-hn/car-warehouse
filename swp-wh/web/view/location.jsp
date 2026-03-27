@@ -373,6 +373,7 @@
                                         <th>Location Code</th>
                                         <th>Name</th>
                                         <th class="text-center">Max Capacity</th>
+                                        <th class="text-center">Quantity</th>
                                         <th class="text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -389,6 +390,9 @@
                                             <td class="text-center">
                                                 <span class="badge badge-soft-primary px-3 py-2">${l.maxCapacity}</span>
                                             </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-soft-success px-3 py-2">${l.currentStock}</span>
+                                            </td>
                                             <td class="text-right">
                                                 <a href="locations?action=viewDetail&id=${l.id}"
                                                    class="btn-action btn-view mr-2">
@@ -402,7 +406,8 @@
                                                     <form action="locations" method="post" style="display:inline;">
                                                         <input type="hidden" name="action" value="delete">
                                                         <input type="hidden" name="id" value="${l.id}">
-                                                        <button type="submit" class="btn-action btn-delete">
+                                                        <button type="submit" class="btn-action btn-delete"
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa vị trí &quot;${l.locationName}&quot; không?')">
                                                             <i class="ri-delete-bin-line"></i> Delete
                                                         </button>
                                                     </form>
@@ -412,7 +417,7 @@
                                     </c:forEach>
                                     <c:if test="${empty locations}">
                                         <tr>
-                                            <td colspan="4" class="text-center text-secondary py-4">
+                                            <td colspan="5" class="text-center text-secondary py-4">
                                                 No locations found.
                                             </td>
                                         </tr>

@@ -89,8 +89,19 @@ public class LocationServlet extends HttpServlet {
         if (idStr != null && !idStr.trim().isEmpty()) {
             try {
                 int id = Integer.parseInt(idStr.trim());
-                dao.delete(id);
-                request.getSession().setAttribute("success", "Xóa vị trí thành công!");
+                Location loc = dao.getById(id);
+                if (loc != null && loc.getCurrentStock() > 0) {
+                    request.getSession().setAttribute("error",
+                        "Không thể xóa vị trí \"" + loc.getLocationName() + "\" vì hiện còn " 
+                        + loc.getCurrentStock() + " sản phẩm trong kho!");
+                } else {
+                    boolean deleted = dao.delete(id);
+                    if (deleted) {
+                        request.getSession().setAttribute("success", "Xóa vị trí thành công!");
+                    } else {
+                        request.getSession().setAttribute("error", "Xóa vị trí thất bại. Vui lòng thử lại!");
+                    }
+                }
             } catch (NumberFormatException ignored) {
             }
         }

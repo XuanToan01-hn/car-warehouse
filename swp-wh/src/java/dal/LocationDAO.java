@@ -243,15 +243,48 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
-    public void delete(int id) {
-        if (connection == null) return;
-        String sql = "DELETE FROM Location WHERE LocationID = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    public boolean delete(int id) {
+        if (connection == null) return false;
+        // Step 1: remove all Location_Product rows (including qty=0)
+        String sqlLp = "DELETE FROM Location_Product WHERE LocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlLp)) {
             ps.setInt(1, id);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        // Step 2: null-out Inventory_Transaction.LocationID (preserve history)
+        String sqlIt = "UPDATE Inventory_Transaction SET LocationID = NULL WHERE LocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlIt)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Step 3: null-out Transfer_Order FK references (preserve transfer history)
+        String sqlTfFrom = "UPDATE Transfer_Order SET FromLocationID = NULL WHERE FromLocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlTfFrom)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String sqlTfTo = "UPDATE Transfer_Order SET ToLocationID = NULL WHERE ToLocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlTfTo)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Step 4: delete the location itself
+        String sql = "DELETE FROM Location WHERE LocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public List<LocationProduct> getAllInventoryWithDetails() {
