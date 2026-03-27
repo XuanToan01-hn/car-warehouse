@@ -103,7 +103,19 @@ public class CustomerServlet extends HttpServlet {
 
                 if (!email.isEmpty() && !isValidEmail(email)) {
                     request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Email không đúng định dạng!");
-                    response.sendRedirect(request.getContextPath() + "/customers");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=add");
+                    return;
+                }
+
+                if (!phone.isEmpty() && dao.isPhoneExists(phone, 0)) {
+                    request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Số điện thoại \"" + phone + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=add");
+                    return;
+                }
+
+                if (!email.isEmpty() && dao.isEmailExists(email, 0)) {
+                    request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Email \"" + email + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=add");
                     return;
                 }
 
@@ -151,7 +163,19 @@ public class CustomerServlet extends HttpServlet {
 
                 if (!email.isEmpty() && !isValidEmail(email)) {
                     request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Email không đúng định dạng!");
-                    response.sendRedirect(request.getContextPath() + "/customers");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=edit&id=" + id);
+                    return;
+                }
+
+                if (!phone.isEmpty() && dao.isPhoneExists(phone, id)) {
+                    request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Số điện thoại \"" + phone + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=edit&id=" + id);
+                    return;
+                }
+
+                if (!email.isEmpty() && dao.isEmailExists(email, id)) {
+                    request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Email \"" + email + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=edit&id=" + id);
                     return;
                 }
 

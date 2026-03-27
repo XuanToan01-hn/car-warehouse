@@ -23,6 +23,7 @@ public class SalesOrder {
     private User createBy;
     private int orderedQty;
     private int deliveredQty;
+    private Warehouse warehouse;
     private List<SalesOrderDetail> details;
 
     public List<SalesOrderDetail> getDetails() {
@@ -108,11 +109,19 @@ public class SalesOrder {
         this.orderedQty = orderedQty;
     }
 
+    public void setDeliveredQty(int deliveredQty) {
+        this.deliveredQty = deliveredQty;
+    }
+
     public int getDeliveredQty() {
         return deliveredQty;
     }
 
-    public void setDeliveredQty(int deliveredQty) {
-        this.deliveredQty = deliveredQty;
+    public Warehouse getWarehouse() {
+        return warehouse;
+    }
+
+    public void setWarehouse(Warehouse warehouse) {
+        this.warehouse = warehouse;
     }
 }

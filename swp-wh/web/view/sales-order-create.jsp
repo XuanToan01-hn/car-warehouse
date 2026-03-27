@@ -152,10 +152,10 @@
                                 </c:if>
 
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label class="form-label">Customer</label>
-                                            <select name="customerId" class="form-control" required>
+                                            <select name="customerId" id="customerId" class="form-control" required>
                                                 <option value="">-- Select Customer --</option>
                                                 <c:forEach var="c" items="${customers}">
                                                     <option value="${c.id}">${c.name} (${c.customerCode})</option>
@@ -163,7 +163,18 @@
                                             </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Warehouse (Ship From)</label>
+                                            <select name="warehouseId" id="warehouseId" class="form-control" required onchange="warehouseChanged()">
+                                                <option value="">-- Select Warehouse --</option>
+                                                <c:forEach var="w" items="${warehouses}">
+                                                    <option value="${w.id}">${w.warehouseName} (${w.warehouseCode})</option>
+                                                </c:forEach>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label class="form-label">Note</label>
                                             <textarea name="note" class="form-control" rows="1" placeholder="Additional instructions..."></textarea>
@@ -201,11 +212,8 @@
                         <div class="col-md-3">
                             <div class="form-group mb-0">
                                 <label class="form-label">Product (Model)</label>
-                                <select class="form-control product-main-select" onchange="filterDetails(this)" required>
-                                    <option value="">-- Select Model --</option>
-                                    <c:forEach var="p" items="${productList}">
-                                        <option value="${p.id}">${p.name}</option>
-                                    </c:forEach>
+                                <select class="form-control product-main-select" onchange="loadVariants(this)" required disabled>
+                                    <option value="">-- Select Warehouse First --</option>
                                 </select>
                             </div>
                         </div>
@@ -214,12 +222,7 @@
                             <div class="form-group mb-0">
                                 <label class="form-label">Variant (Lot / Serial / Color)</label>
                                 <select name="productDetailId" class="form-control product-detail-select" onchange="updateRowInfo(this)" required disabled>
-                                    <option value="" data-product="0">-- Select Variant --</option>
-                                    <c:forEach var="pd" items="${allDetails}">
-                                        <option value="${pd.id}" data-product="${pd.product.id}" data-price="${pd.price}" data-stock="${pd.quantity}" style="display:none;">
-                                            Lot: ${pd.lotNumber} | SN: ${pd.serialNumber} | Color: ${pd.color}
-                                        </option>
-                                    </c:forEach>
+                                    <option value="">-- Select Product --</option>
                                 </select>
                             </div>
                         </div>
@@ -251,77 +254,94 @@
             <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
 
             <script>
+                function warehouseChanged() {
+                    const warehouseId = document.getElementById('warehouseId').value;
+                    const itemsContainer = document.getElementById('items-container');
+                    
+                    if (!warehouseId) {
+                        itemsContainer.innerHTML = '';
+                        addItem(); // Re-add one empty row if reset
+                        return;
+                    }
+
+                    // For existing rows, refresh their product lists
+                    const mainSelects = document.querySelectorAll('.product-main-select');
+                    mainSelects.forEach(select => {
+                        fetchProductsForSelect(select, warehouseId);
+                    });
+                }
+
+                function fetchProductsForSelect(select, warehouseId) {
+                    const contextPath = '${pageContext.request.contextPath}';
+                    fetch(contextPath + '/sales-order?action=ajax-get-products&warehouseId=' + warehouseId)
+                        .then(response => response.text())
+                        .then(html => {
+                            select.innerHTML = html;
+                            select.disabled = false;
+                            // Reset detail select too
+                            const row = select.closest('.item-row');
+                            const detailSelect = row.querySelector('.product-detail-select');
+                            detailSelect.innerHTML = '<option value="">-- Select Product --</option>';
+                            detailSelect.disabled = true;
+                        });
+                }
+
                 function addItem() {
+                    const warehouseId = document.getElementById('warehouseId').value;
                     const container = document.getElementById('items-container');
                     const template = document.getElementById('item-template').content.cloneNode(true);
-                    container.appendChild(template);
-                    refreshAllSelects();
+                    
+                    const newRow = template.querySelector('.item-row');
+                    const mainSelect = newRow.querySelector('.product-main-select');
+                    
+                    container.appendChild(newRow);
+                    
+                    if (warehouseId) {
+                        fetchProductsForSelect(mainSelect, warehouseId);
+                    }
                 }
 
                 function removeItem(btn) {
                     btn.closest('.item-row').remove();
-                    refreshAllSelects();
                 }
 
-                function filterDetails(mainSelect) {
+                function loadVariants(mainSelect) {
                     const productId = mainSelect.value;
+                    const warehouseId = document.getElementById('warehouseId').value;
                     const row = mainSelect.closest('.item-row');
                     const detailSelect = row.querySelector('.product-detail-select');
                     const priceInput = row.querySelector('input[name="price"]');
+                    const contextPath = '${pageContext.request.contextPath}';
 
-                    detailSelect.value = "";
-                    detailSelect.disabled = (productId === "");
+                    detailSelect.innerHTML = '<option value="">Loading...</option>';
+                    detailSelect.disabled = true;
                     priceInput.value = "";
 
-                    refreshAllSelects();
+                    if (!productId) {
+                        detailSelect.innerHTML = '<option value="">-- Select Product --</option>';
+                        return;
+                    }
+
+                    fetch(contextPath + '/sales-order?action=ajax-get-details&productId=' + productId + '&warehouseId=' + warehouseId)
+                        .then(response => response.text())
+                        .then(html => {
+                            detailSelect.innerHTML = html;
+                            detailSelect.disabled = false;
+                        });
                 }
 
                 function updateRowInfo(detailSelect) {
                     const selectedOption = detailSelect.options[detailSelect.selectedIndex];
                     const row = detailSelect.closest('.item-row');
-                    const price = selectedOption.getAttribute('data-price');
-                    const stock = selectedOption.getAttribute('data-stock');
                     const priceInput = row.querySelector('input[name="price"]');
-                    const stockInfo = row.querySelector('.stock-info');
 
-                    if (selectedOption.value && price) {
-                        // Calculate selling price = 120% of import price
-                        const sellingPrice = (parseFloat(price) * 1.2).toFixed(2);
+                    if (selectedOption.value && selectedOption.getAttribute('data-price')) {
+                        const basePrice = parseFloat(selectedOption.getAttribute('data-price'));
+                        const sellingPrice = (basePrice * 1.2).toFixed(2);
                         priceInput.value = sellingPrice;
                     } else {
                         priceInput.value = "";
                     }
-                    refreshAllSelects();
-                }
-
-                function refreshAllSelects() {
-                    const allDetailSelects = document.querySelectorAll('.product-detail-select');
-                    const selectedVariants = Array.from(allDetailSelects)
-                        .map(s => s.value)
-                        .filter(v => v !== "" && v !== "0");
-
-                    document.querySelectorAll('.item-row').forEach(row => {
-                        const mainSelect = row.querySelector('.product-main-select');
-                        const detailSelect = row.querySelector('.product-detail-select');
-                        const productId = mainSelect.value;
-                        const currentDetailId = detailSelect.value;
-
-                        Array.from(detailSelect.options).forEach(opt => {
-                            const val = opt.value;
-                            if (val === "" || val === "0") return;
-
-                            const isCorrectProduct = opt.getAttribute('data-product') === productId;
-                            const isAlreadySelected = selectedVariants.includes(val) && val !== currentDetailId;
-
-                            if (isCorrectProduct) {
-                                opt.style.display = "block";
-                                opt.disabled = isAlreadySelected;
-                            } else {
-                                opt.style.display = "none";
-                                opt.disabled = true;
-                            }
-                        });
-                    });
                 }
 
                 window.onload = function () {
