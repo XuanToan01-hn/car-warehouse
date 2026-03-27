@@ -19,17 +19,38 @@ public class CustomerServlet extends HttpServlet {
             throws ServletException, IOException {
 
         CustomerDAO dao = new CustomerDAO();
-
-        // Server-side search
         String search = request.getParameter("search");
-        List<Customer> customers;
+
+        // Load filtered customers
+        List<Customer> allCustomers;
         if (search != null && !search.trim().isEmpty()) {
-            customers = dao.search(search.trim());
+            allCustomers = dao.search(search.trim());
             request.setAttribute("search", search.trim());
         } else {
-            customers = dao.getAll();
+            allCustomers = dao.getAll();
         }
-        request.setAttribute("customers", customers);
+
+        // Pagination Logic
+        int pageSize = 5;
+        String pageStr = request.getParameter("page");
+        int currentPage = (pageStr != null && !pageStr.trim().isEmpty()) ? Integer.parseInt(pageStr.trim()) : 1;
+
+        int totalCustomers = allCustomers.size();
+        int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        int start = (currentPage - 1) * pageSize;
+        int end = Math.min(start + pageSize, totalCustomers);
+
+        List<Customer> pagedCustomers = new java.util.ArrayList<>();
+        if (start < totalCustomers) {
+            pagedCustomers = allCustomers.subList(start, end);
+        }
+
+        request.setAttribute("customers", pagedCustomers);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
 
         // Edit mode: load the customer to be edited
         String mode = request.getParameter("mode");
@@ -154,7 +175,19 @@ public class CustomerServlet extends HttpServlet {
                 if (idStr != null && !idStr.trim().isEmpty()) {
                     try {
                         int id = Integer.parseInt(idStr.trim());
-                        dao.delete(id);
+                        dal.SalesOrderDAO soDAO = new dal.SalesOrderDAO();
+                        
+                        if (soDAO.hasOrders(id)) {
+                             request.getSession().setAttribute("error", "Không thể xóa khách hàng này vì đã có đơn hàng được tạo hoặc đã giao!");
+                             response.sendRedirect(request.getContextPath() + "/customers");
+                             return;
+                        }
+
+                        if (dao.delete(id)) {
+                            request.getSession().setAttribute("success", "Xóa khách hàng thành công!");
+                        } else {
+                            request.getSession().setAttribute("error", "Xóa khách hàng thất bại!");
+                        }
                     } catch (NumberFormatException ignored) {
                     }
                 }

@@ -250,13 +250,12 @@
                 </div>
 
                 <%-- Flash messages --%>
-                <c:if test="${not empty sessionScope.error}">
+                <c:if test="${not empty sessionScope.error and empty mode}">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert"
                          style="border-radius: 12px; font-weight: 600;">
                         <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
-                    <c:remove var="error" scope="session" />
                 </c:if>
                 <c:if test="${not empty sessionScope.success}">
                     <div class="alert alert-success alert-dismissible fade show" role="alert"
@@ -280,6 +279,15 @@
                                 </c:choose>
                             </h5>
                         </div>
+
+                        <%-- Error inside form --%>
+                        <c:if test="${not empty sessionScope.error}">
+                            <div class="alert alert-danger alert-dismissible fade show" role="alert"
+                                 style="border-radius: 12px; font-weight: 600; margin-bottom: 1.5rem;">
+                                <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
+                                <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
+                            </div>
+                        </c:if>
 
                         <form action="locations" method="post">
                             <input type="hidden" name="action"
@@ -325,103 +333,125 @@
                             </div>
                         </form>
                     </div>
+                    <c:remove var="error" scope="session" />
                 </c:if>
+                <c:if test="${empty mode}">
+                    <%-- ============================================================
+                         FILTER + SEARCH + TABLE — hidden when mode is not empty
+                         ============================================================ --%>
+                    <form action="locations" method="get" class="filter-bar">
+                        <%-- Warehouse filter --%>
+                        <div class="filter-box">
+                            <i class="ri-filter-2-line"></i>
+                            <span class="font-weight-bold">Warehouse:</span>
+                            <select name="warehouseId" onchange="this.form.submit()">
+                                <option value="0">All Warehouses</option>
+                                <c:forEach var="w" items="${warehouses}">
+                                    <option value="${w.id}"
+                                        ${selectedWarehouseId == w.id ? 'selected' : ''}>
+                                        ${w.warehouseCode} - ${w.warehouseName}
+                                    </option>
+                                </c:forEach>
+                            </select>
+                        </div>
 
-                <%-- ============================================================
-                     FILTER + SEARCH + TABLE — always shown
-                     ============================================================ --%>
-                <form action="locations" method="get" class="filter-bar">
-                    <%-- Warehouse filter --%>
-                    <div class="filter-box">
-                        <i class="ri-filter-2-line"></i>
-                        <span class="font-weight-bold">Warehouse:</span>
-                        <select name="warehouseId" onchange="this.form.submit()">
-                            <option value="0">All Warehouses</option>
-                            <c:forEach var="w" items="${warehouses}">
-                                <option value="${w.id}"
-                                    ${selectedWarehouseId == w.id ? 'selected' : ''}>
-                                    ${w.warehouseCode} - ${w.warehouseName}
-                                </option>
-                            </c:forEach>
-                        </select>
-                    </div>
+                        <%-- Search --%>
+                        <div class="filter-box" style="min-width: 300px;">
+                            <i class="ri-search-line"></i>
+                            <input type="text" name="search" class="search-input"
+                                   placeholder="Search by code or name..."
+                                   value="${search}">
+                            <button type="submit" class="search-btn">
+                                <i class="ri-arrow-right-line"></i>
+                            </button>
+                        </div>
+                    </form>
 
-                    <%-- Search --%>
-                    <div class="filter-box" style="min-width: 300px;">
-                        <i class="ri-search-line"></i>
-                        <input type="text" name="search"
-                               placeholder="Search by code or name..."
-                               value="${search}">
-                        <button type="submit" title="Search">
-                            <i class="ri-arrow-right-line"></i>
-                        </button>
-                        <c:if test="${not empty search}">
-                            <a href="locations?warehouseId=${selectedWarehouseId}"
-                               style="color:#94a3b8; font-size:1.1rem;" title="Clear search">
-                                <i class="ri-close-line"></i>
-                            </a>
-                        </c:if>
-                    </div>
-                </form>
-
-                <div class="card card-main">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Location Code</th>
-                                        <th>Name</th>
-                                        <th class="text-center">Max Capacity</th>
-                                        <th class="text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach var="l" items="${locations}">
+                    <div class="card card-main">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead>
                                         <tr>
-                                            <td>
-                                                <a href="locations?action=viewDetail&id=${l.id}"
-                                                   class="font-weight-bold text-primary">
-                                                    ${l.locationCode}
-                                                </a>
-                                            </td>
-                                            <td><span class="font-weight-bold text-dark">${l.locationName}</span></td>
-                                            <td class="text-center">
-                                                <span class="badge badge-soft-primary px-3 py-2">${l.maxCapacity}</span>
-                                            </td>
-                                            <td class="text-right">
-                                                <a href="locations?action=viewDetail&id=${l.id}"
-                                                   class="btn-action btn-view mr-2">
-                                                    <i class="ri-eye-line"></i> View
-                                                </a>
-                                                <c:if test="${sessionScope.user.role.id == 2}">
-                                                    <a href="locations?mode=edit&id=${l.id}&warehouseId=${selectedWarehouseId}&search=${search}"
-                                                       class="btn-action btn-edit mr-2">
-                                                        <i class="ri-pencil-line"></i> Edit
+                                            <th>Location Code</th>
+                                            <th>Name</th>
+                                            <th class="text-center">Max Capacity</th>
+                                            <th class="text-center">Quantity</th>
+                                            <th class="text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach var="l" items="${locations}">
+                                            <tr>
+                                                <td><span class="font-weight-bold text-primary">${l.locationCode}</span></td>
+                                                <td><span class="font-weight-bold text-dark">${l.locationName}</span></td>
+                                                <td class="text-center">
+                                                    <span class="badge badge-soft-primary px-3 py-2">${l.maxCapacity}</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="badge badge-soft-success px-3 py-2">${l.currentStock}</span>
+                                                </td>
+                                                <td class="text-right">
+                                                    <a href="locations?action=viewDetail&id=${l.id}"
+                                                       class="btn-action btn-view mr-2">
+                                                        <i class="ri-eye-line"></i> View
                                                     </a>
-                                                    <form action="locations" method="post" style="display:inline;">
-                                                        <input type="hidden" name="action" value="delete">
-                                                        <input type="hidden" name="id" value="${l.id}">
-                                                        <button type="submit" class="btn-action btn-delete">
-                                                            <i class="ri-delete-bin-line"></i> Delete
-                                                        </button>
-                                                    </form>
-                                                </c:if>
-                                            </td>
-                                        </tr>
-                                    </c:forEach>
-                                    <c:if test="${empty locations}">
-                                        <tr>
-                                            <td colspan="4" class="text-center text-secondary py-4">
-                                                No locations found.
-                                            </td>
-                                        </tr>
-                                    </c:if>
-                                </tbody>
-                            </table>
+                                                    <c:if test="${sessionScope.user.role.id == 2}">
+                                                        <a href="locations?mode=edit&id=${l.id}&warehouseId=${selectedWarehouseId}&search=${search}"
+                                                           class="btn-action btn-edit mr-2">
+                                                            <i class="ri-pencil-line"></i> Edit
+                                                        </a>
+                                                        <form action="locations" method="post" style="display:inline;">
+                                                            <input type="hidden" name="action" value="delete">
+                                                            <input type="hidden" name="id" value="${l.id}">
+                                                            <button type="submit" class="btn-action btn-delete"
+                                                                    onclick="return confirm('Bạn có chắc chắn muốn xóa vị trí &quot;${l.locationName}&quot; không?')">
+                                                                <i class="ri-delete-bin-line"></i> Delete
+                                                            </button>
+                                                        </form>
+                                                    </c:if>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                        <c:if test="${empty locations}">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-secondary py-4">
+                                                    No locations found.
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <%-- Pagination --%>
+                            <c:if test="${totalPages > 1}">
+                                <nav aria-label="Page navigation" class="mt-4">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                            <a class="page-link" 
+                                               href="locations?page=${currentPage - 1}&warehouseId=${selectedWarehouseId}&search=${search}" 
+                                               tabindex="-1">Previous</a>
+                                        </li>
+                                        
+                                        <c:forEach begin="1" end="${totalPages}" var="i">
+                                            <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                <a class="page-link" 
+                                                   href="locations?page=${i}&warehouseId=${selectedWarehouseId}&search=${search}">${i}</a>
+                                            </li>
+                                        </c:forEach>
+                                        
+                                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                            <a class="page-link" 
+                                               href="locations?page=${currentPage + 1}&warehouseId=${selectedWarehouseId}&search=${search}">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </c:if>
                         </div>
                     </div>
-                </div>
+                </c:if>
+            </div>
 
             </div>
         </div>

@@ -328,75 +328,102 @@
                         </form>
                     </div>
                 </c:if>
+                <c:if test="${empty mode}">
+                    <%-- ============================================================
+                         SEARCH + TABLE — hidden when mode is not empty
+                         ============================================================ --%>
 
-                <%-- ============================================================
-                     SEARCH + TABLE — always shown
-                     ============================================================ --%>
+                    <%-- Search form (GET) --%>
+                    <form action="warehouses" method="get" class="search-section">
+                        <i class="ri-search-line"></i>
+                        <input type="text" name="search"
+                               placeholder="Search by code, name or address..."
+                               value="${search}">
+                        <button type="submit" title="Search">
+                            <i class="ri-arrow-right-line"></i>
+                        </button>
+                        <c:if test="${not empty search}">
+                            <a href="warehouses" style="color:#94a3b8; font-size:1.1rem;" title="Clear search">
+                                <i class="ri-close-line"></i>
+                            </a>
+                        </c:if>
+                    </form>
 
-                <%-- Search form (GET) --%>
-                <form action="warehouses" method="get" class="search-section">
-                    <i class="ri-search-line"></i>
-                    <input type="text" name="search"
-                           placeholder="Search by code, name or address..."
-                           value="${search}">
-                    <button type="submit" title="Search">
-                        <i class="ri-arrow-right-line"></i>
-                    </button>
-                    <c:if test="${not empty search}">
-                        <a href="warehouses" style="color:#94a3b8; font-size:1.1rem;" title="Clear search">
-                            <i class="ri-close-line"></i>
-                        </a>
-                    </c:if>
-                </form>
-
-                <div class="card card-main">
-                    <div class="card-body p-0">
-                        <div class="table-responsive">
-                            <table class="table mb-0">
-                                <thead>
-                                    <tr>
-                                        <th>Warehouse Code</th>
-                                        <th>Name</th>
-                                        <th>Address</th>
-                                        <th>Description</th>
-                                        <th class="text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <c:forEach var="w" items="${warehouses}">
+                    <div class="card card-main">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table mb-0">
+                                    <thead>
                                         <tr>
-                                            <td><span class="font-weight-bold text-primary">${w.warehouseCode}</span></td>
-                                            <td><span class="font-weight-bold text-dark">${w.warehouseName}</span></td>
-                                            <td><span class="text-secondary">${w.address}</span></td>
-                                            <td><span class="text-secondary">${w.description}</span></td>
-                                            <td class="text-right">
-                                                <%-- Edit: link với mode=edit&id=... --%>
-                                                <a href="warehouses?mode=edit&id=${w.id}" class="btn-action btn-edit mr-2">
-                                                    <i class="ri-pencil-line"></i> Edit
-                                                </a>
-                                                <%-- Delete: POST form --%>
-                                                <form action="warehouses" method="post" style="display:inline;">
-                                                    <input type="hidden" name="action" value="delete">
-                                                    <input type="hidden" name="id" value="${w.id}">
-                                                    <button type="submit" class="btn-action btn-delete">
-                                                        <i class="ri-delete-bin-line"></i> Delete
-                                                    </button>
-                                                </form>
-                                            </td>
+                                            <th>Warehouse Code</th>
+                                            <th>Name</th>
+                                            <th>Address</th>
+                                            <th>Description</th>
+                                            <th class="text-right">Actions</th>
                                         </tr>
-                                    </c:forEach>
-                                    <c:if test="${empty warehouses}">
-                                        <tr>
-                                            <td colspan="5" class="text-center text-secondary py-4">
-                                                No warehouses found.
-                                            </td>
-                                        </tr>
-                                    </c:if>
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        <c:forEach var="w" items="${warehouses}">
+                                            <tr>
+                                                <td><span class="font-weight-bold text-primary">${w.warehouseCode}</span></td>
+                                                <td><span class="font-weight-bold text-dark">${w.warehouseName}</span></td>
+                                                <td><span class="text-secondary">${w.address}</span></td>
+                                                <td><span class="text-secondary">${w.description}</span></td>
+                                                <td class="text-right">
+                                                    <%-- Edit: link với mode=edit&id=... --%>
+                                                    <a href="warehouses?mode=edit&id=${w.id}" class="btn-action btn-edit mr-2">
+                                                        <i class="ri-pencil-line"></i> Edit
+                                                    </a>
+                                                    <%-- Delete: POST form --%>
+                                                    <form action="warehouses" method="post" style="display:inline;">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="id" value="${w.id}">
+                                                        <button type="submit" class="btn-action btn-delete"
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa kho &quot;${w.warehouseName}&quot; không? Tất cả các dữ liệu liên quan sẽ bị ảnh hưởng.')">
+                                                            <i class="ri-delete-bin-line"></i> Delete
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            </tr>
+                                        </c:forEach>
+                                        <c:if test="${empty warehouses}">
+                                            <tr>
+                                                <td colspan="5" class="text-center text-secondary py-4">
+                                                    No warehouses found.
+                                                </td>
+                                            </tr>
+                                        </c:if>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <%-- Pagination --%>
+                            <c:if test="${totalPages > 1}">
+                                <nav aria-label="Page navigation" class="mt-4 pb-4">
+                                    <ul class="pagination justify-content-center">
+                                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                            <a class="page-link"
+                                               href="warehouses?page=${currentPage - 1}&search=${search}"
+                                               tabindex="-1">Previous</a>
+                                        </li>
+
+                                        <c:forEach begin="1" end="${totalPages}" var="i">
+                                            <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                <a class="page-link"
+                                                   href="warehouses?page=${i}&search=${search}">${i}</a>
+                                            </li>
+                                        </c:forEach>
+
+                                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                            <a class="page-link"
+                                               href="warehouses?page=${currentPage + 1}&search=${search}">Next</a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </c:if>
                         </div>
                     </div>
-                </div>
+                </c:if>
 
             </div>
         </div>

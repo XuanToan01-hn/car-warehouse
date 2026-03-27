@@ -99,6 +99,28 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
         return list;
     }
 
+    public List<SalesOrder> getByStatus(int status) {
+        List<SalesOrder> list = new ArrayList<>();
+        String sql = "SELECT so.*, " +
+                     "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
+                     "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
+                     "FROM Sales_Order so WHERE Status = ? ORDER BY so.CreatedDate DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    SalesOrder so = mapRow(rs);
+                    so.setOrderedQty(rs.getInt("OrderedQty"));
+                    so.setDeliveredQty(rs.getInt("DeliveredQty"));
+                    list.add(so);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
 public SalesOrder getById(int id) {
     String sql = "SELECT so.*, " +
                  "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
@@ -175,6 +197,20 @@ public SalesOrder getById(int id) {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean hasOrders(int customerId) {
+        String sql = "SELECT COUNT(*) FROM Sales_Order WHERE CustomerID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private SalesOrder mapRow(ResultSet rs) throws SQLException {
