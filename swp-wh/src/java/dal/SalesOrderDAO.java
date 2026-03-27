@@ -12,8 +12,39 @@ public class SalesOrderDAO extends DBContext {
     private final UserDAO userDAO = new UserDAO();
     private final WarehouseDAO warehouseDAO = new WarehouseDAO();
     
+    public static void main(String[] args) {
+        SalesOrderDAO SO = new SalesOrderDAO();
+        List<SalesOrder> s = SO.getOrdersByWarehouse(2);
+        for(SalesOrder sa : s){
+            System.out.println(sa.getId());
+        }
+    }
     
     
+    public List<SalesOrder> getOrdersByWarehouse(int warehouseId) {
+    List<SalesOrder> list = new ArrayList<>();
+    // Thêm điều kiện WHERE so.WarehouseID = ? và lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
+    String sql = "SELECT so.*, " +
+                 "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
+                 "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
+                 "FROM Sales_Order so " +
+                 "WHERE so.WarehouseID = ? AND so.Status IN (1, 2) " + 
+                 "ORDER BY so.CreatedDate DESC";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, warehouseId);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                SalesOrder so = mapRow(rs);
+                so.setOrderedQty(rs.getInt("OrderedQty"));
+                so.setDeliveredQty(rs.getInt("DeliveredQty"));
+                list.add(so);
+            }
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return list;
+}
 public SalesOrder getWarehouseOrderById(int id) {
     String sqlHeader = "SELECT so.*, u.FullName as CreatorName FROM Sales_Order so " +
                        "JOIN Users u ON so.CreateBy = u.UserID WHERE so.SalesOrderID = ?";
@@ -238,7 +269,6 @@ public SalesOrder getById(int id) {
         if (warehouseId > 0) {
             so.setWarehouse(warehouseDAO.getById(warehouseId));
         }
-
         return so;
     }
 }
