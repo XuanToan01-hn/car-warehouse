@@ -248,6 +248,8 @@
                                                     <i class="fas fa-arrow-left mr-1"></i> Back
                                                 </a>
                                             </div>
+                                            <!-- Flash Msg Container -->
+                                            <div id="js-flash-msg"></div>
 
                                             <!-- Alerts -->
                                             <c:if test="${param.success == 'confirmed'}">
@@ -785,6 +787,14 @@
                         remainingSpan.style.color = leftover <= 0 ? '#22C55E' : '#EF4444';
                     }
 
+                    function showFlashMsg(msg, isError) {
+                        var container = document.getElementById('js-flash-msg');
+                        var alertClass = isError ? 'alert-danger' : 'alert-success';
+                        var iconClass = isError ? 'fa-exclamation-triangle' : 'fa-check-circle';
+                        container.innerHTML = '<div class="alert ' + alertClass + ' alert-dismissible fade show mx-3 mt-3"><i class="fas ' + iconClass + ' mr-2"></i>' + msg + '<button type="button" class="close" data-dismiss="alert">&times;</button></div>';
+                        window.scrollTo(0, 0);
+                    }
+
                     window.addEventListener('DOMContentLoaded', function () {
                         var form = document.getElementById('confirmForm');
 
@@ -815,7 +825,7 @@
                                 });
                                 if (invalid) {
                                     e.preventDefault();
-                                    alert('Actual Received Qty cannot exceed Remaining Qty. Please correct the highlighted rows.');
+                                    showFlashMsg('Actual Received Qty cannot exceed Remaining Qty. Please correct the highlighted rows.', true);
                                 }
                             });
                         }
