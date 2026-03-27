@@ -16,6 +16,7 @@ public class CustomerDAO extends DBContext {
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
                 int nextId = rs.getInt(1) + 1;
+                //thiếu thì thêm số 0 phía trước
                 return String.format("CUS-%04d", nextId);
             }
         } catch (SQLException e) {
@@ -142,12 +143,14 @@ public class CustomerDAO extends DBContext {
 
     public boolean isEmailExists(String email, int excludeId) {
         if (email == null || email.trim().isEmpty()) return false;
+        //check xem có id nào khác có cùng gmail ko
         String sql = "SELECT COUNT(*) FROM Customer WHERE Email = ? AND CustomerID != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email.trim());
             ps.setInt(2, excludeId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //số lượng dòng (count) mà >0
                     return rs.getInt(1) > 0;
                 }
             }
@@ -159,12 +162,14 @@ public class CustomerDAO extends DBContext {
 
     public boolean isPhoneExists(String phone, int excludeId) {
         if (phone == null || phone.trim().isEmpty()) return false;
+        //check xem có id nào khác có cùng sdt ko
         String sql = "SELECT COUNT(*) FROM Customer WHERE Phone = ? AND CustomerID != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, phone.trim());
             ps.setInt(2, excludeId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
+                    //số lượng dòng (count) mà >0
                     return rs.getInt(1) > 0;
                 }
             }
