@@ -18,24 +18,56 @@ public class CustomerServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
-        if ("delete".equals(action)) {
+        CustomerDAO dao = new CustomerDAO();
+        String search = request.getParameter("search");
+
+        // Load filtered customers
+        List<Customer> allCustomers;
+        if (search != null && !search.trim().isEmpty()) {
+            allCustomers = dao.search(search.trim());
+            request.setAttribute("search", search.trim());
+        } else {
+            allCustomers = dao.getAll();
+        }
+
+        // Pagination Logic
+        int pageSize = 5;
+        String pageStr = request.getParameter("page");
+        int currentPage = (pageStr != null && !pageStr.trim().isEmpty()) ? Integer.parseInt(pageStr.trim()) : 1;
+
+        int totalCustomers = allCustomers.size();
+        int totalPages = (int) Math.ceil((double) totalCustomers / pageSize);
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        int start = (currentPage - 1) * pageSize;
+        int end = Math.min(start + pageSize, totalCustomers);
+
+        List<Customer> pagedCustomers = new java.util.ArrayList<>();
+        if (start < totalCustomers) {
+            pagedCustomers = allCustomers.subList(start, end);
+        }
+
+        request.setAttribute("customers", pagedCustomers);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+
+        // Edit mode: load the customer to be edited
+        String mode = request.getParameter("mode");
+        if ("edit".equals(mode)) {
             String idStr = request.getParameter("id");
             if (idStr != null && !idStr.trim().isEmpty()) {
                 try {
                     int id = Integer.parseInt(idStr.trim());
-                    CustomerDAO dao = new CustomerDAO();
-                    dao.delete(id);
-                } catch (NumberFormatException ignored) {
-                }
+                    Customer editing = dao.getById(id);
+                    request.setAttribute("editCustomer", editing);
+                    request.setAttribute("mode", "edit");
+                } catch (NumberFormatException ignored) {}
             }
-            response.sendRedirect(request.getContextPath() + "/customers");
-            return;
+        } else if ("add".equals(mode)) {
+            request.setAttribute("mode", "add");
         }
 
-        CustomerDAO dao = new CustomerDAO();
-        List<Customer> customers = dao.getAll();
-        request.setAttribute("customers", customers);
         request.getRequestDispatcher("/view/customer.jsp").forward(request, response);
     }
 
@@ -51,14 +83,12 @@ public class CustomerServlet extends HttpServlet {
 
         switch (action) {
             case "add": {
-                // Auto-generate code
                 String customerCode = dao.getNextCustomerCode();
                 String name = trimParam(request.getParameter("name"));
                 String phone = trimParam(request.getParameter("phone"));
                 String email = trimParam(request.getParameter("email"));
                 String address = trimParam(request.getParameter("address"));
 
-                // Validation
                 if (name.isEmpty() || !isValidName(name)) {
                     request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Tên phải là định dạng chữ!");
                     response.sendRedirect(request.getContextPath() + "/customers");
@@ -73,7 +103,19 @@ public class CustomerServlet extends HttpServlet {
 
                 if (!email.isEmpty() && !isValidEmail(email)) {
                     request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Email không đúng định dạng!");
-                    response.sendRedirect(request.getContextPath() + "/customers");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=add");
+                    return;
+                }
+
+                if (!phone.isEmpty() && dao.isPhoneExists(phone, 0)) {
+                    request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Số điện thoại \"" + phone + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=add");
+                    return;
+                }
+
+                if (!email.isEmpty() && dao.isEmailExists(email, 0)) {
+                    request.getSession().setAttribute("error", "Thêm khách hàng không thành công. Email \"" + email + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=add");
                     return;
                 }
 
@@ -106,7 +148,7 @@ public class CustomerServlet extends HttpServlet {
                 String email = trimParam(request.getParameter("email"));
                 String address = trimParam(request.getParameter("address"));
 
-                // Validation
+
                 if (name.isEmpty() || !isValidName(name)) {
                     request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Tên phải là định dạng chữ!");
                     response.sendRedirect(request.getContextPath() + "/customers");
@@ -121,7 +163,19 @@ public class CustomerServlet extends HttpServlet {
 
                 if (!email.isEmpty() && !isValidEmail(email)) {
                     request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Email không đúng định dạng!");
-                    response.sendRedirect(request.getContextPath() + "/customers");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=edit&id=" + id);
+                    return;
+                }
+
+                if (!phone.isEmpty() && dao.isPhoneExists(phone, id)) {
+                    request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Số điện thoại \"" + phone + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=edit&id=" + id);
+                    return;
+                }
+
+                if (!email.isEmpty() && dao.isEmailExists(email, id)) {
+                    request.getSession().setAttribute("error", "Cập nhật khách hàng không thành công. Email \"" + email + "\" đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/customers?mode=edit&id=" + id);
                     return;
                 }
 
@@ -145,7 +199,19 @@ public class CustomerServlet extends HttpServlet {
                 if (idStr != null && !idStr.trim().isEmpty()) {
                     try {
                         int id = Integer.parseInt(idStr.trim());
-                        dao.delete(id);
+                        dal.SalesOrderDAO soDAO = new dal.SalesOrderDAO();
+                        
+                        if (soDAO.hasOrders(id)) {
+                             request.getSession().setAttribute("error", "Không thể xóa khách hàng này vì đã có đơn hàng được tạo hoặc đã giao!");
+                             response.sendRedirect(request.getContextPath() + "/customers");
+                             return;
+                        }
+
+                        if (dao.delete(id)) {
+                            request.getSession().setAttribute("success", "Xóa khách hàng thành công!");
+                        } else {
+                            request.getSession().setAttribute("error", "Xóa khách hàng thất bại!");
+                        }
                     } catch (NumberFormatException ignored) {
                     }
                 }

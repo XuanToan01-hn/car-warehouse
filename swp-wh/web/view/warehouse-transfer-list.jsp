@@ -138,71 +138,44 @@
                     }
 
                     .badge-status {
-                        padding: 0.4rem 1rem;
+                        padding: 0.5rem 1rem;
                         border-radius: 8px;
                         font-weight: 700;
                         font-size: 0.75rem;
                         text-transform: uppercase;
                         display: inline-block;
+                        min-width: 100px;
+                        text-align: center;
                     }
 
                     .badge-pending {
                         background: #fff7ed;
-                        color: #9a3412;
+                        color: #f97316;
                         border: 1px solid #ffedd5;
                     }
 
                     .badge-approved {
-                        background: #f0fdf4;
-                        color: #166534;
-                        border: 1px solid #dcfce7;
-                    }
-
-                    .badge-intransit {
                         background: #eff6ff;
-                        color: #1e40af;
+                        color: #2563eb;
                         border: 1px solid #dbeafe;
                     }
 
+                    .badge-intransit {
+                        background: #fdf4ff;
+                        color: #a21caf;
+                        border: 1px solid #fae8ff;
+                    }
+
                     .badge-completed {
-                        background: #f1f5f9;
-                        color: #475569;
-                        border: 1px solid #e2e8f0;
+                        background: #f0fdf4;
+                        color: #10b981;
+                        border: 1px solid #dcfce7;
                     }
 
-                    .progress-mini {
-                        height: 6px;
-                        width: 100px;
-                        background: #e2e8f0;
-                        border-radius: 10px;
-                        margin-top: 8px;
-                        overflow: hidden;
-                    }
-
-                    .progress-bar-fill {
-                        height: 100%;
-                        border-radius: 10px;
-                        transition: width 0.3s;
-                    }
-
-                    .fill-step1 {
-                        width: 25%;
-                        background: var(--warning);
-                    }
-
-                    .fill-step2 {
-                        width: 50%;
-                        background: var(--success);
-                    }
-
-                    .fill-step3out {
-                        width: 75%;
-                        background: var(--primary);
-                    }
-
-                    .fill-step3in {
-                        width: 100%;
-                        background: var(--gray-dark);
+                    .badge-cancelled {
+                        background: #fef2f2;
+                        color: #ef4444;
+                        border: 1px solid #fee2e2;
                     }
 
                     .location-info {
@@ -298,13 +271,41 @@
                     .btn-view:hover {
                         background: #e2e8f0;
                     }
+
+                    .badge-primary-light {
+                        background: #eff6ff;
+                        color: #2563eb;
+                        border: 1px solid #dbeafe;
+                    }
+
+                    .badge-warning-light {
+                        background: #fff7ed;
+                        color: #f97316;
+                        border: 1px solid #ffedd5;
+                    }
+
+                    .g-3 {
+                        gap: 1rem;
+                    }
+
+                    .pagination .page-link {
+                        border-radius: 8px;
+                        margin: 0 3px;
+                        color: #334155;
+                        font-weight: 500;
+                    }
+
+                    .pagination .page-item.active .page-link {
+                        background-color: #0ea5e9;
+                        border-color: #0ea5e9;
+                    }
                 </style>
             </head>
 
             <body>
                 <div class="wrapper">
                     <%@ include file="sidebar.jsp" %>
-                    <jsp:include page="header.jsp" />
+                        <jsp:include page="header.jsp" />
                         <div class="content-page">
                             <div class="container-fluid">
                                 <div class="page-header">
@@ -338,15 +339,14 @@
 
                                 <div class="card card-main">
                                     <div class="filter-section">
-                                        <form action="warehouse-transfer" method="get" class="row align-items-end">
-                                            <div class="col-md-3">
+                                        <form action="warehouse-transfer" method="get" class="row align-items-end g-3">
+                                            <div class="col-md-2">
                                                 <label
-                                                    class="font-weight-bold small text-uppercase text-secondary">Transfer
-                                                    Code</label>
+                                                    class="font-weight-bold small text-uppercase text-secondary">Code</label>
                                                 <input type="text" name="code" class="form-control"
-                                                    placeholder="Search code..." value="${searchCode}">
+                                                    placeholder="Search..." value="${searchCode}">
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label
                                                     class="font-weight-bold small text-uppercase text-secondary">Status</label>
                                                 <select name="status" class="form-control">
@@ -359,7 +359,7 @@
                                                     </option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-3">
+                                            <div class="col-md-2">
                                                 <label
                                                     class="font-weight-bold small text-uppercase text-secondary">Warehouse</label>
                                                 <select name="warehouseId" class="form-control">
@@ -370,9 +370,20 @@
                                                     </c:forEach>
                                                 </select>
                                             </div>
+                                            <div class="col-md-2">
+                                                <label
+                                                    class="font-weight-bold small text-uppercase text-secondary">Type</label>
+                                                <select name="type" class="form-control">
+                                                    <option value="">All Types</option>
+                                                    <option value="internal" ${selectedType=='internal' ? 'selected'
+                                                        : '' }>Internal Transfer</option>
+                                                    <option value="external" ${selectedType=='external' ? 'selected'
+                                                        : '' }>External Transfer</option>
+                                                </select>
+                                            </div>
                                             <div class="col-md-3">
                                                 <button type="submit" class="btn btn-filter w-100">
-                                                    <i class="ri-filter-3-line mr-1"></i> Apply Filters
+                                                    <i class="ri-filter-3-line mr-1"></i> Apply
                                                 </button>
                                             </div>
                                         </form>
@@ -382,7 +393,7 @@
                                             <table class="table mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th>Transfer Code</th>
+                                                        <th>Code & Type</th>
                                                         <th>From Location</th>
                                                         <th>To Location</th>
                                                         <th>Status</th>
@@ -393,9 +404,15 @@
                                                     <c:forEach var="t" items="${transfers}">
                                                         <tr>
                                                             <td>
-                                                                <a href="javascript:void(0)"
-                                                                    onclick="viewDetail(${t.id})"
-                                                                    class="font-weight-bold text-primary">${t.transferCode}</a>
+                                                                <c:set var="isInternal"
+                                                                    value="${t.fromWarehouseId == t.toWarehouseId}" />
+                                                                <a href="warehouse-transfer?action=detail&id=${t.id}"
+                                                                    class="font-weight-bold text-primary d-block mb-1">${t.transferCode}</a>
+                                                                <span
+                                                                    class="badge ${isInternal ? 'badge-primary-light' : 'badge-warning-light'} font-weight-bold px-2 py-1"
+                                                                    style="font-size: 0.65rem;">
+                                                                    ${isInternal ? 'INTERNAL' : 'EXTERNAL'}
+                                                                </span>
                                                             </td>
                                                             <td>
                                                                 <div class="location-info">
@@ -418,92 +435,77 @@
                                                                     <c:when test="${t.status == 0}">
                                                                         <span
                                                                             class="badge-status badge-pending">Pending</span>
-                                                                        <div class="progress-mini">
-                                                                            <div class="progress-bar-fill fill-step1">
-                                                                            </div>
-                                                                        </div>
                                                                     </c:when>
                                                                     <c:when test="${t.status == 1}">
                                                                         <span
                                                                             class="badge-status badge-approved">Approved</span>
-                                                                        <div class="progress-mini">
-                                                                            <div class="progress-bar-fill fill-step2">
-                                                                            </div>
-                                                                        </div>
                                                                     </c:when>
                                                                     <c:when test="${t.status == 2}">
                                                                         <span
                                                                             class="badge-status badge-intransit">In-Transit</span>
-                                                                        <div class="progress-mini">
-                                                                            <div
-                                                                                class="progress-bar-fill fill-step3out">
-                                                                            </div>
-                                                                        </div>
                                                                     </c:when>
                                                                     <c:when test="${t.status == 3}">
                                                                         <span
                                                                             class="badge-status badge-completed">Completed</span>
-                                                                        <div class="progress-mini">
-                                                                            <div class="progress-bar-fill fill-step3in">
-                                                                            </div>
-                                                                        </div>
                                                                     </c:when>
                                                                     <c:otherwise>
                                                                         <span
-                                                                            class="badge badge-secondary">Cancelled</span>
+                                                                            class="badge-status badge-cancelled">Cancelled</span>
                                                                     </c:otherwise>
                                                                 </c:choose>
                                                             </td>
                                                             <td class="text-right">
-                                                                <c:if test="${t.status == 1}">
-                                                                    <form action="warehouse-transfer" method="post"
-                                                                        style="display:inline;">
-                                                                        <input type="hidden" name="action"
-                                                                            value="transferOut">
-                                                                        <input type="hidden" name="transferId"
-                                                                            value="${t.id}">
-                                                                        <input type="hidden" name="code"
-                                                                            value="${searchCode}">
-                                                                        <input type="hidden" name="status"
-                                                                            value="${selectedStatus}">
-                                                                        <input type="hidden" name="warehouseId"
-                                                                            value="${selectedWarehouse}">
-                                                                        <button type="submit" class="btn-action btn-out"
-                                                                            onclick="return confirm('Confirm Export for ${t.transferCode}?')">
-                                                                            <i class="ri-logout-box-r-line"></i>
-                                                                            Confirm Export
-                                                                        </button>
-                                                                    </form>
-                                                                </c:if>
-                                                                <c:if test="${t.status == 2}">
-                                                                    <form action="warehouse-transfer" method="post"
-                                                                        style="display:inline;">
-                                                                        <input type="hidden" name="action"
-                                                                            value="transferIn">
-                                                                        <input type="hidden" name="transferId"
-                                                                            value="${t.id}">
-                                                                        <input type="hidden" name="code"
-                                                                            value="${searchCode}">
-                                                                        <input type="hidden" name="status"
-                                                                            value="${selectedStatus}">
-                                                                        <input type="hidden" name="warehouseId"
-                                                                            value="${selectedWarehouse}">
-                                                                        <button type="submit" class="btn-action btn-in"
-                                                                            onclick="return confirm('Confirm transfer IN for ${t.transferCode}?')">
-                                                                            <i class="ri-login-box-r-line"></i> Confirm
-                                                                            Transfer IN
-                                                                        </button>
-                                                                    </form>
-                                                                </c:if>
-                                                                <c:if test="${t.status == 3}">
-                                                                    <span class="text-success font-weight-bold mr-2"><i
-                                                                            class="ri-check-double-line"></i>
-                                                                        Completed</span>
-                                                                </c:if>
-                                                                <button class="btn-action btn-view"
-                                                                    onclick="viewDetail(${t.id})">
-                                                                    <i class="ri-eye-line"></i> View
-                                                                </button>
+                                                                <div class="d-flex justify-content-end align-items-center"
+                                                                    style="gap: 0.5rem;">
+                                                                    <c:if test="${t.status == 1}">
+                                                                        <form action="warehouse-transfer" method="post"
+                                                                            class="m-0">
+                                                                            <input type="hidden" name="action"
+                                                                                value="transferOut">
+                                                                            <input type="hidden" name="transferId"
+                                                                                value="${t.id}">
+                                                                            <input type="hidden" name="code"
+                                                                                value="${searchCode}">
+                                                                            <input type="hidden" name="status"
+                                                                                value="${selectedStatus}">
+                                                                            <input type="hidden" name="warehouseId"
+                                                                                value="${selectedWarehouse}">
+                                                                            <button type="submit"
+                                                                                class="btn-action btn-out"
+                                                                                onclick="return confirm('Confirm Export for ${t.transferCode}?')">
+                                                                                <i class="ri-logout-box-r-line"></i>
+                                                                                Confirm Export
+                                                                            </button>
+                                                                        </form>
+                                                                    </c:if>
+
+                                                                    <c:if test="${t.status == 2}">
+                                                                        <form action="warehouse-transfer" method="post"
+                                                                            class="m-0">
+                                                                            <input type="hidden" name="action"
+                                                                                value="transferIn">
+                                                                            <input type="hidden" name="transferId"
+                                                                                value="${t.id}">
+                                                                            <input type="hidden" name="code"
+                                                                                value="${searchCode}">
+                                                                            <input type="hidden" name="status"
+                                                                                value="${selectedStatus}">
+                                                                            <input type="hidden" name="warehouseId"
+                                                                                value="${selectedWarehouse}">
+                                                                            <button type="submit"
+                                                                                class="btn-action btn-in"
+                                                                                onclick="return confirm('Confirm transfer IN for ${t.transferCode}?')">
+                                                                                <i class="ri-login-box-r-line"></i>
+                                                                                Confirm Transfer IN
+                                                                            </button>
+                                                                        </form>
+                                                                    </c:if>
+
+                                                                    <a href="warehouse-transfer?action=detail&id=${t.id}"
+                                                                        class="btn-action btn-view">
+                                                                        <i class="ri-eye-line"></i> View
+                                                                    </a>
+                                                                </div>
                                                             </td>
                                                         </tr>
                                                     </c:forEach>
@@ -522,161 +524,44 @@
                                             </table>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-                </div>
-
-                <!-- Detail Modal -->
-                <div class="modal fade" id="detailModal" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title font-weight-bold">Detail Transfer</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <div class="modal-body">
-                                <div id="loadingDetail" class="text-center py-4">
-                                    <div class="spinner-border text-primary" role="status"></div>
-                                    <p class="mt-2 text-muted">Loading...</p>
-                                </div>
-                                <div id="detailContent" style="display: none;">
-                                    <!-- Header Info -->
-                                    <div class="row mb-3">
-                                        <div class="col-md-7">
-                                            <span class="detail-label text-primary">Transfer Code</span>
-                                            <span id="dtCode" class="detail-value h5 font-weight-bold mb-0"></span>
-                                        </div>
-                                        <div class="col-md-5 text-md-right border-left pl-4">
-                                            <span class="detail-label">Total Quantity</span>
-                                            <div class="d-flex align-items-baseline justify-content-md-end">
-                                                <span id="dtQty" class="text-dark font-weight-bold h3 mb-0"></span>
-                                                <span class="text-muted ml-1" style="font-size: 1rem;">pcs</span>
+                                    <!-- Pagination Footer -->
+                                    <div class="card-footer bg-white border-top py-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="text-muted small">
+                                                Showing page ${currentPage} of ${totalPages}
                                             </div>
-                                        </div>
-                                    </div>
+                                            <nav>
+                                                <ul class="pagination pagination-sm mb-0">
+                                                    <c:if test="${currentPage > 1}">
+                                                        <li class="page-item">
+                                                            <a class="page-link"
+                                                                href="${baseUrl}page=${currentPage - 1}">Previous</a>
+                                                        </li>
+                                                    </c:if>
 
-                                    <div class="row">
-                                        <!-- Left Column: Product & Note -->
-                                        <div class="col-md-6">
-                                            <div class="product-banner mb-3">
-                                                <span class="detail-label text-primary">Car / Product</span>
-                                                <div id="dtProduct" class="detail-value font-weight-bold truncate-2"
-                                                    style="font-size: 1.15rem;"></div>
-                                            </div>
-                                            <div class="info-section mb-0" style="padding: 1rem;">
-                                                <span class="detail-label">Reason / Note</span>
-                                                <div class="p-2 border rounded bg-white text-muted"
-                                                    style="min-height: 80px;">
-                                                    <span id="dtNote"
-                                                        style="font-style: italic; line-height: 1.5; display: block; font-size: 0.95rem;"></span>
-                                                </div>
-                                            </div>
-                                        </div>
+                                                    <c:forEach begin="1" end="${totalPages}" var="i">
+                                                        <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                                            <a class="page-link" href="${baseUrl}page=${i}">${i}</a>
+                                                        </li>
+                                                    </c:forEach>
 
-                                        <!-- Right Column: Route -->
-                                        <div class="col-md-6">
-                                            <div class="info-section h-100 mb-0">
-                                                <span class="detail-label">Transfer Route</span>
-                                                <div class="d-flex flex-column gap-3 mt-2">
-                                                    <div class="route-node">
-                                                        <i class="ri-map-pin-2-fill text-danger mr-3"
-                                                            style="font-size: 1.2rem;"></i>
-                                                        <div style="line-height: 1.3;">
-                                                            <small class="text-muted d-block"
-                                                                style="font-size: 0.75rem;">EXPORT (SOURCE)</small>
-                                                            <span id="dtFrom" style="font-size: 1rem;"></span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="text-center my-1">
-                                                        <i class="ri-arrow-down-line text-muted h4 mb-0"></i>
-                                                    </div>
-                                                    <div class="route-node">
-                                                        <i class="ri-checkbox-circle-fill text-success mr-3"
-                                                            style="font-size: 1.2rem;"></i>
-                                                        <div style="line-height: 1.3;">
-                                                            <small class="text-muted d-block"
-                                                                style="font-size: 0.75rem;">IMPORT (DESTINATION)</small>
-                                                            <span id="dtTo" style="font-size: 1rem;"></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                    <c:if test="${currentPage < totalPages}">
+                                                        <li class="page-item">
+                                                            <a class="page-link"
+                                                                href="${baseUrl}page=${currentPage + 1}">Next</a>
+                                                        </li>
+                                                    </c:if>
+                                                </ul>
+                                            </nav>
                                         </div>
-                                    </div>
-
-                                    <!-- Actions (Dynamic) -->
-                                    <div id="modalActions" class="d-flex justify-content-end mt-4 pt-3 border-top">
-                                        <!-- Buttons will be injected by JS -->
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
                 </div>
 
                 <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
                 <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
-                <script>
-                    function viewDetail(id) {
-                        $('#detailModal').modal('show');
-                        $('#loadingDetail').show();
-                        $('#detailContent').hide();
-
-                        fetch('${pageContext.request.contextPath}/internal-transfer?action=getDetail&id=' + id)
-                            .then(res => res.json())
-                            .then(data => {
-                                $('#loadingDetail').hide();
-                                $('#dtCode').text(data.code);
-                                $('#dtFrom').text(data.from);
-                                $('#dtTo').text(data.to);
-                                $('#dtProduct').text(data.product);
-                                $('#dtQty').text(data.qty);
-                                $('#dtNote').text(data.note || 'Không có ghi chú');
-
-                                // Build actions
-                                let actionsRoot = document.getElementById('modalActions');
-                                actionsRoot.innerHTML = '';
-
-                                if (data.status === 1) { // Approved -> Can Transfer Out
-                                    actionsRoot.innerHTML = `
-                                        <form action="warehouse-transfer" method="post">
-                                            <input type="hidden" name="action" value="transferOut">
-                                            <input type="hidden" name="transferId" value="${data.id}">
-                                            <button type="submit" class="btn btn-outline-warning px-4 rounded-xl font-weight-bold" 
-                                                    onclick="return confirm('Confirm Export for ${data.code}?')">
-                                                <i class="ri-logout-box-r-line mr-1"></i> Confirm Export
-                                            </button>
-                                        </form>
-                                    `;
-                                } else if (data.status === 2) { // In-Transit -> Can Transfer In
-                                    actionsRoot.innerHTML = `
-                                        <form action="warehouse-transfer" method="post">
-                                            <input type="hidden" name="action" value="transferIn">
-                                            <input type="hidden" name="transferId" value="${data.id}">
-                                            <button type="submit" class="btn btn-success px-5 rounded-xl font-weight-bold shadow-sm" 
-                                                    onclick="return confirm('Confirm Import for ${data.code}?')">
-                                                <i class="ri-login-box-r-line mr-1"></i> Confirm Import
-                                            </button>
-                                        </form>
-                                    `;
-                                } else if (data.status === 3) {
-                                    actionsRoot.innerHTML = '<span class="text-success font-weight-bold"><i class="ri-checkbox-circle-fill mr-1"></i> Đã hoàn thành vận chuyển</span>';
-                                } else {
-                                    actionsRoot.innerHTML = '<button type="button" class="btn btn-secondary px-4 rounded-xl" data-dismiss="modal">Đóng</button>';
-                                }
-
-                                $('#detailContent').fadeIn();
-                            })
-                            .catch(err => {
-                                console.error(err);
-                                alert('Error loading detail');
-                                $('#detailModal').modal('hide');
-                            });
-                    }
-                </script>
             </body>
 
             </html>

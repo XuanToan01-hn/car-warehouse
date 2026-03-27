@@ -4,6 +4,7 @@ import dal.GoodsReceiptDAO;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -63,6 +64,30 @@ public class ConfirmGoodsReceiptServlet extends HttpServlet {
                         u.setId(d.getId());
                         u.setQuantityActual(d.getQuantityActual());
                         updatedDetails.add(u);
+                    }
+                }
+            }
+
+            // Server-side validation: actual qty must not exceed remaining qty
+            if (!updatedDetails.isEmpty()) {
+                GoodsReceipt currentGr = grDAO.getById(receiptId);
+                if (currentGr != null && currentGr.getDetails() != null) {
+                    Map<Integer, Integer> remainingMap = new java.util.HashMap<>();
+                    for (GoodsReceiptDetail dd : currentGr.getDetails()) {
+                        remainingMap.put(dd.getId(), dd.getRemainingQty());
+                    }
+                    boolean overLimit = false;
+                    for (GoodsReceiptDetail ud : updatedDetails) {
+                        int maxAllowed = remainingMap.getOrDefault(ud.getId(), Integer.MAX_VALUE);
+                        if (ud.getQuantityActual() > maxAllowed) {
+                            overLimit = true;
+                            break;
+                        }
+                    }
+                    if (overLimit) {
+                        response.sendRedirect(request.getContextPath()
+                                + "/detail-goods-receipt?id=" + receiptId + "&error=qty_exceeds_remaining");
+                        return;
                     }
                 }
             }

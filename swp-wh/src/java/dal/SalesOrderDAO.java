@@ -10,6 +10,7 @@ public class SalesOrderDAO extends DBContext {
 
     private final CustomerDAO customerDAO = new CustomerDAO();
     private final UserDAO userDAO = new UserDAO();
+    private final WarehouseDAO warehouseDAO = new WarehouseDAO();
     
     
     
@@ -99,6 +100,28 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
         return list;
     }
 
+    public List<SalesOrder> getByStatus(int status) {
+        List<SalesOrder> list = new ArrayList<>();
+        String sql = "SELECT so.*, " +
+                     "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
+                     "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
+                     "FROM Sales_Order so WHERE Status = ? ORDER BY so.CreatedDate DESC";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    SalesOrder so = mapRow(rs);
+                    so.setOrderedQty(rs.getInt("OrderedQty"));
+                    so.setDeliveredQty(rs.getInt("DeliveredQty"));
+                    list.add(so);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
 public SalesOrder getById(int id) {
     String sql = "SELECT so.*, " +
                  "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
@@ -125,7 +148,7 @@ public SalesOrder getById(int id) {
 
 
     public void insert(SalesOrder order, List<SalesOrderDetail> details) {
-        String sqlOrder = "INSERT INTO Sales_Order (OrderCode, CustomerID, Status, TotalAmount, Note, CreateBy) VALUES (?, ?, ?, ?, ?, ?)";
+        String sqlOrder = "INSERT INTO Sales_Order (OrderCode, CustomerID, Status, TotalAmount, Note, CreateBy, WarehouseID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         String sqlDetail = "INSERT INTO Sales_Order_Detail (SalesOrderID, ProductDetailID, Quantity, Price, SubTotal) VALUES (?, ?, ?, ?, ?)";
         
         try {
@@ -137,6 +160,11 @@ public SalesOrder getById(int id) {
                 psOrder.setDouble(4, order.getTotalAmount());
                 psOrder.setString(5, order.getNote());
                 psOrder.setInt(6, order.getCreateBy().getId());
+                if (order.getWarehouse() != null) {
+                    psOrder.setInt(7, order.getWarehouse().getId());
+                } else {
+                    psOrder.setNull(7, java.sql.Types.INTEGER);
+                }
                 psOrder.executeUpdate();
                 
                 ResultSet rs = psOrder.getGeneratedKeys();
@@ -177,6 +205,20 @@ public SalesOrder getById(int id) {
         }
     }
 
+    public boolean hasOrders(int customerId) {
+        String sql = "SELECT COUNT(*) FROM Sales_Order WHERE CustomerID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private SalesOrder mapRow(ResultSet rs) throws SQLException {
         SalesOrder so = new SalesOrder();
         so.setId(rs.getInt("SalesOrderID"));
@@ -191,7 +233,12 @@ public SalesOrder getById(int id) {
         
         int userId = rs.getInt("CreateBy");
         so.setCreateBy(userDAO.getById(userId));
-        
+
+        int warehouseId = rs.getInt("WarehouseID");
+        if (warehouseId > 0) {
+            so.setWarehouse(warehouseDAO.getById(warehouseId));
+        }
+
         return so;
     }
 }

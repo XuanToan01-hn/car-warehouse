@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
+import model.ProductDetail;
 
 /**
  *
@@ -54,32 +55,25 @@ public class InventoryReportController extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-@Override
-protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    ReportDAO rd = new ReportDAO();
-    dal.WarehouseDAO wd = new dal.WarehouseDAO();
-    dal.LocationDAO ld = new dal.LocationDAO(); // Cần có DAO này để lấy list Location
-
-    String pName = request.getParameter("productName");
-    String wName = request.getParameter("warehouseName");
-    String locIdStr = request.getParameter("locationId");
-    String pageStr = request.getParameter("page");
+    @Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response) 
+throws ServletException, IOException {
+    ReportDAO dao = new ReportDAO();
     
-    Integer locationId = (locIdStr == null || locIdStr.isEmpty()) ? 0 : Integer.parseInt(locIdStr);
-    int page = (pageStr == null || pageStr.isEmpty()) ? 1 : Integer.parseInt(pageStr);
-    int pageSize = 10;
+    String search = request.getParameter("search");
+    int page = request.getParameter("page") != null ? Integer.parseInt(request.getParameter("page")) : 1;
+    int size = 5;
 
-    // Truyền thêm locationId vào DAO
-    List<model.LocationProduct> list = rd.getCurrentStock(pName, wName, locationId, page, pageSize, "lp.Quantity", "DESC");
-    int totalRecords = rd.countCurrentStock(pName, wName, locationId);
-    int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+    // THAY ĐỔI Ở ĐÂY: Gọi hàm lấy báo cáo phẳng thay vì gộp
+    List<ProductDetail> list = dao.getInventoryFlatReport(search, page, size);
+    
+    int totalRecords = dao.countGlobalStock(search);
+    int totalPages = (int) Math.ceil((double) totalRecords / size);
 
-    request.setAttribute("stockList", list);
-    request.setAttribute("warehouses", wd.getAll()); 
-    request.setAttribute("locations", ld.getAll()); // Đẩy danh sách location sang JSP
+    request.setAttribute("pdList", list);
     request.setAttribute("totalPages", totalPages);
     request.setAttribute("currentPage", page);
-    
+
     request.getRequestDispatcher("/view/report/inventoryReport.jsp").forward(request, response);
 }
 

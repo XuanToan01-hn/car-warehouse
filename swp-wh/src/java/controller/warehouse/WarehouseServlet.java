@@ -17,24 +17,56 @@ public class WarehouseServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        String action = request.getParameter("action");
-        if ("delete".equals(action)) {
+        WarehouseDAO dao = new WarehouseDAO();
+        String search = request.getParameter("search");
+
+        // Load filtered warehouses
+        List<Warehouse> allWarehouses;
+        if (search != null && !search.trim().isEmpty()) {
+            allWarehouses = dao.search(search.trim());
+            request.setAttribute("search", search.trim());
+        } else {
+            allWarehouses = dao.getAll();
+        }
+
+        // Pagination Logic
+        int pageSize = 5;
+        String pageStr = request.getParameter("page");
+        int currentPage = (pageStr != null && !pageStr.trim().isEmpty()) ? Integer.parseInt(pageStr.trim()) : 1;
+
+        int totalWarehouses = allWarehouses.size();
+        int totalPages = (int) Math.ceil((double) totalWarehouses / pageSize);
+        if (currentPage > totalPages && totalPages > 0) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        int start = (currentPage - 1) * pageSize;
+        int end = Math.min(start + pageSize, totalWarehouses);
+
+        List<Warehouse> pagedWarehouses = new java.util.ArrayList<>();
+        if (start < totalWarehouses) {
+            pagedWarehouses = allWarehouses.subList(start, end);
+        }
+
+        request.setAttribute("warehouses", pagedWarehouses);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+
+        // Edit mode: load the warehouse to be edited
+        String mode = request.getParameter("mode");
+        if ("edit".equals(mode)) {
             String idStr = request.getParameter("id");
             if (idStr != null && !idStr.trim().isEmpty()) {
                 try {
                     int id = Integer.parseInt(idStr.trim());
-                    WarehouseDAO dao = new WarehouseDAO();
-                    dao.delete(id);
-                } catch (NumberFormatException ignored) {
-                }
+                    Warehouse editing = dao.getById(id);
+                    request.setAttribute("editWarehouse", editing);
+                    request.setAttribute("mode", "edit");
+                } catch (NumberFormatException ignored) {}
             }
-            response.sendRedirect(request.getContextPath() + "/warehouses");
-            return;
+        } else if ("add".equals(mode)) {
+            request.setAttribute("mode", "add");
         }
 
-        WarehouseDAO dao = new WarehouseDAO();
-        List<Warehouse> warehouses = dao.getAll();
-        request.setAttribute("warehouses", warehouses);
         request.getRequestDispatcher("/view/warehouse.jsp").forward(request, response);
     }
 
@@ -117,7 +149,20 @@ public class WarehouseServlet extends HttpServlet {
                 if (idStr != null && !idStr.trim().isEmpty()) {
                     try {
                         int id = Integer.parseInt(idStr.trim());
-                        dao.delete(id);
+                        
+                        // Safeguard: Check if warehouse has locations
+                        dal.LocationDAO locationDAO = new dal.LocationDAO();
+                        List<model.Location> locations = locationDAO.getByWarehouseId(id);
+                        
+                        if (!locations.isEmpty()) {
+                            request.getSession().setAttribute("error", "Không thể xóa kho vì vẫn còn vị trí bên trong!");
+                        } else {
+                            if (dao.delete(id)) {
+                                request.getSession().setAttribute("success", "Xóa kho thành công!");
+                            } else {
+                                request.getSession().setAttribute("error", "Xóa kho thất bại. Vui lòng thử lại!");
+                            }
+                        }
                     } catch (NumberFormatException ignored) {
                     }
                 }

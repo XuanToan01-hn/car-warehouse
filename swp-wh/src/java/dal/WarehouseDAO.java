@@ -72,6 +72,31 @@ public class WarehouseDAO extends DBContext {
         return list;
     }
 
+    public List<Warehouse> search(String keyword) {
+        List<Warehouse> list = new ArrayList<>();
+        String sql = "SELECT * FROM Warehouse WHERE WarehouseCode LIKE ? OR WarehouseName LIKE ? OR Address LIKE ?";
+        String pattern = "%" + keyword + "%";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, pattern);
+            ps.setString(2, pattern);
+            ps.setString(3, pattern);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                Warehouse w = new Warehouse();
+                w.setId(rs.getInt("WarehouseID"));
+                w.setWarehouseCode(rs.getString("WarehouseCode"));
+                w.setWarehouseName(rs.getString("WarehouseName"));
+                w.setAddress(rs.getString("Address"));
+                w.setDescription(rs.getString("Description"));
+                w.setCreatedAt(rs.getTimestamp("CreatedAt"));
+                list.add(w);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public void insert(Warehouse w) {
         String sql = "INSERT INTO Warehouse (WarehouseCode, WarehouseName, Address, Description) "
                    + "VALUES (?, ?, ?, ?)";
@@ -101,14 +126,15 @@ public class WarehouseDAO extends DBContext {
         }
     }
 
-    public void delete(int id) {
+    public boolean delete(int id) {
         String sql = "DELETE FROM Warehouse WHERE WarehouseID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        return false;
     }
 }
 

@@ -163,6 +163,30 @@
                                     </a>
                                 </div>
 
+                                <%-- Filter Section --%>
+                                <div class="row mb-4">
+                                    <div class="col-md-4">
+                                        <form action="${pageContext.request.contextPath}/sales-order" method="get" class="d-inline-block">
+                                            <input type="hidden" name="action" value="list">
+                                            <div class="input-group">
+                                                <div class="input-group-prepend">
+                                                    <span class="input-group-text bg-white border-right-0">
+                                                        <i class="ri-filter-3-line text-primary"></i>
+                                                    </span>
+                                                </div>
+                                                <select name="status" class="form-control border-left-0" onchange="this.form.submit()" 
+                                                        style="border-radius: 0 10px 10px 0; font-weight: 600;">
+                                                    <option value="">All Statuses</option>
+                                                    <option value="1" ${currentStatus == 1 ? 'selected' : ''}>Created</option>
+                                                    <option value="2" ${currentStatus == 2 ? 'selected' : ''}>Partially Delivered</option>
+                                                    <option value="3" ${currentStatus == 3 ? 'selected' : ''}>Completed</option>
+                                                    <option value="4" ${currentStatus == 4 ? 'selected' : ''}>Cancelled</option>
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
                                 <div class="card card-main">
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
@@ -172,7 +196,7 @@
                                                         <th>Order Code</th>
                                                         <th>Customer</th>
                                                         <th>Created Date</th>
-                                                        <th>Qty (Ord / Del)</th>
+                                                        <th>Qty (Del / Ord)</th>
                                                         <th>Status</th>
                                                         <th class="text-right">Actions</th>
                                                     </tr>
@@ -202,10 +226,10 @@
                                                             </td>
                                                             <td>
                                                                 <span
-                                                                    class="text-primary font-weight-bold">${o.orderedQty}</span>
+                                                                    class="text-success font-weight-bold">${o.deliveredQty}</span>
                                                                 <span class="mx-1 text-secondary">/</span>
                                                                 <span
-                                                                    class="text-success font-weight-bold">${o.deliveredQty}</span>
+                                                                    class="text-primary font-weight-bold">${o.orderedQty}</span>
                                                             </td>
                                                             <td>
                                                                 <c:choose>
@@ -233,7 +257,7 @@
                                                                     class="btn-action btn-view mr-2">
                                                                     <i class="ri-eye-line"></i> View
                                                                 </a>
-                                                                <c:if test="${o.status == 1}">
+                                                                 <c:if test="${o.status == 1}">
                                                                     <form
                                                                         action="${pageContext.request.contextPath}/sales-order"
                                                                         method="post" style="display:inline-block;">
@@ -242,7 +266,7 @@
                                                                         <input type="hidden" name="id" value="${o.id}">
                                                                         <button type="submit"
                                                                             class="btn-action btn-cancel"
-                                                                            onclick="return confirm('Cancel this order?')">
+                                                                            onclick="return confirm('Bạn có chắc chắn muốn hủy đơn hàng ${o.orderCode} này không?')">
                                                                             <i class="ri-close-circle-line"></i> Cancel
                                                                         </button>
                                                                     </form>
@@ -250,9 +274,41 @@
                                                             </td>
                                                         </tr>
                                                     </c:forEach>
+                                                    <c:if test="${empty orders}">
+                                                        <tr>
+                                                            <td colspan="6" class="text-center text-secondary py-4">
+                                                                No orders found.
+                                                            </td>
+                                                        </tr>
+                                                    </c:if>
                                                 </tbody>
                                             </table>
                                         </div>
+
+                                        <%-- Pagination --%>
+                                        <c:if test="${totalPages > 1}">
+                                            <nav aria-label="Page navigation" class="mt-4 pb-4">
+                                                <ul class="pagination justify-content-center">
+                                                    <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                        <a class="page-link" 
+                                                           href="sales-order?action=list&page=${currentPage - 1}&status=${currentStatus}" 
+                                                           tabindex="-1">Previous</a>
+                                                    </li>
+                                                    
+                                                    <c:forEach begin="1" end="${totalPages}" var="i">
+                                                        <li class="page-item ${currentPage == i ? 'active' : ''}">
+                                                            <a class="page-link" 
+                                                               href="sales-order?action=list&page=${i}&status=${currentStatus}">${i}</a>
+                                                        </li>
+                                                    </c:forEach>
+                                                    
+                                                    <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                        <a class="page-link" 
+                                                           href="sales-order?action=list&page=${currentPage + 1}&status=${currentStatus}">Next</a>
+                                                    </li>
+                                                </ul>
+                                            </nav>
+                                        </c:if>
                                     </div>
                                 </div>
                             </div>

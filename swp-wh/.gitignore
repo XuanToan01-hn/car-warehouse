@@ -1,7 +1,9 @@
 # =========================
 
 # NetBeans
-
+dist/
+*.war
+nbproject/project.properties
 # =========================
 
 nbproject/private/

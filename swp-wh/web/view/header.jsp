@@ -90,12 +90,18 @@
             <!-- Chỉ hiện khi đã login -->
             <c:if test="${not empty sessionScope.user}">
 
+                <c:if test="${not empty sessionScope.user.warehouse and not empty sessionScope.user.warehouse.warehouseName}">
+                    <div class="badge" style="background: #fff7ed; color: #ea580c; display: flex; align-items: center; gap: 6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M21 19H23V21H1V19H3V4C3 3.44772 3.44772 3 4 3H14C14.5523 3 15 3.44772 15 4V19H17V9H20C20.5523 9 21 9.44772 21 10V19ZM7 11V13H11V11H7ZM7 7V9H11V7H7Z"></path></svg>
+                        ${sessionScope.user.warehouse.warehouseName}
+                    </div>
+                </c:if>
+
                 <div class="badge">${roleName}</div>
 
                 <div style="display:flex;align-items:center;gap:8px">
                     <img class="user-avatar" src="${pageContext.request.contextPath}/assets/images/user/1.png">
-
-                    <div style="font-size:14px; font-weight: 600;">${fullName}</div>
+                    <div style="font-size:14px; font-weight: 600; color: #334155;">${fullName}</div>
                 </div>
 
                 <a class="logout-btn" href="${pageContext.request.contextPath}/logout">

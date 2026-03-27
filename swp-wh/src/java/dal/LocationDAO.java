@@ -19,8 +19,6 @@ public class LocationDAO extends DBContext {
         l.setWarehouseId(rs.getInt("WarehouseID"));
         l.setLocationCode(rs.getString("LocationCode"));
         l.setLocationName(rs.getString("LocationName"));
-        
-        // Handle optional columns from complex queries
         try {
             l.setWarehouseName(rs.getString("WarehouseName"));
         } catch (SQLException ignored) {}
@@ -58,6 +56,42 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
+    public List<Location> search(int warehouseId, String keyword) {
+        List<Location> list = new ArrayList<>();
+        if (connection == null) return list;
+
+        String pattern = "%" + (keyword == null ? "" : keyword) + "%";
+        boolean filterWh = warehouseId > 0;
+
+        String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName, "
+                + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
+                + "FROM Location l "
+                + "JOIN Warehouse w ON l.WarehouseID = w.WarehouseID "
+                + "LEFT JOIN Location_Product lp ON l.LocationID = lp.LocationID "
+                + (filterWh ? "WHERE l.WarehouseID = ? AND (l.LocationCode LIKE ? OR l.LocationName LIKE ?) "
+                            : "WHERE (l.LocationCode LIKE ? OR l.LocationName LIKE ?) ")
+                + "GROUP BY l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            if (filterWh) {
+                ps.setInt(1, warehouseId);
+                ps.setString(2, pattern);
+                ps.setString(3, pattern);
+            } else {
+                ps.setString(1, pattern);
+                ps.setString(2, pattern);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToLocation(rs));
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     public void insert(Location l) {
         String sql = "INSERT INTO Location (WarehouseID, LocationCode, LocationName, MaxCapacity) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -79,18 +113,18 @@ public class LocationDAO extends DBContext {
         List<Location> list = new ArrayList<>();
         if (connection == null) return list;
         
-        String sql = "SELECT * FROM Location WHERE WarehouseID = ?";
+        String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName, "
+                + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
+                + "FROM Location l "
+                + "JOIN Warehouse w ON l.WarehouseID = w.WarehouseID "
+                + "LEFT JOIN Location_Product lp ON l.LocationID = lp.LocationID "
+                + "WHERE l.WarehouseID = ? "
+                + "GROUP BY l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, warehouseId);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Location l = new Location();
-                    l.setId(rs.getInt("LocationID"));
-                    l.setWarehouseId(rs.getInt("WarehouseID"));
-                    l.setLocationCode(rs.getString("LocationCode"));
-                    l.setLocationName(rs.getString("LocationName"));
-                    l.setMaxCapacity(rs.getObject("MaxCapacity") != null ? rs.getInt("MaxCapacity") : 0);
-                    list.add(l);
+                    list.add(mapResultSetToLocation(rs));
                 }
             }
         } catch (SQLException e) {
@@ -163,7 +197,7 @@ public class LocationDAO extends DBContext {
                     p.setCode(rs.getString("Code"));
                     p.setName(rs.getString("ProductName"));
                     lp.setProduct(p);
-
+                    
                     ProductDetail pd = new ProductDetail();
                     pd.setId(rs.getInt("ProductDetailID"));
                     pd.setSerialNumber(rs.getString("SerialNumber"));
@@ -209,15 +243,48 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
-    public void delete(int id) {
-        if (connection == null) return;
-        String sql = "DELETE FROM Location WHERE LocationID = ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+    public boolean delete(int id) {
+        if (connection == null) return false;
+        // Step 1: remove all Location_Product rows (including qty=0)
+        String sqlLp = "DELETE FROM Location_Product WHERE LocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlLp)) {
             ps.setInt(1, id);
             ps.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        // Step 2: null-out Inventory_Transaction.LocationID (preserve history)
+        String sqlIt = "UPDATE Inventory_Transaction SET LocationID = NULL WHERE LocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlIt)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Step 3: null-out Transfer_Order FK references (preserve transfer history)
+        String sqlTfFrom = "UPDATE Transfer_Order SET FromLocationID = NULL WHERE FromLocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlTfFrom)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        String sqlTfTo = "UPDATE Transfer_Order SET ToLocationID = NULL WHERE ToLocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sqlTfTo)) {
+            ps.setInt(1, id);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        // Step 4: delete the location itself
+        String sql = "DELETE FROM Location WHERE LocationID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     public List<LocationProduct> getAllInventoryWithDetails() {
@@ -263,5 +330,39 @@ public class LocationDAO extends DBContext {
             e.printStackTrace();
         }
         return list;
+    }
+
+    public boolean isLocationCodeExists(int warehouseId, String code, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Location WHERE WarehouseID = ? AND LocationCode = ? AND LocationID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, warehouseId);
+            ps.setString(2, code);
+            ps.setInt(3, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isLocationNameExists(int warehouseId, String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Location WHERE WarehouseID = ? AND LocationName = ? AND LocationID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, warehouseId);
+            ps.setString(2, name);
+            ps.setInt(3, excludeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

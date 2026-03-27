@@ -16,7 +16,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.TransferOrder;
+import model.TransferOrderDetail;
 import model.User;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *
@@ -93,11 +96,18 @@ public class CreateTransferServlet extends HttpServlet {
             TransferOrder o = new TransferOrder();
             o.setFromLocationId(Integer.parseInt(request.getParameter("fromLoc")));
             o.setToLocationId(Integer.parseInt(request.getParameter("toLoc")));
-            o.setProductDetailId(Integer.parseInt(request.getParameter("pdId")));
-            o.setQuantity(Integer.parseInt(request.getParameter("qty")));
+            int pdId = Integer.parseInt(request.getParameter("pdId"));
+            int qty = Integer.parseInt(request.getParameter("qty"));
+            
+            TransferOrderDetail d = new TransferOrderDetail();
+            d.setProductDetailId(pdId);
+            d.setQuantity(qty);
+            
+            List<TransferOrderDetail> details = new ArrayList<>();
+            details.add(d);
             o.setCreateBy(1); // Giả sử user ID đăng nhập là 1
 
-            if (dao.createTransferRequest(o))
+            if (dao.createTransferRequest(o, details))
                 request.getSession().setAttribute("msg", "Tạo yêu cầu thành công!");
             else
                 request.getSession().setAttribute("err", "Lỗi tạo yêu cầu!");

@@ -15,6 +15,10 @@ public class GoodsReceiptDetail {
     private ProductDetail productDetail;
     private int quantityExpected;
     private int quantityActual;
+    /** Max qty this line can still receive (expected − already delivered by OTHER confirmed GROs for the same PO) */
+    private int remainingQty;
+    /** Current stock of this product-detail at the receipt's location */
+    private int currentStock;
 
     public GoodsReceiptDetail() {}
 
@@ -35,5 +39,11 @@ public class GoodsReceiptDetail {
 
     public int getQuantityActual() { return quantityActual; }
     public void setQuantityActual(int quantityActual) { this.quantityActual = quantityActual; }
+
+    public int getRemainingQty() { return remainingQty; }
+    public void setRemainingQty(int remainingQty) { this.remainingQty = remainingQty; }
+
+    public int getCurrentStock() { return currentStock; }
+    public void setCurrentStock(int currentStock) { this.currentStock = currentStock; }
 }
 

@@ -5,6 +5,7 @@ import dal.LocationDAO;
 import dal.PurchaseOrderDAO;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,8 +27,14 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
         List<PurchaseOrder> confirmedPOs = grDAO.getConfirmedPOs();
         request.setAttribute("confirmedPOs", confirmedPOs);
 
-        // Danh sách Location để chọn nơi nhập
-        List<Location> locations = locationDAO.getAll();
+        // Danh sách Location để chọn nơi nhập - Lọc theo kho của nhân viên
+        User user = (User) request.getSession().getAttribute("user");
+        List<Location> locations;
+        if (user != null && user.getWarehouse() != null) {
+            locations = locationDAO.getByWarehouseId(user.getWarehouse().getId());
+        } else {
+            locations = locationDAO.getAll();
+        }
         request.setAttribute("locations", locations);
 
         // Nếu có poId → tự load PO đó và sản phẩm
@@ -70,8 +77,8 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             String[] productDetailIds = request.getParameterValues("productDetailId[]");
 
             if (productIds == null || productIds.length == 0) {
-                request.setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
-                doGet(request, response);
+                request.getSession().setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
+                response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
                 return;
             }
 
@@ -89,16 +96,49 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 int remaining = location.getMaxCapacity() - location.getCurrentStock();
                 if (totalActualQty > remaining) {
                     String locName = location.getLocationName();
-                    request.setAttribute("error",
+                    request.getSession().setAttribute("error",
                         "Kho \"" + locName + "\" đã đầy hoặc không đủ chỗ! "
                         + "Sức chứa còn lại: " + remaining + " units, "
                         + "số lượng cần nhập: " + totalActualQty + " units. "
                         + "Vui lòng chọn kho khác hoặc giảm số lượng nhận.");
-                    doGet(request, response);
+                    response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
                     return;
                 }
             }
             // ---- End capacity validation ----
+
+            // ---- Validate remaining qty (actual qty must not exceed what PO still needs) ----
+            Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
+            PurchaseOrder poForValidation = poDAO.getById(poId);
+            if (poForValidation != null && poForValidation.getDetails() != null && qtyActual != null) {
+                // Build a map of ProductDetailID -> PO ordered qty
+                Map<Integer, Integer> poQtyMap = new java.util.HashMap<>();
+                for (PurchaseOrderDetail pod : poForValidation.getDetails()) {
+                    if (pod.getProductDetail() != null) {
+                        poQtyMap.put(pod.getProductDetail().getId(), pod.getQuantity());
+                    }
+                }
+                boolean overLimit = false;
+                for (int i = 0; i < productDetailIds.length && i < qtyActual.length; i++) {
+                    int pdId = Integer.parseInt(productDetailIds[i]);
+                    int actual = Integer.parseInt(qtyActual[i]);
+                    int poQty = poQtyMap.getOrDefault(pdId, 0);
+                    int delivered = deliveredMap.getOrDefault(pdId, 0);
+                    int remainingQty = poQty - delivered;
+                    if (remainingQty < 0) remainingQty = 0;
+                    if (actual > remainingQty) {
+                        overLimit = true;
+                        break;
+                    }
+                }
+                if (overLimit) {
+                    request.getSession().setAttribute("error",
+                        "Số lượng nhập vượt quá số lượng còn lại có thể nhận. Vui lòng kiểm tra và sửa lại.");
+                    response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
+                    return;
+                }
+            }
+            // ---- End remaining qty validation ----
 
             // Build GoodsReceipt header
             GoodsReceipt gr = new GoodsReceipt();
@@ -145,15 +185,16 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             int receiptId = grDAO.createDraft(gr, details);
 
             if (receiptId > 0) {
+                request.getSession().setAttribute("success", "Tạo Goods Receipt Order thành công!");
                 response.sendRedirect(request.getContextPath() + "/detail-goods-receipt?id=" + receiptId);
             } else {
-                request.setAttribute("error", "Có lỗi xảy ra khi tạo Goods Receipt. Vui lòng thử lại.");
-                doGet(request, response);
+                request.getSession().setAttribute("error", "Có lỗi xảy ra khi tạo Goods Receipt. Vui lòng thử lại.");
+                response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
-            doGet(request, response);
+            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
         }
     }
 }
