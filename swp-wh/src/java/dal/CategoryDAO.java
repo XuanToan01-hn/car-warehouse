@@ -16,6 +16,39 @@ import model.Category;
  */
 public class CategoryDAO extends DBContext {
 
+    public boolean hasProduct(int categoryId) {
+    String sql = "SELECT COUNT(*) FROM Product WHERE CategoryID = ?";
+
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setInt(1, categoryId);
+        ResultSet rs = ps.executeQuery();
+
+        if (rs.next()) {
+            return rs.getInt(1) > 0; // >0 nghĩa là có product
+        }
+
+    } catch (SQLException e) {
+        System.out.println("hasProduct: " + e);
+    }
+
+    return false;
+}
+    public boolean isNameExists(String name) {
+    String sql = "SELECT COUNT(*) FROM Category WHERE LOWER(Name) = LOWER(?)";
+    try {
+        PreparedStatement ps = connection.prepareStatement(sql);
+        ps.setString(1, name);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return rs.getInt(1) > 0;
+        }
+    } catch (SQLException e) {
+        System.out.println("isNameExists: " + e);
+    }
+    return false;
+}
+    
     public List<Category> getAll() {
         String sql = "SELECT * FROM Category;";
         List<Category> list = new ArrayList<>();
@@ -148,10 +181,8 @@ public class CategoryDAO extends DBContext {
 
     public static void main(String[] args) {
         CategoryDAO dao = new CategoryDAO();
-        List<Category> list = dao.searchAndPaginate("", 0, 5);
-        for (Category c : list) {
-            System.out.println(c.getId() + " - " + c.getName());
-        }
+        boolean c = dao.hasProduct(1);
+        if(c) System.out.println("true");
     }
 
 }

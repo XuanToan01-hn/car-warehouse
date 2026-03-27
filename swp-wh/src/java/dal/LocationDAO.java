@@ -197,7 +197,7 @@ public class LocationDAO extends DBContext {
                     p.setCode(rs.getString("Code"));
                     p.setName(rs.getString("ProductName"));
                     lp.setProduct(p);
-
+                    
                     ProductDetail pd = new ProductDetail();
                     pd.setId(rs.getInt("ProductDetailID"));
                     pd.setSerialNumber(rs.getString("SerialNumber"));

@@ -21,25 +21,42 @@
                 <ul id="iq-sidebar-toggle" class="iq-menu">
 
                     <!-- ================= ADMIN ================= -->
-                    <c:if test="${roleId == 1}">
-                        <li>
-                            <a href="inventory-log" class="svg-icon">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
-                                <span class="ml-4">Inventory Log</span>
-                            </a>
-                        </li>
+  <c:if test="${roleId == 1}">
+                    <li>
+                        <a href="inventory-log" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">Inventory Log</span>
+                        </a>
+                    </li>
 
-                        <li>
-                            <a href="#user" class="collapsed" data-toggle="collapse">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/people.png">
-                                <span class="ml-4">User</span>
-                            </a>
-                            <ul id="user" class="iq-submenu collapse">
-                                <li><a href="userlist"><i>&bull;</i>List Users</a></li>
-                                <li><a href="registeruser"><i>&bull;</i>Add User</a></li>
-                            </ul>
-                        </li>
-                    </c:if>
+                    <li>
+                        <a href="userlist" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">User List</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="permissions" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">Security - permission</span>
+                        </a>
+                    </li>
+
+                    <li>
+                        <a href="inventory-report" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">Inventory Report</span>
+                        </a>
+                    </li> 
+                    <li>
+                        <a href="low-stock" class="svg-icon">
+                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                            <span class="ml-4">Report low stock</span>
+                        </a>
+                    </li>
+                </c:if>
+
 
 
                     <!-- ================= WAREHOUSE MANAGER ================= -->

@@ -19,7 +19,17 @@ public class ProductDetail {
     private String color; // Thêm mới
     private double price;
     private int quantity;
+    private Location location;
 
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
+    }
+
+    
     public int getQuantity() {
         return quantity;
     }

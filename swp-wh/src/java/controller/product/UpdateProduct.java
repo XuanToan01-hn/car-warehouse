@@ -87,6 +87,19 @@ public class UpdateProduct extends HttpServlet {
             request.setAttribute("eCode", "Code is required");
             hasError = true;
         }
+        
+
+    // 3. Code trùng
+    if (!code.isEmpty() && productDAO.isCodeDuplicatedForUpdate(id, code)) {
+        request.setAttribute("eCode", "Code already exists");
+        hasError = true;
+    }
+
+    // 4. Name trùng
+    if (!name.isEmpty() && productDAO.isNameDuplicatedForUpdate(id,name)) {
+        request.setAttribute("eName", "Name already exists");
+        hasError = true;
+    }
 
         if (hasError) {
             request.setAttribute("listCategory", categoryDAO.getAll());
