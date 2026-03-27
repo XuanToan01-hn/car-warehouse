@@ -21,7 +21,7 @@ public class GoodsIssueServlet extends HttpServlet {
     private final SalesOrderDAO soDAO = new SalesOrderDAO();
     private final LocationProductDAO lpDAO = new LocationProductDAO();
 
-    @Override
+  @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -44,60 +44,81 @@ public class GoodsIssueServlet extends HttpServlet {
 
     private void listWarehouseOrders(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        List<SalesOrder> warehouseOrders = soDAO.getAll();
+        // 1. Lấy User từ session
+        User user = (User) request.getSession().getAttribute("user");
+        if (user == null) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
+        List<SalesOrder> warehouseOrders;
+        
+        // 2. Phân quyền hiển thị: 
+        // Nếu là Thủ kho (giả sử RoleID = 3), chỉ lấy đơn của kho đó. 
+        // Nếu là Admin/Manager, lấy tất cả.
+        if (user.getRole().getId() == 3 && user.getWarehouse() != null) {
+            int warehouseId = user.getWarehouse().getId();
+            warehouseOrders = soDAO.getOrdersByWarehouse(warehouseId);
+        } else {
+            warehouseOrders = soDAO.getAll();
+        }
+
         request.setAttribute("orders", warehouseOrders);
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
 
-private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
-    try {
-        String idRaw = request.getParameter("soId");
-        if (idRaw == null) {
+    private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            User user = (User) request.getSession().getAttribute("user");
+            String idRaw = request.getParameter("soId");
+            if (idRaw == null || user == null) {
+                response.sendRedirect("goods-issue?action=list");
+                return;
+            }
+
+            int soId = Integer.parseInt(idRaw);
+            SalesOrder order = soDAO.getById(soId);
+
+            // BẢO MẬT: Kiểm tra xem đơn hàng có thuộc kho của nhân viên này không
+            if (user.getRole().getId() == 3) {
+                if (order.getWarehouse() == null || order.getWarehouse().getId() != user.getWarehouse().getId()) {
+                    // Nếu nhân viên kho cố tình truy cập đơn hàng kho khác qua ID trên URL
+                    response.sendRedirect("goods-issue?action=list");
+                    return;
+                }
+            }
+
+            if (order == null || order.getStatus() == 4 || order.getStatus() == 3) {
+                response.sendRedirect("goods-issue?action=list");
+                return;
+            }
+
+            // Lấy WarehouseID từ đơn hàng (vì Sales đã chỉ định kho này)
+            int selectedWhId = order.getWarehouse().getId();
+
+            // Lấy danh sách Location thuộc Warehouse đó
+            List<Location> locations = new LocationDAO().getByWarehouseId(selectedWhId);
+            
+            // Xác định Location đang được chọn (mặc định là cái đầu tiên nếu chưa chọn)
+            String locIdParam = request.getParameter("locationId");
+            int selectedLocId = (locIdParam != null) ? Integer.parseInt(locIdParam)
+                                    : (locations.isEmpty() ? 0 : locations.get(0).getId());
+
+            // Lấy dữ liệu tồn kho thực tế tại vị trí đó
+            List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, selectedLocId);
+
+            request.setAttribute("order", order);
+            request.setAttribute("locations", locations);
+            request.setAttribute("selectedLocId", selectedLocId);
+            request.setAttribute("uiDetails", uiDetails);
+            
+            request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
+        } catch (Exception e) {
+            e.printStackTrace();
             response.sendRedirect("goods-issue?action=list");
-            return;
         }
-        int soId = Integer.parseInt(idRaw);
-        SalesOrder order = soDAO.getById(soId);
-
-        if (order == null || order.getStatus() == 4 || order.getStatus() == 3) {
-            response.sendRedirect("goods-issue?action=list");
-            return;
-        }
-
-        // 2. Lấy Warehouse từ Sales Order (KHÔNG cho chọn thủ công nữa)
-        int selectedWhId = (order.getWarehouse() != null) ? order.getWarehouse().getId() : 0;
-        
-        // Nếu là đơn hàng cũ không có Warehouse, lấy mặc định từ list (nếu cần)
-        if (selectedWhId == 0) {
-            List<Warehouse> allWhs = new WarehouseDAO().getAll();
-            if (!allWhs.isEmpty()) selectedWhId = allWhs.get(0).getId();
-        }
-
-        // 3. Lấy danh sách Location thuộc Warehouse đó
-        List<Location> locations = new LocationDAO().getByWarehouseId(selectedWhId);
-        
-        // 4. Xác định Location đang được chọn
-        String locIdParam = request.getParameter("locationId");
-        int selectedLocId = (locIdParam != null) ? Integer.parseInt(locIdParam)
-                            : (locations.isEmpty() ? 0 : locations.get(0).getId());
-
-        // 5. Lấy dữ liệu tồn kho theo Location đã chọn
-        List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, selectedLocId);
-
-        request.setAttribute("order", order);
-        request.setAttribute("selectedWhId", selectedWhId);
-        request.setAttribute("locations", locations);
-        request.setAttribute("selectedLocId", selectedLocId);
-        request.setAttribute("uiDetails", uiDetails);
-        
-        request.getRequestDispatcher("/view/good-issue/goods-issue-create.jsp").forward(request, response);
-    } catch (Exception e) {
-        e.printStackTrace();
-        response.sendRedirect("goods-issue?action=list");
     }
-}
-
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
