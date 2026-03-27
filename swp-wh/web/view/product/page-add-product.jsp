@@ -67,7 +67,7 @@
 
                 <c:if test="${not empty showStatus}">
                     <div class="alert ${showStatus ? 'alert-success' : 'alert-danger'}" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
-                        ${showStatus ? 'Thêm thành công!' : 'Lỗi: Vui lòng kiểm tra lại các trường!'}
+                        ${showStatus ? 'Add successfully!' : 'Error,please check data!'}
                     </div>
                 </c:if>
             </div>

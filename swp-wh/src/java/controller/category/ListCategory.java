@@ -132,28 +132,95 @@ public class ListCategory extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        request.setCharacterEncoding("UTF-8");
-        String action = request.getParameter("action");
-        String name = request.getParameter("name");
-        String description = request.getParameter("description");
-        String idStr = request.getParameter("id");
+@Override
+protected void doPost(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
 
-        CategoryDAO dao = new CategoryDAO();
-        if ("add".equals(action)) {
-            dao.insert(new Category(0, name, description));
-        } else if ("update".equals(action)) {
-            if (idStr != null) {
-                try {
-                    int id = Integer.parseInt(idStr);
-                    dao.update(new Category(id, name, description));
-                } catch (NumberFormatException ignored) {}
+    request.setCharacterEncoding("UTF-8");
+
+    String action = request.getParameter("action");
+    String name = request.getParameter("name");
+    String description = request.getParameter("description");
+    String idStr = request.getParameter("id");
+
+    CategoryDAO dao = new CategoryDAO();
+
+    // ===== ADD =====
+    if ("add".equals(action)) {
+
+        if (name == null || name.trim().isEmpty()) {
+            request.getSession().setAttribute("error", "Category name cannot be empty!");
+            response.sendRedirect("list-category");
+            return;
+        }
+
+        name = name.trim();
+
+        if (dao.isNameExists(name)) {
+            request.getSession().setAttribute("error", "Category name already exists!");
+            response.sendRedirect("list-category");
+            return;
+        }
+
+        dao.insert(new Category(0, name, description));
+        request.getSession().setAttribute("success", "Add category successfully!");
+    }
+
+    // ===== UPDATE =====
+    else if ("update".equals(action)) {
+
+        if (name == null || name.trim().isEmpty()) {
+            request.getSession().setAttribute("error", "Category name cannot be empty!");
+            response.sendRedirect("list-category");
+            return;
+        }
+
+        name = name.trim();
+
+        if (idStr != null) {
+            try {
+                int id = Integer.parseInt(idStr);
+
+                // ⚠️ check trùng (trừ chính nó)
+                Category old = dao.getByID(id);
+                if (old != null && !old.getName().equalsIgnoreCase(name) && dao.isNameExists(name)) {
+                    request.getSession().setAttribute("error", "Category name already exists!");
+                    response.sendRedirect("list-category");
+                    return;
+                }
+
+                dao.update(new Category(id, name, description));
+                request.getSession().setAttribute("success", "Update category successfully!");
+
+            } catch (NumberFormatException e) {
+                request.getSession().setAttribute("error", "Invalid category ID!");
             }
         }
-        response.sendRedirect("list-category");
     }
+
+    // ===== DELETE =====
+    else if ("delete".equals(action)) {
+
+        if (idStr != null) {
+            try {
+                int id = Integer.parseInt(idStr);
+
+                // ❌ Không cho xóa nếu có product
+                if (dao.hasProduct(id)) {
+                    request.getSession().setAttribute("error", "Cannot delete category because it has products!");
+                } else {
+                    dao.delete(id);
+                    request.getSession().setAttribute("success", "Delete successfully!");
+                }
+
+            } catch (NumberFormatException e) {
+                request.getSession().setAttribute("error", "Invalid category ID!");
+            }
+        }
+    }
+
+    response.sendRedirect("list-category");
+}
 
     /**
      * Returns a short description of the servlet.

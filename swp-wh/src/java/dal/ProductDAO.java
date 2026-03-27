@@ -17,7 +17,6 @@ public class ProductDAO extends DBContext {
     UnitDAO unitDAO = new UnitDAO();
     SupplierDAO supplierDAO = new SupplierDAO();
 
-
     // ===============================
     // 1. GET FILTERED PRODUCTS
     // ===============================
@@ -141,8 +140,9 @@ public class ProductDAO extends DBContext {
 
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
-            if (rs.next())
+            if (rs.next()) {
                 return rs.getInt(1);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -264,24 +264,24 @@ public class ProductDAO extends DBContext {
     // ===============================
 // 10. GET ALL
 // ===============================
-public List<Product> getAll() {
-    List<Product> list = new ArrayList<>();
-    String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
+    public List<Product> getAll() {
+        List<Product> list = new ArrayList<>();
+        String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
 
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ResultSet rs = ps.executeQuery();
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
 
-        while (rs.next()) {
-            list.add(mapResultSetToProduct(rs));
+            while (rs.next()) {
+                list.add(mapResultSetToProduct(rs));
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        return list;
     }
-
-    return list;
-}
 
     // Hàm dùng chung để map ResultSet sang Product (giúp code sạch hơn)
     private Product mapResultSetToProduct(ResultSet rs) throws Exception {
@@ -300,4 +300,99 @@ public List<Product> getAll() {
     // HÀM MAIN ĐỂ TEST CÁC CHỨC NĂNG
     // ===============================
 
+    public boolean isCodeExists(String code) {
+        String sql = "SELECT 1 FROM Product WHERE Code = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            return rs.next(); // có record là true
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isNameExists(String name) {
+        String sql = "SELECT 1 FROM Product WHERE Name = ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isCodeDuplicatedForUpdate(int id, String newCode) {
+        try {
+            // Lấy product cũ
+            Product old = getById(id);
+            if (old == null) {
+                return false;
+            }
+
+            // Nếu code không đổi → OK luôn
+            if (old.getCode() != null && old.getCode().equalsIgnoreCase(newCode)) {
+                return false;
+            }
+
+            // Nếu có đổi → check trùng DB
+            return isCodeExists(newCode);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean isNameDuplicatedForUpdate(int id, String newName) {
+        try {
+            Product old = getById(id);
+            if (old == null) {
+                return false;
+            }
+
+            if (old.getName() != null && old.getName().equalsIgnoreCase(newName)) {
+                return false;
+            }
+
+            return isNameExists(newName);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+    
+    public boolean hasProduct(int categoryId) {
+    String sql = "SELECT 1 FROM Product WHERE CategoryID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, categoryId);
+        ResultSet rs = ps.executeQuery();
+        return rs.next(); // có ít nhất 1 product
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return false;
+}
+    public boolean hasProductDetail(int id) {
+    String sql = "select * from Product_Detail p where p.ProductID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        return rs.next();
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    return false;
+}
+    
+    public static void main(String[] args) {
+        ProductDAO p = new ProductDAO();
+        boolean a = p.hasProductDetail(1);
+        if(a) System.out.println("ok");
+    }
 }
