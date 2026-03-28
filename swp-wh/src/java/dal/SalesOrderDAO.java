@@ -12,18 +12,10 @@ public class SalesOrderDAO extends DBContext {
     private final UserDAO userDAO = new UserDAO();
     private final WarehouseDAO warehouseDAO = new WarehouseDAO();
     
-    public static void main(String[] args) {
-        SalesOrderDAO SO = new SalesOrderDAO();
-        List<SalesOrder> s = SO.getOrdersByWarehouse(2);
-        for(SalesOrder sa : s){
-            System.out.println(sa.getId());
-        }
-    }
-    
-    
     public List<SalesOrder> getOrdersByWarehouse(int warehouseId) {
     List<SalesOrder> list = new ArrayList<>();
-    // Thêm điều kiện WHERE so.WarehouseID = ? và lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
+    // lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
+    //lấy tổng đơn đặt, tổng đơn xuất thưcj tế
     String sql = "SELECT so.*, " +
                  "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
                  "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
@@ -45,11 +37,15 @@ public class SalesOrderDAO extends DBContext {
     }
     return list;
 }
+    //Lấy danh sách đơn bán (SalesOrder) theo kho (warehouseId)
+    //đồng thời tính tổng số lượng đặt, lượng giao thực tế mỗi đơn
 public SalesOrder getWarehouseOrderById(int id) {
+    //lấy in4 đơn hàng
     String sqlHeader = "SELECT so.*, u.FullName as CreatorName FROM Sales_Order so " +
                        "JOIN Users u ON so.CreateBy = u.UserID WHERE so.SalesOrderID = ?";
     
     String sqlDetails = "SELECT sod.*, " +
+            // tính xem mỗi dòng đã  đặt/giao bao nhiêu
                         "(SELECT ISNULL(SUM(gid.QuantityActual), 0) " +
                         " FROM Goods_Issue_Detail gid " +
                         " JOIN Goods_Issue gi ON gid.IssueID = gi.IssueID " +
@@ -61,7 +57,7 @@ public SalesOrder getWarehouseOrderById(int id) {
         ps.setInt(1, id);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-            SalesOrder so = mapRow(rs); // Dùng hàm mapRow cũ của bạn
+            SalesOrder so = mapRow(rs);
             
             // Lấy chi tiết hàng hóa kèm tiến độ giao
             List<SalesOrderDetail> details = new ArrayList<>();
