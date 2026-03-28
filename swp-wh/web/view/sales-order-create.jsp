@@ -237,6 +237,7 @@
                         <div class="col-md-2">
                             <div class="form-group mb-0">
                                 <label class="form-label">Unit Price ($)</label>
+                                //có thể tự sửa vì ko có readonly
                                 <input type="number" name="price" class="form-control" step="0.01" required>
                             </div>
                         </div>
@@ -270,7 +271,7 @@
                         fetchProductsForSelect(select, warehouseId);
                     });
                 }
-
+//lấy danh sách product theo warehouse
                 function fetchProductsForSelect(select, warehouseId) {
                     const contextPath = '${pageContext.request.contextPath}';
                     fetch(contextPath + '/sales-order?action=ajax-get-products&warehouseId=' + warehouseId)
@@ -343,6 +344,7 @@
                     const allDetailSelects = document.querySelectorAll('.product-detail-select');
                     let duplicateFound = false;
                     allDetailSelects.forEach(s => {
+                        //Nếu có dòng khác chọn cùng variant thì trùng
                         if (s !== detailSelect && s.value === selectedValue) {
                             duplicateFound = true;
                         }
