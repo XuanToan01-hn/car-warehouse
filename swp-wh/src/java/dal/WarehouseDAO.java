@@ -136,5 +136,34 @@ public class WarehouseDAO extends DBContext {
         }
         return false;
     }
+
+    public boolean existsByName(String name) {
+        String sql = "SELECT COUNT(*) FROM Warehouse WHERE WarehouseName = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean existsByName(String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Warehouse WHERE WarehouseName = ? AND WarehouseID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, name);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 }
 
