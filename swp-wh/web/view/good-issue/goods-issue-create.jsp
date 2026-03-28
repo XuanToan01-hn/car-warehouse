@@ -43,7 +43,6 @@
             <div class="container-fluid">
                 <div class="row">
                     <div class="col-lg-12">
-                        <%-- Hiển thị thông báo lỗi nếu có --%>
                         <c:if test="${not empty errors}">
                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                 <div class="iq-alert-icon"><i class="ri-information-line"></i></div>

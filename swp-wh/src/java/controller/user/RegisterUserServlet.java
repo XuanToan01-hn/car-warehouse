@@ -1,3 +1,4 @@
+
 /*
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
@@ -201,9 +202,7 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
     if (roleStr != null) {
         int roleId = Integer.parseInt(roleStr);
 
-        // Example: roles 2,3,4 require warehouse
-        if ((roleId == 2 || roleId == 3 || roleId == 4)
-                && (warehouseIdStr == null || warehouseIdStr.isEmpty())) {
+        if ((roleId == 3 || roleId == 4 || roleId == 5)) {
 
             request.setAttribute("error_warehouse", "Warehouse is required for this role!");
             hasError = true;

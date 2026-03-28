@@ -24,12 +24,12 @@
 
                     <!-- ================= ADMIN ================= -->
                     <c:if test="${roleId == 1}">
-                        <li>
+<!--                        <li>
                             <a href="inventory-log" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
                                 <span class="ml-4">Inventory Log</span>
                             </a>
-                        </li>
+                        </li>-->
 
                         <li>
                             <a href="userlist" class="svg-icon">
@@ -45,7 +45,7 @@
                             </a>
                         </li>
 
-                        <li>
+<!--                        <li>
                             <a href="inventory-report" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
                                 <span class="ml-4">Inventory Report</span>
@@ -56,13 +56,25 @@
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
                                 <span class="ml-4">Report low stock</span>
                             </a>
-                        </li>
+                        </li>-->
                     </c:if>
 
 
 
                     <!-- ================= WAREHOUSE MANAGER ================= -->
                     <c:if test="${roleId == 2}">
+                          <li>
+                            <a href="low-stock" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Report low stock</span>
+                            </a>
+                          </li>
+                          <li>
+                            <a href="inventory-report" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Inventory Report</span>
+                            </a>
+                        </li>
                         <li>
                             <a href="inventory-log" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
@@ -124,15 +136,6 @@
                                 <span class="ml-4">Warehouse Ops</span>
                             </a>
                         </li>-->
-
-
-
-                            <li>
-                                <a href="manage-suppliers" class="svg-icon">
-                                    <img src="${pageContext.request.contextPath}/assets/images/icon/people.png">
-                                    <span class="ml-4">Suppliers</span>
-                                </a>
-                            </li>
                     </c:if>
 
 

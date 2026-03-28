@@ -248,7 +248,7 @@
                             function toggleWarehouseEdit() {
                                 const roleId = document.getElementById("editRoleId").value;
                                 const warehouseGroup = document.getElementById("editWarehouseGroup");
-                                if (roleId == "3" || roleId == "4" || roleId == "5") {
+                                if (roleId == "3" || roleId == "5") {
                                     warehouseGroup.style.display = "block";
                                 } else {
                                     warehouseGroup.style.display = "none";
@@ -284,7 +284,7 @@ function confirmToggleStatus(id, name, targetStatus, page, kw) {
     const msg = document.getElementById("statusModalMessage");
     const btn = document.getElementById("statusSubmitBtn");
 
-    if (targetStatus === 1) { // Logic sửa lại tại đây
+    if (targetStatus === 1) {
         title.innerText = "Activate Account";
         title.style.color = "#28a745";
         msg.innerHTML = "Are you sure you want to <b>Activate</b> account for <b>" + name + "</b>?";
