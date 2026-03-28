@@ -19,6 +19,15 @@ public class InventoryTransaction {
     private int quantity;
     private String referenceCode;
     private Date transactionDate;
+private User createBy; 
+
+    public User getCreateBy() {
+        return createBy;
+    }
+
+    public void setCreateBy(User createBy) {
+        this.createBy = createBy;
+    }
 
     public InventoryTransaction() {}
 

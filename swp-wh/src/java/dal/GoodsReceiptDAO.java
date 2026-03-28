@@ -591,8 +591,7 @@ public class GoodsReceiptDAO extends DBContext {
                 + "WHERE ReceiptDetailID = ? AND ReceiptID = ?";
 
         // For recalculating PO status
-        String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status FROM Goods_Receipt WHERE ReceiptID = ?";
-
+String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, CreateBy FROM Goods_Receipt WHERE ReceiptID = ?";
         // Query to decide final status: 2 = Completed, 4 = Partially Received
         String sqlQtyCheck = "SELECT "
                 + "COALESCE(SUM(QuantityExpected), 0) AS TotalExp, "
@@ -606,6 +605,7 @@ public class GoodsReceiptDAO extends DBContext {
             int locationId;
             String receiptCode;
             int currentStatus;
+            int creatorId;
             try (PreparedStatement psPo = connection.prepareStatement(sqlGetPoId)) {
                 psPo.setInt(1, receiptId);
                 try (ResultSet rs = psPo.executeQuery()) {
@@ -617,6 +617,7 @@ public class GoodsReceiptDAO extends DBContext {
                     locationId = rs.getInt("LocationID");
                     receiptCode = rs.getString("ReceiptCode");
                     currentStatus = rs.getInt("Status");
+                    creatorId = rs.getInt("CreateBy");
                 }
             }
 
@@ -684,7 +685,7 @@ public class GoodsReceiptDAO extends DBContext {
             }
 
             // 3. Update stock & inventory transactions based on DB state after update
-            applyStockAndTransactions(locationId, receiptCode, receiptId, previousQtyMap, poId);
+            applyStockAndTransactions(locationId, receiptCode, receiptId, previousQtyMap, poId,creatorId);
 
             // 4. Recalculate purchase order status based on cumulative received qty
             recalculatePurchaseOrderStatus(poId);
@@ -803,7 +804,7 @@ public class GoodsReceiptDAO extends DBContext {
      * Nếu null (lần confirm đầu tiên), coi như QuantityActual cũ = 0.
      */
     private void applyStockAndTransactions(int locationId, String receiptCode, int receiptId,
-            Map<Integer, Integer> previousQtyMap, int poId) throws SQLException {
+            Map<Integer, Integer> previousQtyMap, int poId,int userId) throws SQLException {
         // Lấy detail hiện tại (sau khi đã UPDATE QuantityActual)
         String sqlFetchDetails = "SELECT d.ReceiptDetailID, pd.ProductID, d.ProductDetailID, d.QuantityActual "
                 + "FROM Goods_Receipt_Detail d "
@@ -822,8 +823,8 @@ public class GoodsReceiptDAO extends DBContext {
                 + "VALUES (?, ?, ?)";
 
         String sqlTrans = "INSERT INTO Inventory_Transaction "
-                + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) "
-                + "VALUES (?, ?, ?, 1, ?, ?, GETDATE())";
+            + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate, CreateBy) "
+            + "VALUES (?, ?, ?, 1, ?, ?, GETDATE(), ?)";
 
         String sqlOldInfo = "SELECT p.Price, COALESCE((SELECT SUM(Quantity) FROM Location_Product "
                 + "WHERE ProductDetailID = p.ProductDetailID), 0) AS TotalStock "
@@ -927,6 +928,7 @@ public class GoodsReceiptDAO extends DBContext {
                     psTrans.setInt(3, locationId);
                     psTrans.setInt(4, delta);
                     psTrans.setString(5, receiptCode);
+                    psTrans.setInt(6, userId); 
                     psTrans.addBatch();
                 }
             }

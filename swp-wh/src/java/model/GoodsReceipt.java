@@ -24,6 +24,7 @@ public class GoodsReceipt {
     private int totalExpected;
     private int totalActual;
 
+    
     public GoodsReceipt() {
     }
 

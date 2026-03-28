@@ -57,45 +57,42 @@ public class InventoryTransactionServlet extends HttpServlet {
      */
  private final InventoryTransactionDAO transDAO = new InventoryTransactionDAO();
 
-   @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        
-        // 1. Lấy tham số phân trang
-        int page = 1;
-        int pageSize = 5; 
-        try {
-            String pageStr = request.getParameter("page");
-            if (pageStr != null && !pageStr.isEmpty()) {
-                page = Integer.parseInt(pageStr);
-            }
-        } catch (NumberFormatException e) { 
-            page = 1; 
-        }
+  @Override
+protected void doGet(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+    
+    int page = 1;
+    int pageSize = 5; 
+    try {
+        String pageStr = request.getParameter("page");
+        if (pageStr != null && !pageStr.isEmpty()) page = Integer.parseInt(pageStr);
+    } catch (NumberFormatException e) { page = 1; }
 
-        // 2. Lấy tham số Filter & Search
-        String typeRaw = request.getParameter("type");
-        Integer type = (typeRaw != null && !typeRaw.isEmpty()) ? Integer.parseInt(typeRaw) : 0;
-        
-        String search = request.getParameter("search");
-        if (search == null) {
-            search = ""; // Tránh lỗi cộng chuỗi "null" trên URL JSP
-        }
+    String typeRaw = request.getParameter("type");
+    Integer type = (typeRaw != null && !typeRaw.isEmpty()) ? Integer.parseInt(typeRaw) : 0;
+    
+    String search = request.getParameter("search");
+    if (search == null) search = "";
 
-        // 3. Gọi DAO lấy dữ liệu
-        List<InventoryTransaction> list = transDAO.getTransactions(page, pageSize, type, search);
-        int totalRecords = transDAO.getTotalTransactions(type, search);
-        int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+    // LẤY THÊM THÔNG TIN NGÀY
+    String fromDate = request.getParameter("fromDate");
+    String toDate = request.getParameter("toDate");
 
-        // 4. Đẩy dữ liệu lên JSP
-        request.setAttribute("transactions", list);
-        request.setAttribute("currentPage", page);
-        request.setAttribute("totalPages", totalPages);
-        request.setAttribute("selectedType", type);
-        request.setAttribute("search", search);
+    // Gọi DAO với tham số mới
+    List<InventoryTransaction> list = transDAO.getTransactions(page, pageSize, type, search, fromDate, toDate);
+    int totalRecords = transDAO.getTotalTransactions(type, search, fromDate, toDate);
+    int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
 
-        request.getRequestDispatcher("/view/inventory-transaction/log-list.jsp").forward(request, response);
-    }
+    request.setAttribute("transactions", list);
+    request.setAttribute("currentPage", page);
+    request.setAttribute("totalPages", totalPages);
+    request.setAttribute("selectedType", type);
+    request.setAttribute("search", search);
+    request.setAttribute("fromDate", fromDate); // Đẩy lại lên JSP để giữ giá trị trong ô input
+    request.setAttribute("toDate", toDate);
+
+    request.getRequestDispatcher("/view/inventory-transaction/log-list.jsp").forward(request, response);
+}
 
     /** 
      * Handles the HTTP <code>POST</code> method.

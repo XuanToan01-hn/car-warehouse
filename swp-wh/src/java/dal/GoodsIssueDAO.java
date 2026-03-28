@@ -59,8 +59,7 @@ public class GoodsIssueDAO extends DBContext {
         String sqlGI = "INSERT INTO Goods_Issue (IssueCode, SalesOrderID, LocationID, IssueDate, Status, CreateBy) VALUES (?, ?, ?, GETDATE(), ?, ?)";
         String sqlGID = "INSERT INTO Goods_Issue_Detail (IssueID, ProductDetailID, QuantityExpected, QuantityActual) VALUES (?, ?, ?, ?)";
         String sqlUpdateStock = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
-        String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) VALUES (?, ?, 2, ?, ?)";
-
+String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, CreateBy) VALUES (?, ?, 2, ?, ?, ?)";
         try {
             connection.setAutoCommit(false);
             int issueId = -1;
@@ -105,6 +104,7 @@ public class GoodsIssueDAO extends DBContext {
                     psLog.setInt(2, gi.getLocation().getId());
                     psLog.setInt(3, qty);
                     psLog.setString(4, gi.getIssueCode());
+                    psLog.setInt(5, gi.getCreateBy().getId());
                     psLog.executeUpdate();
                 }
             }
@@ -138,7 +138,6 @@ public class GoodsIssueDAO extends DBContext {
                 shipped = rs.getInt("Shipped");
             }
         }
-
         int newStatus = (shipped >= total) ? 3 : 2; // 3: Completed, 2: Partially Delivered
         String sqlUpdate = "UPDATE Sales_Order SET Status = ? WHERE SalesOrderID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sqlUpdate)) {
