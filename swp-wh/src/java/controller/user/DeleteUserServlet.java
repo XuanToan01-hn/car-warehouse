@@ -76,35 +76,31 @@ public class DeleteUserServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         String userIdStr = request.getParameter("userId");
+        String statusStr = request.getParameter("status");
         String page = request.getParameter("page");
         String keyword = request.getParameter("keyword");
 
         try {
-            if (userIdStr == null || userIdStr.trim().isEmpty()) {
-                session.setAttribute("error", "Invalid user ID.");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
-
             int userId = Integer.parseInt(userIdStr);
+            int status = Integer.parseInt(statusStr); // 0 hoặc 1
 
             UserDAO userService = new UserDAO();
-            boolean deleted = userService.delete(userId);
+            boolean success = userService.changeStatus(userId, status);
 
-            if (deleted) {
-                session.setAttribute("success", "User deleted successfully.");
+            if (success) {
+                // Nếu status truyền vào là 1 -> Active thành công, nếu 0 -> Deactive thành công
+                String msg = (status == 1 ? "Activated" : "Deactivated") + " user successfully";
+                session.setAttribute("success", msg);
             } else {
-                session.setAttribute("error", "Failed to delete user.");
+                session.setAttribute("error", "Failed to update user status!");
             }
-
-        } catch (NumberFormatException e) {
-            session.setAttribute("error", "Invalid user ID.");
         } catch (Exception e) {
-            e.printStackTrace();
-            session.setAttribute("error", "An error occurred while deleting the user.");
+            session.setAttribute("error", "System error: " + e.getMessage());
         }
 
-        response.sendRedirect("userlist?page=" + page + "&keyword=" + URLEncoder.encode(keyword == null ? "" : keyword, "UTF-8"));
+        // Đảm bảo keyword không bị null khi redirect
+        String encodedKeyword = URLEncoder.encode(keyword == null ? "" : keyword, "UTF-8");
+        response.sendRedirect("userlist?page=" + (page == null ? "1" : page) + "&keyword=" + encodedKeyword);
     }
 
     /**

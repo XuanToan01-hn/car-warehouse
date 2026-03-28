@@ -23,7 +23,15 @@ public class User {
     private String dateOfBirth;
     private Role role;
     private Warehouse warehouse;
+private boolean isActive;
 
+    public boolean isIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
     public User() {}
 
     public int getId() { return id; }
