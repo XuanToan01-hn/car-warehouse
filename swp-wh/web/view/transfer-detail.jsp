@@ -22,9 +22,15 @@
             font-family: 'Be Vietnam Pro', sans-serif;
             background-color: #f8fafc;
         }
+        .content-page {
+            padding-top: 65px !important;
+        }
+        .container-fluid {
+            padding-top: 0 !important;
+        }
         .page-header {
-            margin-bottom: 2rem;
-            padding: 1.5rem 0;
+            margin-bottom: 1rem;
+            padding: 1rem 0 0.5rem 0;
         }
         .card-detail {
             border-radius: 20px;

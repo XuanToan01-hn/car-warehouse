@@ -228,7 +228,7 @@
             function toggleWarehouseField() {
                 const selectedText = roleSelect.options[roleSelect.selectedIndex].text;
                 // Logic remains the same as it was already checking for English roles
-                if (selectedText === 'Inventory Staff' || selectedText === 'Sale Staff' || selectedText === 'Purchasing Staff') {
+                if (selectedText === 'Inventory Staff' || selectedText === 'Purchasing Staff') {
                     warehouseDropdown.style.display = 'block';
                 } else {
                     warehouseDropdown.style.display = 'none';

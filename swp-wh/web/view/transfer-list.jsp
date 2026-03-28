@@ -14,20 +14,29 @@
                 body {
                     font-family: 'Inter', sans-serif;
                     background-color: #f8fafc;
+                    overflow-y: hidden;
                 }
 
                 .page-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 1.5rem 0;
-                    margin-bottom: 1rem;
+                    padding: 1rem 0 0.5rem 0;
+                    margin-bottom: 0.5rem;
+                }
+
+                .content-page {
+                    padding-top: 65px !important;
+                }
+
+                .container-fluid {
+                    padding-top: 0 !important;
                 }
 
                 .card-main {
-                    border-radius: 16px;
+                    border-radius: 12px;
                     border: none;
-                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
                     background: white;
                     overflow: hidden;
                 }
@@ -88,12 +97,12 @@
                     color: #475569;
                     text-transform: uppercase;
                     font-size: 0.75rem;
-                    padding: 1.25rem 1.5rem;
+                    padding: 0.85rem 1.25rem;
                     border-bottom: 1px solid #e2e8f0;
                 }
 
                 .table tbody td {
-                    padding: 1.25rem 1.5rem;
+                    padding: 0.85rem 1.25rem;
                     vertical-align: middle;
                     border-bottom: 1px solid #f1f5f9;
                 }
@@ -237,7 +246,7 @@
                             </c:if>
 
                             <div class="card card-main">
-                                <div class="card-header bg-white border-bottom py-3">
+                                <div class="card-header bg-white border-bottom py-2">
                                     <h5 class="mb-0 font-weight-bold text-primary">List of Transfer Requests</h5>
                                 </div>
                                 <div class="card-body p-0">
@@ -321,6 +330,29 @@
                                         </table>
                                     </div>
                                 </div>
+                                <c:if test="${totalPages > 1}">
+                                    <div class="card-footer bg-white border-top py-3">
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination justify-content-center mb-0">
+                                                <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                                    <a class="page-link"
+                                                        href="internal-transfer?action=view&page=${currentPage - 1}"
+                                                        tabindex="-1">Previous</a>
+                                                </li>
+                                                <c:forEach begin="1" end="${totalPages}" var="i">
+                                                    <li class="page-item ${i == currentPage ? 'active' : ''}">
+                                                        <a class="page-link"
+                                                            href="internal-transfer?action=view&page=${i}">${i}</a>
+                                                    </li>
+                                                </c:forEach>
+                                                <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                                    <a class="page-link"
+                                                        href="internal-transfer?action=view&page=${currentPage + 1}">Next</a>
+                                                </li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </c:if>
                             </div>
                         </div>
                     </div>

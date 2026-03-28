@@ -99,7 +99,14 @@ public class LoginServlet extends HttpServlet {
         UserDAO userService = new UserDAO();
         String passwordEncode = EndCode.toSHA1(passwordStr);
         User user = userService.loginAuth(emailStr, passwordEncode);
+
         if (user != null) {
+            
+            if (!user.isIsActive()) {
+            request.setAttribute("error", "Your account has been deactive,can not login !");
+            request.getRequestDispatcher("view/auth-sign-in.jsp").forward(request, response);
+            return;
+        }
             // Login successful -> Save to session
             HttpSession session = request.getSession();
             session.setAttribute("user", user);

@@ -55,7 +55,7 @@ public static void main(String[] args) {
     }
 }
     public User loginAuth(String email, String password) {
-String sql = "SELECT * FROM Users WHERE Email = ? AND Password = ? AND IsActive = 1";
+String sql = "SELECT * FROM Users WHERE Email = ? AND Password = ?";
 try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, email);
@@ -460,7 +460,6 @@ public boolean insert(User u) {
         ps.setString(8, u.getDateOfBirth());
         ps.setInt(9, u.getRole().getId());
 
-        // Xử lý Warehouse (giữ nguyên logic null)
         if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
             ps.setInt(10, u.getWarehouse().getId());
         } else {

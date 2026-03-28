@@ -1,8 +1,4 @@
-<%-- 
-    Document   : page-permissions
-    Created on : Mar 28, 2026, 2:51:49 PM
-    Author     : Asus
---%>
+
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
@@ -163,6 +159,7 @@
         <div class="wrapper">
 
             <%@ include file="../sidebar.jsp" %>
+            <%@ include file="../header.jsp" %>
 
             <div class="content-page">
                 <div class="container-fluid">
@@ -183,7 +180,7 @@
                                 </div>
                             </form>
                             <c:if test="${not empty requestScope.selectedRoleId && requestScope.selectedRoleId != 0}">
-                                <form action="update-permissions" method="POST">
+                                <form action="update-permission" method="POST">
                                     <input type="hidden" name="roleId" value="${requestScope.selectedRoleId}">
                                     <div class="permissions-section">
                                         <div class="permissions-grid">
