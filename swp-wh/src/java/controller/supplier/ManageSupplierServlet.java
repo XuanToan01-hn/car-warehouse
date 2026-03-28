@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import model.Supplier;
 
+import model.User;
+
 @WebServlet(name = "ManageSupplierServlet", urlPatterns = { "/manage-suppliers" })
 public class ManageSupplierServlet extends HttpServlet {
 
@@ -23,6 +25,13 @@ public class ManageSupplierServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
+
+        // [WH-FILTER] Only Purchasing Staff (Role 5)
+        model.User loginUser = (model.User) request.getSession().getAttribute("user");
+        if (loginUser == null || loginUser.getRole() == null || loginUser.getRole().getId() != 5) {
+            response.sendError(403, "Access Denied.");
+            return;
+        }
 
         String action = request.getParameter("action");
         SupplierDAO dao = new SupplierDAO();
@@ -51,7 +60,8 @@ public class ManageSupplierServlet extends HttpServlet {
             try {
                 int id = Integer.parseInt(idStr);
                 boolean ok = dao.delete(id);
-                response.sendRedirect(request.getContextPath() + "/manage-suppliers?success=" + (ok ? "deleted" : "delete_failed"));
+                response.sendRedirect(
+                        request.getContextPath() + "/manage-suppliers?success=" + (ok ? "deleted" : "delete_failed"));
             } catch (NumberFormatException e) {
                 response.sendRedirect(request.getContextPath() + "/manage-suppliers?error=invalid_id");
             }
@@ -67,6 +77,13 @@ public class ManageSupplierServlet extends HttpServlet {
             throws ServletException, IOException {
         request.setCharacterEncoding("UTF-8");
 
+        // [WH-FILTER] Only Purchasing Staff (Role 5)
+        model.User loginUser = (model.User) request.getSession().getAttribute("user");
+        if (loginUser == null || loginUser.getRole() == null || loginUser.getRole().getId() != 5) {
+            response.sendError(403, "Access Denied.");
+            return;
+        }
+
         String action = request.getParameter("action");
         SupplierDAO dao = new SupplierDAO();
 
@@ -77,33 +94,39 @@ public class ManageSupplierServlet extends HttpServlet {
 
         // ── SERVER-SIDE VALIDATION ──
         int excludeId = "update".equals(action) ? parseId(request.getParameter("id")) : 0;
-        
+
         if (name.isEmpty()) {
-            sendValidationError(request, response, "Supplier name is required.", action, excludeId, name, phone, email, address);
+            sendValidationError(request, response, "Supplier name is required.", action, excludeId, name, phone, email,
+                    address);
             return;
         }
 
         if (!phone.replaceAll("\\s+", "").matches("\\d{10,11}")) {
-            sendValidationError(request, response, "Invalid phone number. Please enter 10 to 11 digits.", action, excludeId, name, phone, email, address);
+            sendValidationError(request, response, "Invalid phone number. Please enter 10 to 11 digits.", action,
+                    excludeId, name, phone, email, address);
             return;
         }
 
         if (!email.matches("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$")) {
-            sendValidationError(request, response, "Invalid email format (e.g., supplier@example.com).", action, excludeId, name, phone, email, address);
+            sendValidationError(request, response, "Invalid email format (e.g., supplier@example.com).", action,
+                    excludeId, name, phone, email, address);
             return;
         }
 
         // ── UNIQUENESS CHECKS ──
         if (dao.isNameExists(name, excludeId)) {
-            sendValidationError(request, response, "Supplier name '" + name + "' already exists.", action, excludeId, name, phone, email, address);
+            sendValidationError(request, response, "Supplier name '" + name + "' already exists.", action, excludeId,
+                    name, phone, email, address);
             return;
         }
         if (dao.isPhoneExists(phone, excludeId)) {
-            sendValidationError(request, response, "Phone number '" + phone + "' is already registered.", action, excludeId, name, phone, email, address);
+            sendValidationError(request, response, "Phone number '" + phone + "' is already registered.", action,
+                    excludeId, name, phone, email, address);
             return;
         }
         if (dao.isEmailExists(email, excludeId)) {
-            sendValidationError(request, response, "Email '" + email + "' is already registered.", action, excludeId, name, phone, email, address);
+            sendValidationError(request, response, "Email '" + email + "' is already registered.", action, excludeId,
+                    name, phone, email, address);
             return;
         }
 
@@ -115,7 +138,8 @@ public class ManageSupplierServlet extends HttpServlet {
             s.setEmail(email);
             s.setAddress(address);
             boolean ok = dao.update(s);
-            response.sendRedirect(request.getContextPath() + "/manage-suppliers?success=" + (ok ? "updated" : "update_failed"));
+            response.sendRedirect(
+                    request.getContextPath() + "/manage-suppliers?success=" + (ok ? "updated" : "update_failed"));
         } else { // add
             Supplier s = new Supplier();
             s.setName(name);
@@ -123,16 +147,17 @@ public class ManageSupplierServlet extends HttpServlet {
             s.setEmail(email);
             s.setAddress(address);
             int newId = dao.insert(s);
-            response.sendRedirect(request.getContextPath() + "/manage-suppliers?success=" + (newId > 0 ? "added" : "add_failed"));
+            response.sendRedirect(
+                    request.getContextPath() + "/manage-suppliers?success=" + (newId > 0 ? "added" : "add_failed"));
         }
     }
 
     private void sendValidationError(HttpServletRequest request, HttpServletResponse response, String error,
             String action, int id, String name, String phone, String email, String address)
             throws ServletException, IOException {
-        
+
         request.setAttribute("error", error);
-        
+
         // Re-construct the object for the form
         Supplier s = new Supplier();
         s.setId(id);
@@ -142,7 +167,8 @@ public class ManageSupplierServlet extends HttpServlet {
         s.setAddress(address);
         request.setAttribute("supplier", s);
 
-        String target = "update".equals(action) ? "/view/supplier/page-edit-supplier.jsp" : "/view/supplier/page-add-supplier.jsp";
+        String target = "update".equals(action) ? "/view/supplier/page-edit-supplier.jsp"
+                : "/view/supplier/page-add-supplier.jsp";
         request.getRequestDispatcher(target).forward(request, response);
     }
 
@@ -151,7 +177,8 @@ public class ManageSupplierServlet extends HttpServlet {
         SupplierDAO dao = new SupplierDAO();
         String keyword = request.getParameter("keyword") != null ? request.getParameter("keyword").trim() : "";
         int page = parseId(request.getParameter("page"));
-        if (page < 1) page = 1;
+        if (page < 1)
+            page = 1;
         int offset = (page - 1) * PAGE_SIZE;
 
         List<Supplier> supplierList = dao.searchAndPaginate(keyword, offset, PAGE_SIZE);
@@ -173,6 +200,10 @@ public class ManageSupplierServlet extends HttpServlet {
     }
 
     private int parseId(String val) {
-        try { return Integer.parseInt(val); } catch (Exception e) { return 0; }
+        try {
+            return Integer.parseInt(val);
+        } catch (Exception e) {
+            return 0;
+        }
     }
 }

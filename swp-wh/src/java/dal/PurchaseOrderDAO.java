@@ -55,6 +55,14 @@ public class PurchaseOrderDAO extends DBContext {
         } catch (SQLException ignored) {
         }
 
+        // Warehouse
+        int warehouseId = rs.getInt("WarehouseID");
+        if (!rs.wasNull()) {
+            model.Warehouse w = new model.Warehouse();
+            w.setId(warehouseId);
+            po.setWarehouse(w);
+        }
+
         return po;
     }
 
@@ -82,11 +90,11 @@ public class PurchaseOrderDAO extends DBContext {
         return list;
     }
 
-    public List<PurchaseOrder> getPendingPOs() {
+    public List<PurchaseOrder> getPendingPOs(int warehouseId) {
         List<PurchaseOrder> list = new ArrayList<>();
         String sql = """
                 SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
-                       po.CreatedDate, po.CreateBy,
+                       po.CreatedDate, po.CreateBy, po.WarehouseID,
                        po.SupplierID, s.Name AS SupplierName,
                        ISNULL((SELECT SUM(pod.Quantity) FROM Purchase_Order_Detail pod WHERE pod.PurchaseOrderID = po.PurchaseOrderID), 0) AS OrderedQty,
                        ISNULL((SELECT SUM(grd.QuantityActual)
@@ -96,10 +104,13 @@ public class PurchaseOrderDAO extends DBContext {
                 FROM Purchase_Order po
                 LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
                 WHERE po.Status IN (2, 3)
+                AND (? = 0 OR po.WarehouseID = ?)
                 ORDER BY po.CreatedDate DESC
                 """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setInt(1, warehouseId);
+            ps.setInt(2, warehouseId);
             ResultSet rs = ps.executeQuery();
             while (rs.next())
                 list.add(mapRow(rs));
@@ -112,11 +123,11 @@ public class PurchaseOrderDAO extends DBContext {
     // ===============================
     // SEARCH + PAGINATE
     // ===============================
-    public List<PurchaseOrder> searchAndPaginate(String keyword, int status, int offset, int limit) {
+    public List<PurchaseOrder> searchAndPaginate(String keyword, int status, int offset, int limit, int warehouseId) {
         List<PurchaseOrder> list = new ArrayList<>();
         String sql = """
                 SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
-                       po.CreatedDate, po.CreateBy,
+                       po.CreatedDate, po.CreateBy, po.WarehouseID,
                        po.SupplierID, s.Name AS SupplierName,
                        ISNULL((SELECT SUM(pod.Quantity) FROM Purchase_Order_Detail pod WHERE pod.PurchaseOrderID = po.PurchaseOrderID), 0) AS OrderedQty,
                        ISNULL((SELECT SUM(grd.QuantityActual)
@@ -127,6 +138,7 @@ public class PurchaseOrderDAO extends DBContext {
                 LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
                 WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
                   AND (? = 0 OR po.Status = ?)
+                  AND (? = 0 OR po.WarehouseID = ?)
                 ORDER BY po.CreatedDate DESC
                 OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
                 """;
@@ -137,8 +149,10 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setString(2, kw);
             ps.setInt(3, status);
             ps.setInt(4, status);
-            ps.setInt(5, offset);
-            ps.setInt(6, limit);
+            ps.setInt(5, warehouseId);
+            ps.setInt(6, warehouseId);
+            ps.setInt(7, offset);
+            ps.setInt(8, limit);
 
             ResultSet rs = ps.executeQuery();
             while (rs.next())
@@ -152,12 +166,13 @@ public class PurchaseOrderDAO extends DBContext {
     // ===============================
     // COUNT
     // ===============================
-    public int count(String keyword, int status) {
+    public int count(String keyword, int status, int warehouseId) {
         String sql = """
                     SELECT COUNT(*) FROM Purchase_Order po
                     LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
                     WHERE (po.OrderCode LIKE ? OR s.Name LIKE ?)
                       AND (? = 0 OR po.Status = ?)
+                      AND (? = 0 OR po.WarehouseID = ?)
                 """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
@@ -166,6 +181,8 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setString(2, kw);
             ps.setInt(3, status);
             ps.setInt(4, status);
+            ps.setInt(5, warehouseId);
+            ps.setInt(6, warehouseId);
             ResultSet rs = ps.executeQuery();
             if (rs.next())
                 return rs.getInt(1);
@@ -181,7 +198,7 @@ public class PurchaseOrderDAO extends DBContext {
     public PurchaseOrder getById(int id) {
         String sql = """
                     SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
-                           po.CreatedDate, po.CreateBy,
+                           po.CreatedDate, po.CreateBy, po.WarehouseID,
                            po.SupplierID, s.Name AS SupplierName,
                            s.Phone AS SupplierPhone, s.Email AS SupplierEmail, s.Address AS SupplierAddress
                     FROM Purchase_Order po
@@ -281,7 +298,8 @@ public class PurchaseOrderDAO extends DBContext {
 
                 try {
                     pod.setReceivedQuantity(rs.getInt("ReceivedQty"));
-                } catch (SQLException ignored) {}
+                } catch (SQLException ignored) {
+                }
 
                 list.add(pod);
             }
@@ -296,8 +314,8 @@ public class PurchaseOrderDAO extends DBContext {
     // ===============================
     public int insert(PurchaseOrder po) {
         String sql = """
-                    INSERT INTO Purchase_Order (OrderCode, SupplierID, Status, TotalAmount, CreateBy)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO Purchase_Order (OrderCode, SupplierID, Status, TotalAmount, CreateBy, WarehouseID)
+                    VALUES (?, ?, ?, ?, ?, ?)
                 """;
         try {
             PreparedStatement ps = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -309,6 +327,11 @@ public class PurchaseOrderDAO extends DBContext {
                 ps.setInt(5, po.getCreateBy().getId());
             } else {
                 ps.setNull(5, java.sql.Types.INTEGER);
+            }
+            if (po.getWarehouse() != null) {
+                ps.setInt(6, po.getWarehouse().getId());
+            } else {
+                ps.setNull(6, java.sql.Types.INTEGER);
             }
             ps.executeUpdate();
             ResultSet rs = ps.getGeneratedKeys();
@@ -370,7 +393,8 @@ public class PurchaseOrderDAO extends DBContext {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setString(1, orderCode);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1) > 0;
+            if (rs.next())
+                return rs.getInt(1) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -384,7 +408,8 @@ public class PurchaseOrderDAO extends DBContext {
             ps.setString(1, orderCode);
             ps.setInt(2, excludePoId);
             ResultSet rs = ps.executeQuery();
-            if (rs.next()) return rs.getInt(1) > 0;
+            if (rs.next())
+                return rs.getInt(1) > 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -437,13 +462,13 @@ public class PurchaseOrderDAO extends DBContext {
         }
 
         System.out.println("\n===== TEST searchAndPaginate() =====");
-        List<PurchaseOrder> searchList = dao.searchAndPaginate("", 0, 0, 5);
+        List<PurchaseOrder> searchList = dao.searchAndPaginate("", 0, 0, 5, 0);
         for (PurchaseOrder po : searchList) {
             System.out.println(po.getOrderCode());
         }
 
         System.out.println("\n===== TEST count() =====");
-        int total = dao.count("", 0);
+        int total = dao.count("", 0, 0);
         System.out.println("Total records: " + total);
 
         System.out.println("\n===== TEST getById() =====");

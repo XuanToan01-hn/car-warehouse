@@ -331,6 +331,41 @@
                 }
 
                 function updateRowInfo(detailSelect) {
+                    const selectedValue = detailSelect.value;
+                    if (!selectedValue) {
+                        const row = detailSelect.closest('.item-row');
+                        const priceInput = row.querySelector('input[name="price"]');
+                        priceInput.value = "";
+                        return;
+                    }
+
+                    // Check for duplicates
+                    const allDetailSelects = document.querySelectorAll('.product-detail-select');
+                    let duplicateFound = false;
+                    allDetailSelects.forEach(s => {
+                        if (s !== detailSelect && s.value === selectedValue) {
+                            duplicateFound = true;
+                        }
+                    });
+
+                    if (duplicateFound) {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Duplicate Product',
+                                text: 'This product variant has already been selected in another row.',
+                                confirmButtonColor: '#0EA5E9'
+                            });
+                        } else {
+                            alert('This product variant has already been selected in another row.');
+                        }
+                        detailSelect.value = "";
+                        const row = detailSelect.closest('.item-row');
+                        const priceInput = row.querySelector('input[name="price"]');
+                        priceInput.value = "";
+                        return;
+                    }
+
                     const selectedOption = detailSelect.options[detailSelect.selectedIndex];
                     const row = detailSelect.closest('.item-row');
                     const priceInput = row.querySelector('input[name="price"]');

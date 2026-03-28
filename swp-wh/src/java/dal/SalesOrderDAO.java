@@ -24,6 +24,8 @@ public class SalesOrderDAO extends DBContext {
     public List<SalesOrder> getOrdersByWarehouse(int warehouseId) {
     List<SalesOrder> list = new ArrayList<>();
     // Thêm điều kiện WHERE so.WarehouseID = ? và lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
+    // lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
+    //lấy tổng đơn đặt, tổng đơn xuất thưcj tế
     String sql = "SELECT so.*, " +
                  "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
                  "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
@@ -45,10 +47,14 @@ public class SalesOrderDAO extends DBContext {
     }
     return list;
 }
+    //Lấy danh sách đơn bán (SalesOrder) theo kho (warehouseId)
+    //đồng thời tính tổng số lượng đặt, lượng giao thực tế mỗi đơn
 public SalesOrder getWarehouseOrderById(int id) {
+     //lấy in4 đơn hàng
     String sqlHeader = "SELECT so.*, u.FullName as CreatorName FROM Sales_Order so " +
                        "JOIN Users u ON so.CreateBy = u.UserID WHERE so.SalesOrderID = ?";
     
+   // tính xem mỗi dòng đã  đặt/giao bao nhiêu
     String sqlDetails = "SELECT sod.*, " +
                         "(SELECT ISNULL(SUM(gid.QuantityActual), 0) " +
                         " FROM Goods_Issue_Detail gid " +
@@ -61,9 +67,9 @@ public SalesOrder getWarehouseOrderById(int id) {
         ps.setInt(1, id);
         ResultSet rs = ps.executeQuery();
         if (rs.next()) {
-            SalesOrder so = mapRow(rs); // Dùng hàm mapRow cũ của bạn
+            SalesOrder so = mapRow(rs); 
             
-            // Lấy chi tiết hàng hóa kèm tiến độ giao
+            
             List<SalesOrderDetail> details = new ArrayList<>();
             try (PreparedStatement psD = connection.prepareStatement(sqlDetails)) {
                 psD.setInt(1, id);
@@ -87,6 +93,7 @@ public SalesOrder getWarehouseOrderById(int id) {
     
 public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
     List<SalesOrderDetail> list = new ArrayList<>();
+    // Lấy chi tiết hàng hóa vs tổng số lượng giao
     String sql = "SELECT sod.*, " +
                  " (SELECT ISNULL(SUM(gid.QuantityActual), 0) FROM Goods_Issue gi " +
                  "  JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID " +
@@ -109,7 +116,7 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
     return list;
 }
     
-    
+    //lấy tất cả đơn hàng, với mỗi đơn tính tổng lượng đặt/giao
     private ProductDetailDAO pdd = new ProductDetailDAO();
     public List<SalesOrder> getAll() {
         List<SalesOrder> list = new ArrayList<>();
@@ -130,7 +137,7 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
         }
         return list;
     }
-
+//lấy tất cả đơn hàng, với mỗi đơn tính tổng lượng đặt/giao theo status tương ứng
     public List<SalesOrder> getByStatus(int status) {
         List<SalesOrder> list = new ArrayList<>();
         String sql = "SELECT so.*, " +
@@ -152,7 +159,7 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
         }
         return list;
     }
-
+//Lấy 1 SalesOrder theo ID với in4, số lượng đặt và giao,
 public SalesOrder getById(int id) {
     String sql = "SELECT so.*, " +
                  "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
@@ -165,8 +172,7 @@ public SalesOrder getById(int id) {
             SalesOrder so = mapRow(rs);
             so.setOrderedQty(rs.getInt("OrderedQty"));
             so.setDeliveredQty(rs.getInt("DeliveredQty"));
-            
-            // FIX LỖI Ở ĐÂY: Gọi đúng hàm setter cho list details
+// lấy  danh sách chi tiết sản phẩm
             so.setDetails(getDetailsByOrderId(id)); 
             
             return so;
@@ -177,7 +183,8 @@ public SalesOrder getById(int id) {
     return null;
 }
 
-
+//Thêm đơn hàng (header) vào Sales_Order
+//   Thêm danh sách sản phẩm (detail) vào Sales_Order_Detail
     public void insert(SalesOrder order, List<SalesOrderDetail> details) {
         String sqlOrder = "INSERT INTO Sales_Order (OrderCode, CustomerID, Status, TotalAmount, Note, CreateBy, WarehouseID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         String sqlDetail = "INSERT INTO Sales_Order_Detail (SalesOrderID, ProductDetailID, Quantity, Price, SubTotal) VALUES (?, ?, ?, ?, ?)";
