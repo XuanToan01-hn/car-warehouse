@@ -2,12 +2,12 @@
     <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
         <%@taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
             <!doctype html>
-            <html lang="vi">
+            <html lang="en">
 
             <head>
                 <meta charset="utf-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
-                <title>Tạo Goods Receipt Order</title>
+                <title>Create Goods Receipt Order</title>
                 <link rel="shortcut icon" href="${pageContext.request.contextPath}/assets/images/favicon.ico">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
                 <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
@@ -333,7 +333,7 @@
 
                         if (!poId) {
                             infoArea.classList.add('d-none');
-                            tbody.innerHTML = '<tr><td colspan="8" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Vui lòng chọn Purchase Order để xem sản phẩm</td></tr>';
+                            tbody.innerHTML = '<tr><td colspan="8" id="no-po-msg"><i class="fas fa-hand-point-up mr-2"></i>Please select a Purchase Order to view products.</td></tr>';
                             submitBtn.disabled = true;
                             return;
                         }
@@ -366,7 +366,7 @@
                         var html = '';
                         var hasItems = false;
                         if (!details || details.length === 0) {
-                            html = '<tr><td colspan="8" class="text-center text-muted">Không có sản phẩm trong PO này</td></tr>';
+                            html = '<tr><td colspan="8" class="text-center text-muted">No products found in this PO.</td></tr>';
                             submitBtn.disabled = true;
                         } else {
                             var displayIdx = 1;
@@ -406,7 +406,7 @@
                                     '</tr>';
                             });
                             if (!hasItems) {
-                                html = '<tr><td colspan="8" class="text-center text-success"><i class="fas fa-check-circle mr-2"></i>Tất cả sản phẩm trong PO này đã được nhận đủ.</td></tr>';
+                                html = '<tr><td colspan="8" class="text-center text-success"><i class="fas fa-check-circle mr-2"></i>All products in this Purchase Order have been fully received.</td></tr>';
                                 submitBtn.disabled = true;
                             } else {
                                 submitBtn.disabled = false;
@@ -500,7 +500,7 @@
                                 var warnBox = document.getElementById('capacity-warnings');
                                 warnBox.innerHTML = '<div id="location-full-warning" class="alert alert-danger mt-2 mb-0" style="border-radius:10px;">'
                                     + '<i class="fas fa-exclamation-triangle mr-2"></i>'
-                                    + 'Kho <strong> ' + opt.text.trim() + '</strong>  đã đầy (<strong>' + stockNum + ' / ' + capNum + '</strong> units). Vui lòng chọn kho khác!'
+                                    + 'Location <strong> ' + opt.text.trim() + '</strong> is full (<strong>' + stockNum + ' / ' + capNum + '</strong> units). Please choose another location!'
                                     + '</div>';
                                 document.getElementById('submitBtn').disabled = true;
                             } else {
@@ -541,8 +541,8 @@
                         if (remaining !== undefined && totalQty > remaining) {
                             warnBox.innerHTML = '<div id="qty-capacity-warning" class="alert alert-warning mt-2 mb-0" style="border-radius:10px;">'
                                 + '<i class="fas fa-exclamation-circle mr-2"></i>'
-                                + 'Tổng số lượng nhận (<strong>' + totalQty + '</strong>) vượt quá sức chứa còn lại của kho (<strong>' + remaining + '</strong> units). '
-                                + 'Vui lòng giảm số lượng hoặc chọn kho khác.'
+                                + 'Total receiving quantity (<strong>' + totalQty + '</strong>) exceeds the remaining capacity of the location (<strong>' + remaining + '</strong> units). '
+                                + 'Please reduce the quantity or choose another location.'
                                 + '</div>';
                             submitBtn.disabled = true;
                         } else {
@@ -555,7 +555,7 @@
                         var items = document.querySelectorAll('input[name="productId[]"]');
                         if (items.length === 0) {
                             e.preventDefault();
-                            alert('Vui lòng chọn Purchase Order trước khi xác nhận!');
+                            alert('Please select a Purchase Order before confirming!');
                             return;
                         }
 

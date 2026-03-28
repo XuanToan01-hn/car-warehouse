@@ -77,7 +77,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             String[] productDetailIds = request.getParameterValues("productDetailId[]");
 
             if (productIds == null || productIds.length == 0) {
-                request.getSession().setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
+                request.getSession().setAttribute("error", "Please select a Purchase Order and enter the actual received quantity before saving.");
                 response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
                 return;
             }
@@ -97,10 +97,10 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 if (totalActualQty > remaining) {
                     String locName = location.getLocationName();
                     request.getSession().setAttribute("error",
-                        "Kho \"" + locName + "\" đã đầy hoặc không đủ chỗ! "
-                        + "Sức chứa còn lại: " + remaining + " units, "
-                        + "số lượng cần nhập: " + totalActualQty + " units. "
-                        + "Vui lòng chọn kho khác hoặc giảm số lượng nhận.");
+                        "Location \"" + locName + "\" is full or does not have enough capacity! "
+                        + "Remaining capacity: " + remaining + " units, "
+                        + "attempted to receive: " + totalActualQty + " units. "
+                        + "Please choose a different location or reduce the received quantity.");
                     response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
                     return;
                 }
@@ -133,7 +133,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 }
                 if (overLimit) {
                     request.getSession().setAttribute("error",
-                        "Số lượng nhập vượt quá số lượng còn lại có thể nhận. Vui lòng kiểm tra và sửa lại.");
+                        "The received quantity exceeds the remaining quantity expected for this Purchase Order. Please check and try again.");
                     response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
                     return;
                 }
@@ -185,15 +185,23 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             int receiptId = grDAO.createDraft(gr, details);
 
             if (receiptId > 0) {
-                request.getSession().setAttribute("success", "Tạo Goods Receipt Order thành công!");
+                // Auto-confirm the receipt so it immediately updates PO status and stock
+                GoodsReceipt createdGr = grDAO.getById(receiptId);
+                boolean confirmed = grDAO.confirmDraft(receiptId, createdGr.getDetails());
+                
+                if (confirmed) {
+                    request.getSession().setAttribute("success", "Goods Receipt Order created and confirmed successfully! PO progress updated.");
+                } else {
+                    request.getSession().setAttribute("success", "Goods Receipt Order created as Draft, but auto-confirmation failed.");
+                }
                 response.sendRedirect(request.getContextPath() + "/detail-goods-receipt?id=" + receiptId);
             } else {
-                request.getSession().setAttribute("error", "Có lỗi xảy ra khi tạo Goods Receipt. Vui lòng thử lại.");
+                request.getSession().setAttribute("error", "An error occurred while creating the Goods Receipt. Please try again.");
                 response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
+            request.getSession().setAttribute("error", "Invalid data: " + e.getMessage());
             response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
         }
     }
