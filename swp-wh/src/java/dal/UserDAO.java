@@ -21,12 +21,38 @@ import model.Warehouse;
  */
 public class UserDAO extends DBContext {
     
-    public static void main(String[] args) {
+public static void main(String[] args) {
     UserDAO dao = new UserDAO();
-    
-    boolean a = dao.changeStatus(5, 1);
-    if(a) System.out.println("ok");
-    else    System.out.println("ko ok");
+
+    // Tạo user mới
+    User u = new User();
+    u.setUserCode("U001");
+    u.setFullName("Nguyen Van A");
+    u.setUsername("nguyenvana");
+    u.setPassword("123456");
+    u.setEmail("vana@gmail.com");
+    u.setPhone("0123456789");
+    u.setMale(1);
+    u.setDateOfBirth("2000-01-01");
+
+    // Set Role
+    Role role = new Role();
+    role.setId(1); // nhớ là role này phải tồn tại trong DB
+    u.setRole(role);
+
+    // Set Warehouse (có thể null nếu không bắt buộc)
+    Warehouse wh = new Warehouse();
+    wh.setId(1); // phải tồn tại trong DB
+    u.setWarehouse(wh);
+
+    // Gọi insert
+    boolean result = dao.insert(u);
+
+    if (result) {
+        System.out.println("Insert thành công!");
+    } else {
+        System.out.println("Insert thất bại!");
+    }
 }
     public User loginAuth(String email, String password) {
 String sql = "SELECT * FROM Users WHERE Email = ? AND Password = ? AND IsActive = 1";
@@ -419,8 +445,9 @@ try {
 }
     
 public boolean insert(User u) {
-    String sql = "INSERT INTO Users(UserCode, FullName, Username, Password, Email, Phone, Male, DateOfBirth, RoleID, WarehouseID, IsActive) "
-               + "VALUES(?,?,?,?,?,?,?,?,?,?,1)";
+    // Đã bỏ IsActive và dấu ? cuối cùng
+    String sql = "INSERT INTO Users(UserCode, FullName, Username, Password, Email, Phone, Male, DateOfBirth, RoleID, WarehouseID) "
+               + "VALUES(?,?,?,?,?,?,?,?,?,?)";
     
     try (PreparedStatement ps = connection.prepareStatement(sql)) {
         ps.setString(1, u.getUserCode());
@@ -433,13 +460,17 @@ public boolean insert(User u) {
         ps.setString(8, u.getDateOfBirth());
         ps.setInt(9, u.getRole().getId());
 
+        // Xử lý Warehouse (giữ nguyên logic null)
         if (u.getWarehouse() != null && u.getWarehouse().getId() > 0) {
             ps.setInt(10, u.getWarehouse().getId());
         } else {
             ps.setNull(10, java.sql.Types.INTEGER);
         }
+
         return ps.executeUpdate() > 0;
     } catch (Exception e) {
+        // In lỗi ra để debug nếu vẫn thất bại
+        System.err.println("Lỗi Insert: " + e.getMessage());
         return false;
     }
 }
