@@ -156,7 +156,8 @@ public class ProductServlet extends HttpServlet {
                 p.setUnit(unitDAO.getUnitById(unitId));
                 p.setSupplier(supplierDAO.getById(supId));
                 
-                // Keep old image if no new one is uploaded
+              // có ảnh mới up ảnh mới
+              //có ảnh cũ giữ ảnh cũ
                 if (imageFileName != null && !imageFileName.isEmpty()) {
                     p.setImage(imageFileName);
                 } else if (oldP != null) {
@@ -199,11 +200,12 @@ public class ProductServlet extends HttpServlet {
                 return null;
             }
 
-            // Generate unique filename
+            // Tạo tên file unique
             String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
             String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-
+//xác định đường dẫn lưu file
             String uploadPath = getServletContext().getRealPath("/") + "assets/images/product/";
+             //Tạo folder nếu chưa có
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();

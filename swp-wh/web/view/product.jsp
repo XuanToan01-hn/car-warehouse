@@ -180,7 +180,7 @@
                     </c:choose>
                 </div>
 
-                <%-- Flash messages --%>
+          
                 <c:if test="${not empty sessionScope.error}">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert" style="border-radius: 12px; font-weight: 600;">
                         <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
@@ -196,7 +196,7 @@
                     <% session.removeAttribute("success"); %>
                 </c:if>
 
-                <%-- Forms section --%>
+               
                 <c:if test="${mode == 'add' or mode == 'edit'}">
                     <div class="form-card">
                         <h5 class="mb-4 font-weight-bold">${mode == 'edit' ? 'Edit Product' : 'Add New Product'}</h5>
