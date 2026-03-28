@@ -22,6 +22,9 @@
                                     </div>
                                     <div class="card-body">
                                         <form action="add-product-detail" method="post">
+                                            <c:if test="${not empty error}">
+                                                <div class="alert alert-danger">${error}</div>
+                                            </c:if>
                                             <div class="row">
                                                 <div class="col-md-12 form-group">
                                                     <label>Product *</label>
@@ -35,12 +38,16 @@
                                                 <div class="col-md-6 form-group">
                                                     <label>Lot Number</label>
                                                     <input type="text" name="lotNumber" class="form-control"
-                                                        placeholder="Enter Lot Number">
+                                                        placeholder="e.g. LN000001" pattern="^LN\d{6}$"
+                                                        title="Format: LN + 6 digits (e.g. LN000001)">
+                                                    <small class="text-muted">Format: LN + 6 chữ số (VD: LN000001)</small>
                                                 </div>
                                                 <div class="col-md-6 form-group">
                                                     <label>Serial Number</label>
                                                     <input type="text" name="serialNumber" class="form-control"
-                                                        placeholder="Enter Serial Number">
+                                                        placeholder="e.g. SN000001" pattern="^SN\d{6}$"
+                                                        title="Format: SN + 6 digits (e.g. SN000001)">
+                                                    <small class="text-muted">Format: SN + 6 chữ số (VD: SN000001)</small>
                                                 </div>
                                                 <input type="hidden" name="price" value="0">
                                                 <div class="col-md-6 form-group">
