@@ -24,7 +24,7 @@ import model.RolePermission;
  *
  * @author admin
  */
-@WebServlet(name = "UpdatePermissionServlet", urlPatterns = {"/update-permissions"})
+@WebServlet(name = "UpdatePermissionServlet", urlPatterns = {"/update-permission"})
 public class UpdatePermissionServlet extends HttpServlet {
 
     /**
