@@ -254,6 +254,7 @@ public class AddPurchaseOrderServlet extends HttpServlet {
             po.setTotalAmount(totalAmount);
             if (loginUser != null) {
                 po.setCreateBy(loginUser);
+                po.setWarehouse(loginUser.getWarehouse());
             }
 
             int newPoId = poDAO.insert(po);

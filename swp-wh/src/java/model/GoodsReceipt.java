@@ -20,6 +20,7 @@ public class GoodsReceipt {
     private int status;
     private String note;
     private User createBy;
+    private Warehouse warehouse;
     private List<GoodsReceiptDetail> details;
     private int totalExpected;
     private int totalActual;
@@ -114,6 +115,14 @@ public class GoodsReceipt {
 
     public void setTotalActual(int totalActual) {
         this.totalActual = totalActual;
+    }
+
+    public Warehouse getWarehouse() {
+        return warehouse;
+    }
+
+    public void setWarehouse(Warehouse warehouse) {
+        this.warehouse = warehouse;
     }
 
     public String getStatusLabel() {

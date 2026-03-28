@@ -242,6 +242,9 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             gr.setLocation(loc);
             gr.setNote(note);
             gr.setCreateBy(currentUser);
+            if (currentUser != null) {
+                gr.setWarehouse(currentUser.getWarehouse());
+            }
             gr.setStatus(finalGROStatus);
 
             int receiptId = grDAO.createAndConfirmReceipt(gr, details);

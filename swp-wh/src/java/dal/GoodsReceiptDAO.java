@@ -140,6 +140,13 @@ public class GoodsReceiptDAO extends DBContext {
                     gr.setId(rs.getInt("ReceiptID"));
                     gr.setReceiptCode(rs.getString("ReceiptCode"));
                     gr.setStatus(rs.getInt("Status"));
+                    
+                    int warehouseId = rs.getInt("WarehouseID");
+                    if (!rs.wasNull()) {
+                        model.Warehouse w = new model.Warehouse();
+                        w.setId(warehouseId);
+                        gr.setWarehouse(w);
+                    }
                     Timestamp ts = rs.getTimestamp("ReceiptDate");
                     if (ts != null) {
                         gr.setReceiptDate(new java.util.Date(ts.getTime()));
@@ -355,17 +362,20 @@ public class GoodsReceiptDAO extends DBContext {
     // Listing + search
     // =========================
 
-    public int count(String keyword, int status) {
+    public int count(String keyword, int status, int warehouseId) {
         String sql = "SELECT COUNT(*) FROM Goods_Receipt gr "
                 + "LEFT JOIN Purchase_Order po ON gr.PurchaseOrderID = po.PurchaseOrderID "
                 + "WHERE (gr.ReceiptCode LIKE ? OR po.OrderCode LIKE ?) "
-                + "AND (? = 0 OR gr.Status = ?)";
+                + "AND (? = 0 OR gr.Status = ?) "
+                + "AND (? = 0 OR gr.WarehouseID = ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             String kw = "%" + keyword + "%";
             ps.setString(1, kw);
             ps.setString(2, kw);
             ps.setInt(3, status);
             ps.setInt(4, status);
+            ps.setInt(5, warehouseId);
+            ps.setInt(6, warehouseId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
@@ -377,10 +387,10 @@ public class GoodsReceiptDAO extends DBContext {
         return 0;
     }
 
-    public List<GoodsReceipt> searchAndPaginate(String keyword, int status, int offset, int limit) {
+    public List<GoodsReceipt> searchAndPaginate(String keyword, int status, int offset, int limit, int warehouseId) {
         List<GoodsReceipt> list = new ArrayList<>();
         String sql = "SELECT gr.ReceiptID, gr.ReceiptCode, gr.PurchaseOrderID, gr.LocationID, "
-                + "gr.ReceiptDate, gr.Status, gr.Note, "
+                + "gr.ReceiptDate, gr.Status, gr.Note, gr.WarehouseID, "
                 + "po.OrderCode, po.Status AS POStatus, "
                 + "l.LocationName, "
                 + "COALESCE((SELECT SUM(d.QuantityExpected) FROM Goods_Receipt_Detail d WHERE d.ReceiptID = gr.ReceiptID), 0) AS TotalExpected, "
@@ -390,6 +400,7 @@ public class GoodsReceiptDAO extends DBContext {
                 + "LEFT JOIN Location l ON gr.LocationID = l.LocationID "
                 + "WHERE (gr.ReceiptCode LIKE ? OR po.OrderCode LIKE ?) "
                 + "AND (? = 0 OR gr.Status = ?) "
+                + "AND (? = 0 OR gr.WarehouseID = ?) "
                 + "ORDER BY gr.ReceiptDate DESC "
                 + "OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -398,8 +409,10 @@ public class GoodsReceiptDAO extends DBContext {
             ps.setString(2, kw);
             ps.setInt(3, status);
             ps.setInt(4, status);
-            ps.setInt(5, offset);
-            ps.setInt(6, limit);
+            ps.setInt(5, warehouseId);
+            ps.setInt(6, warehouseId);
+            ps.setInt(7, offset);
+            ps.setInt(8, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     GoodsReceipt gr = new GoodsReceipt();
@@ -531,8 +544,8 @@ public class GoodsReceiptDAO extends DBContext {
      */
     public int createAndConfirmReceipt(GoodsReceipt gr, List<GoodsReceiptDetail> details) {
         String sqlHeader = "INSERT INTO Goods_Receipt "
-                + "(ReceiptCode, PurchaseOrderID, LocationID, ReceiptDate, Status, Note, CreateBy) "
-                + "VALUES (?, ?, ?, GETDATE(), ?, ?, ?)";
+                + "(ReceiptCode, PurchaseOrderID, LocationID, ReceiptDate, Status, Note, CreateBy, WarehouseID) "
+                + "VALUES (?, ?, ?, GETDATE(), ?, ?, ?, ?)";
 
         String sqlDetail = "INSERT INTO Goods_Receipt_Detail "
                 + "(ReceiptID, ProductID, ProductDetailID, QuantityExpected, QuantityActual) "
@@ -565,6 +578,11 @@ public class GoodsReceiptDAO extends DBContext {
                     psHeader.setInt(6, gr.getCreateBy().getId());
                 } else {
                     psHeader.setNull(6, java.sql.Types.INTEGER);
+                }
+                if (gr.getWarehouse() != null) {
+                    psHeader.setInt(7, gr.getWarehouse().getId());
+                } else {
+                    psHeader.setNull(7, java.sql.Types.INTEGER);
                 }
                 psHeader.executeUpdate();
 

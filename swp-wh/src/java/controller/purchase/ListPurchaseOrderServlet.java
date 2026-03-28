@@ -44,9 +44,18 @@ public class ListPurchaseOrderServlet extends HttpServlet {
         if (page < 1)
             page = 1;
 
+        // Get logged in user to check role and warehouse
+        model.User user = (model.User) request.getSession().getAttribute("user");
+        int warehouseId = 0; // 0 = all (Admin/Manager)
+        if (user != null && user.getRole() != null && (user.getRole().getId() == 3 || user.getRole().getId() == 5)) {
+            if (user.getWarehouse() != null) {
+                warehouseId = user.getWarehouse().getId();
+            }
+        }
+
         int offset = (page - 1) * PAGE_SIZE;
-        List<PurchaseOrder> list = poDAO.searchAndPaginate(keyword, status, offset, PAGE_SIZE);
-        int total = poDAO.count(keyword, status);
+        List<PurchaseOrder> list = poDAO.searchAndPaginate(keyword, status, offset, PAGE_SIZE, warehouseId);
+        int total = poDAO.count(keyword, status, warehouseId);
         int totalPages = (int) Math.ceil((double) total / PAGE_SIZE);
 
         request.setAttribute("poList", list);

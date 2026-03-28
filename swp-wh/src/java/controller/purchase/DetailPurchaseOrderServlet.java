@@ -26,6 +26,19 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/purchase-orders");
                 return;
             }
+
+            // [WH-FILTER] Check visibility for Inventory Staff (Role 3)
+            User userObj = (User) request.getSession().getAttribute("user");
+            if (userObj != null && userObj.getRole() != null
+                    && (userObj.getRole().getId() == 3 || userObj.getRole().getId() == 5)) {
+                int userWhId = (userObj.getWarehouse() != null) ? userObj.getWarehouse().getId() : 0;
+                int poWhId = (po.getWarehouse() != null) ? po.getWarehouse().getId() : 0;
+
+                if (userWhId != poWhId && userWhId != 0) {
+                    response.sendRedirect(request.getContextPath() + "/purchase-orders?error=denied");
+                    return;
+                }
+            }
             request.setAttribute("po", po);
 
             // Check if an existing GRO (Draft or Partial) exists for this PO
@@ -66,6 +79,18 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
                 return;
             }
 
+            // [WH-FILTER] Check visibility for Inventory Staff (Role 3)
+            if (currentUser != null && currentUser.getRole() != null
+                    && (currentUser.getRole().getId() == 3 || currentUser.getRole().getId() == 5)) {
+                int userWhId = (currentUser.getWarehouse() != null) ? currentUser.getWarehouse().getId() : 0;
+                int poWhId = (po.getWarehouse() != null) ? po.getWarehouse().getId() : 0;
+
+                if (userWhId != poWhId && userWhId != 0) {
+                    response.sendRedirect(request.getContextPath() + "/purchase-orders?error=denied");
+                    return;
+                }
+            }
+
             int currentRole = currentUser.getRole().getId();
 
             // Authorization logic:
@@ -93,7 +118,8 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
                     // Mark Received: only Inventory Staff
                     authorized = (currentRole == 3);
                 } else if (newStatus == 4) {
-                    // Cancel from Confirmed: only Manager (PO already approved, Purchasing Staff cannot cancel)
+                    // Cancel from Confirmed: only Manager (PO already approved, Purchasing Staff
+                    // cannot cancel)
                     authorized = (currentRole == 2);
                 }
             }
