@@ -198,7 +198,6 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         }
     }
 
-    // ===== (OPTIONAL) BUSINESS RULE =====
     if (roleStr != null) {
         int roleId = Integer.parseInt(roleStr);
 
@@ -209,7 +208,6 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         }
     }
 
-    // ===== HANDLE VALIDATION FAIL =====
     if (hasError) {
         request.setAttribute("listR", roleService.getAll());
         request.setAttribute("listWarehouse", warehouseDAO.getAll());
