@@ -198,15 +198,15 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
         }
     }
 
-    if (roleStr != null) {
-        int roleId = Integer.parseInt(roleStr);
-
-        if ((roleId == 3 || roleId == 4 || roleId == 5)) {
-
-            request.setAttribute("error_warehouse", "Warehouse is required for this role!");
-            hasError = true;
-        }
-    }
+//    if (roleStr != null) {
+//        int roleId = Integer.parseInt(roleStr);
+//
+//        if ((roleId == 3 || roleId == 4 || roleId == 5)) {
+//
+//            request.setAttribute("error_warehouse", "Warehouse is required for this role!");
+//            hasError = true;
+//        }
+//    }
 
     if (hasError) {
         request.setAttribute("listR", roleService.getAll());
