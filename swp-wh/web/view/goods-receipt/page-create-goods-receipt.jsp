@@ -118,7 +118,7 @@
                                                     </div>
                                                     <div class="card-header-toolbar d-flex align-items-center">
                                                         <a href="goods-receipt" class="btn btn-light">
-                                                            <i class="fas fa-arrow-left mr-1"></i>Back
+                                                            Back
                                                         </a>
                                                     </div>
                                                 </div>
@@ -138,8 +138,7 @@
                                                                             <div class="col-md-5">
                                                                                 <div class="form-group mb-0">
                                                                                     <label class="select-label">
-                                                                                        <i
-                                                                                            class="fas fa-warehouse mr-1"></i>
+                                                                                        
                                                                                         Select Warehouse:
                                                                                     </label>
                                                                                     <select name="warehouseId"
@@ -162,8 +161,7 @@
                                                                             <div class="col-md-5">
                                                                                 <div class="form-group mb-0">
                                                                                     <label class="select-label">
-                                                                                        <i
-                                                                                            class="fas fa-map-marker-alt mr-1"></i>
+                                                                                        
                                                                                         Receiving Location (Bin):
                                                                                         <c:forEach items="${locations}"
                                                                                             var="l">
@@ -324,7 +322,7 @@
                                                                                 <button type="submit"
                                                                                     class="btn btn-primary btn-lg ${!hasItems ? 'disabled' : ''}"
                                                                                     ${!hasItems ? 'disabled' : '' }>
-                                                                                    <i class="fas fa-save mr-1"></i>
+                                                                                    
                                                                                     Complete Receipt
                                                                                 </button>
                                                                             </div>

@@ -121,6 +121,12 @@
                                 <span class="ml-4">Locations</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="location-product" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Stock by Location</span>
+                            </a>
+                        </li>
 
 
                         <!--                        <li>
@@ -130,7 +136,7 @@
                             </a>
                         </li>-->
 
-<!--                        <a href="warehouse-transfer" class="svg-icon">
+                        <!--                        <a href="warehouse-transfer" class="svg-icon">
                                                      <li>
                                <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Warehouse Ops</span>
@@ -166,6 +172,12 @@
                             <a href="locations" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/location.png">
                                 <span class="ml-4">Locations</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="location-product" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Product Location</span>
                             </a>
                         </li>
 
@@ -220,7 +232,7 @@
                             </a>
                         </li>
 
-<!--                        <li>
+                        <!--                        <li>
                             <a href="goods-receipt" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Goods Receipt</span>
