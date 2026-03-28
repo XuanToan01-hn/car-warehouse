@@ -14,6 +14,8 @@ public class InputValidator {
     public static final String USERNAME = "^[a-zA-Z0-9._]{2,20}$";
     public static final String PASSWORD = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$";
     public static final String USER_CODE = "^(MN|AD|SS|PS|WS)\\d{6}$";
+    public static final String LOT_NUMBER = "^LN\\d{6}$";
+    public static final String SERIAL_NUMBER = "^SN\\d{6}$";
 
     public static boolean isEmpty(String value) {
         return value == null || value.trim().isEmpty();

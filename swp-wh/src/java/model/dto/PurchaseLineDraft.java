@@ -3,7 +3,7 @@ package model.dto;
 import java.io.Serializable;
 
 /**
- * Một dòng trên form tạo PO (lưu trong session draft).
+ * One line on the PO create/edit form (stored in session draft).
  */
 public class PurchaseLineDraft implements Serializable {
 
@@ -11,7 +11,6 @@ public class PurchaseLineDraft implements Serializable {
 
     private Integer productDetailId;
     private int quantity = 1;
-    private Integer taxId;
     private Double price;
 
     public Integer getProductDetailId() {
@@ -30,14 +29,6 @@ public class PurchaseLineDraft implements Serializable {
         this.quantity = quantity;
     }
 
-    public Integer getTaxId() {
-        return taxId;
-    }
-
-    public void setTaxId(Integer taxId) {
-        this.taxId = taxId;
-    }
-
     public Double getPrice() {
         return price;
     }
@@ -49,7 +40,6 @@ public class PurchaseLineDraft implements Serializable {
     public void clear() {
         this.productDetailId = null;
         this.quantity = 1;
-        this.taxId = null;
         this.price = null;
     }
 }

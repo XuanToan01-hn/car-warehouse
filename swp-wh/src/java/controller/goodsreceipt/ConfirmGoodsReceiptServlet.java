@@ -72,13 +72,14 @@ public class ConfirmGoodsReceiptServlet extends HttpServlet {
             if (!updatedDetails.isEmpty()) {
                 GoodsReceipt currentGr = grDAO.getById(receiptId);
                 if (currentGr != null && currentGr.getDetails() != null) {
-                    Map<Integer, Integer> remainingMap = new java.util.HashMap<>();
+                    Map<Integer, Integer> maxAllowedMap = new java.util.HashMap<>();
                     for (GoodsReceiptDetail dd : currentGr.getDetails()) {
-                        remainingMap.put(dd.getId(), dd.getRemainingQty());
+                        // The max the user can submit is what's left + what they already submitted
+                        maxAllowedMap.put(dd.getId(), dd.getRemainingQty() + dd.getQuantityActual());
                     }
                     boolean overLimit = false;
                     for (GoodsReceiptDetail ud : updatedDetails) {
-                        int maxAllowed = remainingMap.getOrDefault(ud.getId(), Integer.MAX_VALUE);
+                        int maxAllowed = maxAllowedMap.getOrDefault(ud.getId(), Integer.MAX_VALUE);
                         if (ud.getQuantityActual() > maxAllowed) {
                             overLimit = true;
                             break;

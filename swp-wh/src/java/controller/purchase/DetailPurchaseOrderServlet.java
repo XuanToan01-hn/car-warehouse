@@ -1,5 +1,6 @@
 package controller.purchase;
 
+import dal.GoodsReceiptDAO;
 import dal.PurchaseOrderDAO;
 import java.io.IOException;
 import jakarta.servlet.ServletException;
@@ -26,6 +27,14 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
                 return;
             }
             request.setAttribute("po", po);
+
+            // Check if an existing GRO (Draft or Partial) exists for this PO
+            GoodsReceiptDAO grDAO = new GoodsReceiptDAO();
+            int existingGroId = grDAO.getReceiptIdByPO(id);
+            if (existingGroId > 0) {
+                request.setAttribute("existingGroId", existingGroId);
+            }
+
             request.getRequestDispatcher("/view/purchase/page-detail-purchase-order.jsp")
                     .forward(request, response);
         } catch (Exception e) {
