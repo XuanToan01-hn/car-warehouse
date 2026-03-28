@@ -216,7 +216,8 @@ public class PurchaseOrderDAO extends DBContext {
                 pod.setPrice(rs.getDouble("Price"));
                 pod.setSubTotal(rs.getDouble("SubTotal"));
 
-                // Since ProductID might not exist if ProductDetailID is null (due to DB schema missing ProductID)
+                // Since ProductID might not exist if ProductDetailID is null (due to DB schema
+                // missing ProductID)
                 int productId = rs.getInt("ProductID");
                 if (!rs.wasNull()) {
                     Product p = new Product();

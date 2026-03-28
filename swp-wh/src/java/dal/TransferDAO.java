@@ -25,8 +25,94 @@ public class TransferDAO extends DBContext {
     public static final int COMPLETED = 3; // Đã nhập (Hoàn thành)
     public static final int CANCELLED = 4; // Đã hủy
 
+    public boolean createAndExecuteInternalTransfer(TransferOrder order, List<TransferOrderDetail> details) {
+        String sqlOrder = "INSERT INTO Transfer_Order (TransferCode, FromLocationID, ToLocationID, Status, CreateBy, Note, TransferDate) VALUES (?, ?, ?, 3, ?, ?, GETDATE())";
+        String sqlDetail = "INSERT INTO Transfer_Order_Detail (TransferOrderID, ProductDetailID, Quantity) VALUES (?, ?, ?)";
+        String sqlSub = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
+        String sqlAdd = "MERGE INTO Location_Product AS target " +
+                "USING (SELECT ? AS LocationID, ? AS ProductDetailID, ? AS Qty) AS source " +
+                "ON (target.LocationID = source.LocationID AND target.ProductDetailID = source.ProductDetailID) " +
+                "WHEN MATCHED THEN UPDATE SET Quantity = target.Quantity + source.Qty " +
+                "WHEN NOT MATCHED THEN INSERT (LocationID, ProductDetailID, Quantity) VALUES (source.LocationID, source.ProductDetailID, source.Qty);";
+        String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) VALUES (?, ?, ?, ?, ?, GETDATE())";
+
+        try {
+            connection.setAutoCommit(false);
+            
+            String code = "IT-" + System.currentTimeMillis();
+            PreparedStatement psOrder = connection.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS);
+            psOrder.setString(1, code);
+            psOrder.setInt(2, order.getFromLocationId());
+            psOrder.setInt(3, order.getToLocationId());
+            psOrder.setInt(4, order.getCreateBy());
+            psOrder.setString(5, order.getNote());
+            psOrder.executeUpdate();
+
+            ResultSet rs = psOrder.getGeneratedKeys();
+            if (rs.next()) {
+                int orderId = rs.getInt(1);
+                
+                PreparedStatement psDetail = connection.prepareStatement(sqlDetail);
+                PreparedStatement psSub = connection.prepareStatement(sqlSub);
+                PreparedStatement psAdd = connection.prepareStatement(sqlAdd);
+                PreparedStatement psLog = connection.prepareStatement(sqlLog);
+
+                for (TransferOrderDetail detail : details) {
+                    // Detail
+                    psDetail.setInt(1, orderId);
+                    psDetail.setInt(2, detail.getProductDetailId());
+                    psDetail.setInt(3, detail.getQuantity());
+                    psDetail.addBatch();
+
+                    // Subtract from source
+                    psSub.setInt(1, detail.getQuantity());
+                    psSub.setInt(2, order.getFromLocationId());
+                    psSub.setInt(3, detail.getProductDetailId());
+                    psSub.addBatch();
+
+                    // Add to destination
+                    psAdd.setInt(1, order.getToLocationId());
+                    psAdd.setInt(2, detail.getProductDetailId());
+                    psAdd.setInt(3, detail.getQuantity());
+                    psAdd.addBatch();
+
+                    // Log OUT (3)
+                    psLog.setInt(1, detail.getProductDetailId());
+                    psLog.setInt(2, order.getFromLocationId());
+                    psLog.setInt(3, 3); // TRANSFER_OUT
+                    psLog.setInt(4, -detail.getQuantity());
+                    psLog.setString(5, code);
+                    psLog.addBatch();
+
+                    // Log IN (4)
+                    psLog.setInt(1, detail.getProductDetailId());
+                    psLog.setInt(2, order.getToLocationId());
+                    psLog.setInt(3, 4); // TRANSFER_IN
+                    psLog.setInt(4, detail.getQuantity());
+                    psLog.setString(5, code);
+                    psLog.addBatch();
+                }
+                psDetail.executeBatch();
+                psSub.executeBatch();
+                psAdd.executeBatch();
+                psLog.executeBatch();
+                
+                connection.commit();
+                return true;
+            }
+            connection.rollback();
+            return false;
+        } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ex) { }
+            e.printStackTrace();
+            return false;
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException e) { }
+        }
+    }
+
     public boolean createTransferRequest(TransferOrder order, List<TransferOrderDetail> details) {
-        String sqlOrder = "INSERT INTO Transfer_Order (TransferCode, FromLocationID, ToLocationID, Status, CreateBy, Note) VALUES (?, ?, ?, 0, ?, ?)";
+        String sqlOrder = "INSERT INTO Transfer_Order (TransferCode, FromLocationID, ToLocationID, Status, CreateBy, Note, TransferDate) VALUES (?, ?, ?, 0, ?, ?, GETDATE())";
         String sqlDetail = "INSERT INTO Transfer_Order_Detail (TransferOrderID, ProductDetailID, Quantity) VALUES (?, ?, ?)";
 
         try {

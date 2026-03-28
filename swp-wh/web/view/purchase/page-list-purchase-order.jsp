@@ -88,11 +88,37 @@
                         border-bottom: 2px solid #e2e8f0;
                     }
 
-                    .badge-status {
+                    .btn-action {
                         padding: 0.4rem 0.8rem;
                         border-radius: 8px;
                         font-weight: 700;
-                        font-size: 0.7rem;
+                        font-size: 0.8rem;
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.4rem;
+                        transition: all 0.2s;
+                        border: 1px solid transparent;
+                    }
+
+                    .btn-view {
+                        background: #f8fafc;
+                        color: #475569;
+                        border-color: #e2e8f0;
+                    }
+
+                    .btn-view:hover {
+                        background: #e2e8f0;
+                    }
+
+                    .btn-receipt {
+                        background: #f0f9ff;
+                        color: #0369a1;
+                        border-color: #bae6fd;
+                    }
+
+                    .btn-receipt:hover {
+                        background: var(--primary);
+                        color: white;
                     }
                 </style>
             </head>
@@ -106,9 +132,11 @@
                         <div class="container-fluid">
                             <div class="page-header">
                                 <div>
-                                    <h1 class="font-weight-bold mb-1">Purchase Orders</h1>
-                                    <p class="text-secondary mb-0">Track and manage inventory procurement from
-                                        suppliers.</p>
+                                    <h1 class="font-weight-bold mb-1">${sessionScope.user.role.id == 3 ? 'Warehouse -
+                                        Order List' : 'Purchase Orders'}</h1>
+                                    <p class="text-secondary mb-0">${sessionScope.user.role.id == 3 ? 'Manage pending
+                                        orders and initiate receipt processing.' : 'Track and manage inventory
+                                        procurement from suppliers.'}</p>
                                 </div>
                                 <c:if test="${not empty sessionScope.user and sessionScope.user.role.id == 5}">
                                     <a href="${pageContext.request.contextPath}/add-purchase-order" class="btn btn-add">
@@ -220,15 +248,14 @@
                                                     </td>
                                                     <td class="text-right">
                                                         <a href="${pageContext.request.contextPath}/detail-purchase-order?id=${po.id}"
-                                                            class="btn btn-sm btn-outline-primary"
-                                                            style="border-radius: 8px;">
+                                                            class="btn-action btn-view mr-1">
                                                             <i class="ri-eye-line"></i> View
                                                         </a>
-                                                        <c:if test="${po.status == 1 && sessionScope.user.role.id == 5}">
-                                                            <a href="${pageContext.request.contextPath}/edit-purchase-order?id=${po.id}"
-                                                                class="btn btn-sm btn-outline-warning ml-1"
-                                                                style="border-radius: 8px;">
-                                                                <i class="ri-edit-line"></i> Edit
+                                                        <c:if
+                                                            test="${(sessionScope.user.role.id == 3 or sessionScope.user.role.id == 5) and (po.status == 2 or po.status == 3)}">
+                                                            <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
+                                                                class="btn-action btn-receipt">
+                                                                <i class="ri-truck-line"></i> Create Receipt
                                                             </a>
                                                         </c:if>
                                                     </td>
