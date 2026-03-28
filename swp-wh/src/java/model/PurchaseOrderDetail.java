@@ -9,8 +9,12 @@ public class PurchaseOrderDetail {
     private Tax tax;
     private double subTotal;
     private ProductDetail productDetail;
+    private int receivedQuantity;
 
     public PurchaseOrderDetail() {}
+
+    public int getReceivedQuantity() { return receivedQuantity; }
+    public void setReceivedQuantity(int receivedQuantity) { this.receivedQuantity = receivedQuantity; }
 
     public ProductDetail getProductDetail() { return productDetail; }
     public void setProductDetail(ProductDetail productDetail) { this.productDetail = productDetail; }

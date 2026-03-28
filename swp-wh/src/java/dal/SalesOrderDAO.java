@@ -20,7 +20,7 @@ public class SalesOrderDAO extends DBContext {
                  "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
                  "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
                  "FROM Sales_Order so " +
-                 "WHERE so.WarehouseID = ? AND so.Status IN (1, 2) " + 
+                 "WHERE so.WarehouseID = ? " + 
                  "ORDER BY so.CreatedDate DESC";
     try (PreparedStatement ps = connection.prepareStatement(sql)) {
         ps.setInt(1, warehouseId);

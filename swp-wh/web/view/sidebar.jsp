@@ -67,7 +67,12 @@
                                 <span class="ml-4">Inventory Log</span>
                             </a>
                         </li>
-
+                        <li>
+                            <a href="list-category" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Category</span>
+                            </a>
+                        </li>
                         <li>
                             <a href="list-product" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/product.png">
@@ -104,19 +109,19 @@
                         </li>
 
 
-                        <li>
+<!--                        <li>
                             <a href="external-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
                                 <span class="ml-4">External Transfer</span>
                             </a>
-                        </li>
+                        </li>-->
 
-                        <li>
                             <a href="warehouse-transfer" class="svg-icon">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
+<!--                         <li>
+                               <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Warehouse Ops</span>
                             </a>
-                        </li>
+                        </li>-->
 
 
 
@@ -159,12 +164,12 @@
                         </li>
 
 
-                        <li>
+<!--                        <li>
                             <a href="external-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
                                 <span class="ml-4">External Transfer</span>
                             </a>
-                        </li>
+                        </li>-->
                         <li>
                             <a href="internal-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
@@ -172,12 +177,12 @@
                             </a>
                         </li>
 
-                        <li>
+<!--                        <li>
                             <a href="warehouse-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Warehouse Ops</span>
                             </a>
-                        </li>
+                        </li>-->
                     </c:if>
 
 

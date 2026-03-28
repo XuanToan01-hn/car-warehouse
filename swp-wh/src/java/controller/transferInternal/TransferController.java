@@ -196,16 +196,15 @@ public class TransferController extends HttpServlet {
             out.flush();
             return;
         } else {
-            // Hiển thị danh sách yêu cầu chờ duyệt nội bộ
-            List<TransferOrder> allPending = transDAO.getPendingTransfers();
-            List<TransferOrder> internalPending = new java.util.ArrayList<>();
-            for (TransferOrder t : allPending) {
-                if (t.getFromWarehouseId() == t.getToWarehouseId()) {
-                    internalPending.add(t);
-                }
-            }
-            request.setAttribute("pendingList", internalPending);
-            // Default `isExternal` is implicitly false/null
+            // Show history of completed/in-progress internal transfers within the user's warehouse
+            HttpSession session = request.getSession();
+            User user = (User) session.getAttribute("user");
+            Integer warehouseId = (user != null && user.getWarehouse() != null) ? user.getWarehouse().getId() : null;
+            
+            // Re-use the paged logic to find internal transfers (same warehouse FROM and TO)
+            List<TransferOrder> internalHistory = transDAO.getTransfersPaged(null, null, warehouseId, "internal", 1, 100);
+            
+            request.setAttribute("pendingList", internalHistory);
             request.getRequestDispatcher("/view/transfer-list.jsp").forward(request, response);
         }
     }
@@ -266,10 +265,10 @@ public class TransferController extends HttpServlet {
                 details.add(d);
             }
 
-            if (dao.createTransferRequest(o, details)) {
-                request.getSession().setAttribute("msg", "Transfer request created successfully!");
+            if (dao.createAndExecuteInternalTransfer(o, details)) {
+                request.getSession().setAttribute("msg", "Internal transfer executed and stock updated successfully!");
             } else {
-                request.getSession().setAttribute("err", "Failed to create transfer request!");
+                request.getSession().setAttribute("err", "Failed to execute transfer! Please check stock availability.");
             }
             response.sendRedirect("internal-transfer?action=view");
         } else if ("approve".equals(action)) {

@@ -24,33 +24,13 @@ public class UserDAO extends DBContext {
     public static void main(String[] args) {
     UserDAO dao = new UserDAO();
     
-    // Tạo user mới để test
-    model.User u = new model.User();
-    u.setUserCode("TEST_NULL_01");
-    u.setFullName("Nguyen Van Null");
-    u.setUsername("test_username_" + System.currentTimeMillis()); // Tạo username duy nhất
-    u.setPassword("123456"); // Trong thực tế nên là pass đã mã hóa
-    u.setEmail("testnull@gmail.com");
-    u.setPhone("0988777666");
-    u.setMale(1);
-//    u.setDateOfBirth("1999-12-31");
-    u.setRole(new model.Role(1)); // Giả sử RoleID 1 đã tồn tại trong bảng Role
-    
-    // GÁN NULL TRỰC TIẾP
-    u.setWarehouse(null); 
-
-    System.out.println("--- Đang thực hiện Insert với Warehouse = NULL ---");
-    boolean success = dao.insert(u);
-    
-    if (success) {
-        System.out.println("Kết quả: INSERT THÀNH CÔNG!");
-    } else {
-        System.out.println("Kết quả: INSERT THẤT BẠI. Xem lỗi ở trên.");
-    }
+    boolean a = dao.changeStatus(5, 1);
+    if(a) System.out.println("ok");
+    else    System.out.println("ko ok");
 }
     public User loginAuth(String email, String password) {
-        String sql = "select * from Users WHERE Email = ? AND Password = ?";
-        try {
+String sql = "SELECT * FROM Users WHERE Email = ? AND Password = ? AND IsActive = 1";
+try {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, email);
             preparedStatement.setString(2, password);
@@ -67,6 +47,7 @@ public class UserDAO extends DBContext {
                 user.setPassword(resultSet.getString("Password"));
                 user.setMale(resultSet.getInt("Male"));
                 user.setDateOfBirth(resultSet.getString("DateOfBirth"));
+                user.setIsActive(resultSet.getBoolean("IsActive"));
                 WarehouseDAO warehouseDAO = new WarehouseDAO();
                 Warehouse warehouse = warehouseDAO.getById(resultSet.getInt("WarehouseID"));
                 user.setWarehouse(warehouse);
@@ -157,6 +138,8 @@ public class UserDAO extends DBContext {
                 user.setPassword(rs.getString("Password"));
                 user.setMale(rs.getInt("Male"));
                 user.setDateOfBirth(rs.getString("DateOfBirth"));
+                                user.setIsActive(rs.getBoolean("IsActive"));
+
                 WarehouseDAO warehouseDAO = new WarehouseDAO();
                 Warehouse warehouse = warehouseDAO.getById(rs.getInt("WarehouseID"));
                 user.setWarehouse(warehouse);
@@ -396,6 +379,7 @@ public class UserDAO extends DBContext {
                 user.setPassword(rs.getString("Password"));
                 user.setMale(rs.getInt("Male"));
                 user.setDateOfBirth(rs.getString("DateOfBirth"));
+                user.setIsActive(rs.getBoolean("IsActive"));
                 user.setWarehouse(new Warehouse(rs.getInt("WarehouseID")));
                 Role role = roleService.getById(rs.getInt("RoleId"));
                 user.setRole(role);
@@ -435,8 +419,8 @@ public class UserDAO extends DBContext {
 }
     
 public boolean insert(User u) {
-    String sql = "INSERT INTO Users(UserCode, FullName, Username, Password, Email, Phone, Male, DateOfBirth, RoleID, WarehouseID) "
-               + "VALUES(?,?,?,?,?,?,?,?,?,?)";
+    String sql = "INSERT INTO Users(UserCode, FullName, Username, Password, Email, Phone, Male, DateOfBirth, RoleID, WarehouseID, IsActive) "
+               + "VALUES(?,?,?,?,?,?,?,?,?,?,1)";
     
     try (PreparedStatement ps = connection.prepareStatement(sql)) {
         ps.setString(1, u.getUserCode());
@@ -454,10 +438,8 @@ public boolean insert(User u) {
         } else {
             ps.setNull(10, java.sql.Types.INTEGER);
         }
-
         return ps.executeUpdate() > 0;
     } catch (Exception e) {
-        System.err.println("LỖI INSERT: " + e.getMessage());
         return false;
     }
 }
@@ -504,4 +486,17 @@ public boolean update(User u) {
             return false;
         }
     }
+    
+    public boolean changeStatus(int id, int status) {
+    String sql = "UPDATE Users SET IsActive = ? WHERE UserID = ?";
+    try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        ps.setInt(1, status);
+        ps.setInt(2, id);
+        return ps.executeUpdate() > 0;
+    } catch (Exception e) {
+        e.printStackTrace();
+        return false;
+    }
+}
+    
 }

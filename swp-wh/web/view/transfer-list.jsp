@@ -42,6 +42,46 @@
                     text-transform: uppercase;
                 }
 
+                .badge-completed {
+                    background: #ecfdf5;
+                    color: #065f46;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                }
+
+                .badge-transit {
+                    background: #eff6ff;
+                    color: #1e40af;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                }
+
+                .badge-cancelled {
+                    background: #fef2f2;
+                    color: #991b1b;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                }
+
+                .badge-approved {
+                    background: #f0fdf4;
+                    color: #166534;
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                }
+
                 .table thead th {
                     background: #f1f5f9;
                     font-weight: 800;
@@ -175,14 +215,14 @@
                             <div class="page-header">
                                 <div>
                                     <h1 class="font-weight-bold h2">${isExternal ? 'External' : 'Internal'} Transfers
-                                    </h1>
-                                    <p class="text-muted mb-0">Create Request & Approve Note</p>
+                                        History</h1>
+                                    <p class="text-muted mb-0">Track and manage inventory movements</p>
                                 </div>
                                 <div>
-                                    <a href="warehouse-transfer" class="btn btn-outline-primary"><i
-                                            class="ri-truck-line"></i> Warehouse Ops</a>
-                                    <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=form"
-                                        class="btn btn-success ml-2"><i class="ri-add-line"></i> Create New Request</a>
+                                    <%-- Removed Warehouse Ops button --%>
+                                        <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=form"
+                                            class="btn btn-success ml-2"><i class="ri-add-line"></i> Create New
+                                            Request</a>
                                 </div>
                             </div>
 
@@ -240,7 +280,25 @@
                                                             </c:choose>
                                                         </td>
                                                         <td class="font-weight-bold text-primary">${item.quantity}</td>
-                                                        <td><span class="badge-pending">Pending</span></td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${item.status == 0}"><span
+                                                                        class="badge-pending">Pending</span></c:when>
+                                                                <c:when test="${item.status == 1}"><span
+                                                                        class="badge-approved">Approved</span></c:when>
+                                                                <c:when test="${item.status == 2}"><span
+                                                                        class="badge-transit">In Transit</span></c:when>
+                                                                <c:when test="${item.status == 3}"><span
+                                                                        class="badge-completed">Completed</span>
+                                                                </c:when>
+                                                                <c:when test="${item.status == 4}"><span
+                                                                        class="badge-cancelled">Cancelled</span>
+                                                                </c:when>
+                                                                <c:otherwise><span
+                                                                        class="badge badge-secondary">Unknown</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
                                                         <td class="text-right px-4">
                                                             <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=detail&id=${item.id}"
                                                                 class="btn btn-info btn-sm rounded-pill px-4">
@@ -253,8 +311,8 @@
                                                     <tr>
                                                         <td colspan="6" class="text-center py-5">
                                                             <div class="text-muted">
-                                                                <i class="ri-inbox-line ri-3x mb-3 d-block"></i>
-                                                                <p>No pending transfer requests.</p>
+                                                                <i class="ri-history-line ri-3x mb-3 d-block"></i>
+                                                                <p>No transfer history found.</p>
                                                             </div>
                                                         </td>
                                                     </tr>

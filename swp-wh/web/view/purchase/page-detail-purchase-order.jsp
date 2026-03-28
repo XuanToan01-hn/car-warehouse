@@ -36,10 +36,18 @@
                                                         <strong>${po.orderCode}</strong>
                                                     </h4>
                                                 </div>
-                                                <a href="${pageContext.request.contextPath}/purchase-orders"
-                                                    class="btn btn-secondary">
-                                                    <i class="fas fa-arrow-left mr-1"></i> Back
-                                                </a>
+                                                <div>
+                                                    <c:if test="${po.status == 1 && sessionScope.user.role.id == 5}">
+                                                        <a href="${pageContext.request.contextPath}/edit-purchase-order?id=${po.id}"
+                                                            class="btn btn-warning mr-2">
+                                                            Edit
+                                                        </a>
+                                                    </c:if>
+                                                    <a href="${pageContext.request.contextPath}/purchase-orders"
+                                                        class="btn btn-secondary">
+                                                        Back
+                                                    </a>
+                                                </div>
                                             </div>
                                             <div class="card-body">
                                                 <div class="row">
@@ -55,11 +63,9 @@
                                                                 <td>
                                                                     <strong>${po.supplier.name}</strong><br>
                                                                     <small class="text-muted">
-                                                                        <%-- <i--%>
-                                                                            <%-- class="fas fa-phone mr-1"></i>--%>${po.supplier.phone}
-                                                                                &nbsp;|&nbsp;
-                                                                                <%-- <i--%>
-                                                                                    <%-- class="fas fa-envelope mr-1"></i>--%>${po.supplier.email}
+                                                                        ${po.supplier.phone}
+                                                                            &nbsp;|&nbsp;
+                                                                            ${po.supplier.email}
                                                                     </small>
                                                                 </td>
                                                             </tr>
@@ -155,8 +161,7 @@
                                                         <c:if test="${po.status == 2}">
                                                             <div class="border-top pt-3 mt-2">
                                                                 <strong class="mr-2">Update Status:</strong>
-                                                                <%-- Mark Received: Inventory Staff only (role 3) -
-                                                                    goods have arrived at warehouse --%>
+                                                                <%-- Mark Received: Inventory Staff only (role 3) --%>
                                                                     <c:if test="${sessionScope.user.role.id == 3}">
                                                                         <form
                                                                             action="${pageContext.request.contextPath}/detail-purchase-order"
@@ -195,17 +200,30 @@
                                                             <c:if
                                                                 test="${po.status == 3 && sessionScope.user.role.id == 3}">
                                                                 <div class="border-top pt-3 mt-2">
-                                                                    <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
-                                                                        class="btn btn-success btn-lg">
-                                                                        <i class="fas fa-truck-loading mr-2"></i>Create
-                                                                        Goods
-                                                                        Receipt Order
-                                                                    </a>
-                                                                    <small class="text-muted ml-3">
-                                                                        <i class="fas fa-info-circle mr-1"></i>
-                                                                        PO is Marked Received — ready to create goods
-                                                                        receipt
-                                                                    </small>
+                                                                    <c:choose>
+                                                                        <c:when test="${not empty existingGroId}">
+                                                                            <a href="${pageContext.request.contextPath}/detail-goods-receipt?id=${existingGroId}"
+                                                                                class="btn btn-warning btn-lg">
+                                                                                <i class="fas fa-edit mr-2"></i>Continue
+                                                                                Goods Receipt Order
+                                                                            </a>
+                                                                            <small class="text-muted ml-3">
+                                                                                <i class="fas fa-info-circle mr-1"></i>
+                                                                                A GRO already exists for this PO — continue updating it
+                                                                            </small>
+                                                                        </c:when>
+                                                                        <c:otherwise>
+                                                                            <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
+                                                                                class="btn btn-success btn-lg">
+                                                                                <i class="fas fa-truck-loading mr-2"></i>Create
+                                                                                Goods Receipt Order
+                                                                            </a>
+                                                                            <small class="text-muted ml-3">
+                                                                                <i class="fas fa-info-circle mr-1"></i>
+                                                                                PO is Marked Received — ready to create goods receipt
+                                                                            </small>
+                                                                        </c:otherwise>
+                                                                    </c:choose>
                                                                 </div>
                                                             </c:if>
                                             </div>
@@ -227,7 +245,6 @@
                                                                 <th>Variant</th>
                                                                 <th>Quantity</th>
                                                                 <th>Unit Price</th>
-                                                                <th>Tax</th>
                                                                 <th>Total</th>
                                                             </tr>
                                                         </thead>
@@ -264,19 +281,6 @@
                                                                         <fmt:formatNumber value="${d.price}"
                                                                             type="number" groupingUsed="true" /> VND
                                                                     </td>
-                                                                    <td class="text-center">
-                                                                        <c:choose>
-                                                                            <c:when test="${d.tax != null}">
-                                                                                ${d.tax.taxName} (
-                                                                                <fmt:formatNumber
-                                                                                    value="${d.tax.taxRate}"
-                                                                                    type="number" />%)
-                                                                            </c:when>
-                                                                            <c:otherwise><span
-                                                                                    class="text-muted">—</span>
-                                                                            </c:otherwise>
-                                                                        </c:choose>
-                                                                    </td>
                                                                     <td class="text-right font-weight-bold">
                                                                         <fmt:formatNumber value="${d.subTotal}"
                                                                             type="number" groupingUsed="true" /> VND
@@ -286,7 +290,7 @@
                                                         </tbody>
                                                         <tfoot>
                                                             <tr class="table-warning">
-                                                                <td colspan="7" class="text-right font-weight-bold">
+                                                                <td colspan="6" class="text-right font-weight-bold">
                                                                     GRAND TOTAL:</td>
                                                                 <td class="text-right font-weight-bold text-primary h5">
                                                                     <fmt:formatNumber value="${po.totalAmount}"
