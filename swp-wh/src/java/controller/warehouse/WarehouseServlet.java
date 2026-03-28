@@ -95,6 +95,12 @@ public class WarehouseServlet extends HttpServlet {
                     return;
                 }
 
+                if (dao.existsByName(name)) {
+                    request.getSession().setAttribute("error", "Thêm kho không thành công. Tên kho đã tồn tại!");
+                    response.sendRedirect(request.getContextPath() + "/warehouses");
+                    return;
+                }
+
                 Warehouse w = new Warehouse();
                 w.setWarehouseCode(code);
                 w.setWarehouseName(name);
@@ -125,6 +131,12 @@ public class WarehouseServlet extends HttpServlet {
 
                 if (name.isEmpty() || !isValidName(name)) {
                     request.getSession().setAttribute("error", "Cập nhật kho không thành công. Tên kho phải là định dạng chữ hoặc số!");
+                    response.sendRedirect(request.getContextPath() + "/warehouses");
+                    return;
+                }
+
+                if (dao.existsByName(name, id)) {
+                    request.getSession().setAttribute("error", "Cập nhật kho không thành công. Tên kho đã tồn tại!");
                     response.sendRedirect(request.getContextPath() + "/warehouses");
                     return;
                 }

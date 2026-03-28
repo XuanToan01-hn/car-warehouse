@@ -13,11 +13,28 @@ import model.Supplier;
 
 public class ProductDAO extends DBContext {
 
-    // Khởi tạo các DAO để dùng chung, tránh tạo mới liên tục trong vòng lặp
+
     CategoryDAO categoryDAO = new CategoryDAO();
     UnitDAO unitDAO = new UnitDAO();
     SupplierDAO supplierDAO = new SupplierDAO();
 
+    // Lấy ID lớn nhất hiện tại để phục vụ việc sinh mã sản phẩm tự động (PRO-xxxx)
+    public String getNextProductCode() {
+        String sql = "SELECT MAX(ProductID) FROM Product";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("PRO-%04d", nextId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "PRO-0001";
+    }
+
+    // Lấy danh sách sản phẩm có tồn kho (Quantity > 0) tại một kho cụ thể.
+    // Phải join qua nhiều bảng: Product -> Product_Detail -> Location_Product -> Location.
     public List<Product> getProductsByWarehouse(int warehouseId) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT DISTINCT p.* FROM Product p " +
@@ -36,97 +53,9 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    // ===============================
-    // 1. GET FILTERED PRODUCTS
-    // ===============================
-    public List<Product> getFilteredProducts(String search, String categoryId, String supplierId, int page, int pageSize) {
-        List<Product> list = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
-        List<Object> params = new ArrayList<>();
 
-        if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
-            params.add("%" + search + "%");
-            params.add("%" + search + "%");
-        }
-
-        if (categoryId != null && !categoryId.isEmpty()) {
-            sql.append(" AND CategoryID = ?");
-            params.add(Integer.parseInt(categoryId));
-        }
-
-        if (supplierId != null && !supplierId.isEmpty()) {
-            sql.append(" AND SupplierID = ?");
-            params.add(Integer.parseInt(supplierId));
-        }
-
-        sql.append(" ORDER BY ProductID DESC");
-        sql.append(" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
-        params.add((page - 1) * pageSize);
-        params.add(pageSize);
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(mapResultSetToProduct(rs));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    // ===============================
-    // 2. GET TOTAL FILTERED
-    // ===============================
-    public int getTotalFilteredProducts(String search, String categoryId, String unitId, String supplierId) {
-
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
-        List<Object> params = new ArrayList<>();
-
-        if (search != null && !search.trim().isEmpty()) {
-            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
-            params.add("%" + search + "%");
-            params.add("%" + search + "%");
-        }
-
-        if (categoryId != null && !categoryId.isEmpty()) {
-            sql.append(" AND CategoryID = ?");
-            params.add(Integer.parseInt(categoryId));
-        }
-
-        if (unitId != null && !unitId.isEmpty()) {
-            sql.append(" AND UnitID = ?");
-            params.add(Integer.parseInt(unitId));
-        }
-
-        if (supplierId != null && !supplierId.isEmpty()) {
-            sql.append(" AND SupplierID = ?");
-            params.add(Integer.parseInt(supplierId));
-        }
-
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql.toString());
-            for (int i = 0; i < params.size(); i++) {
-                ps.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt(1);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return 0;
-    }
-
-    // ===============================
-    // 3. GET BY ID
-    // ===============================
+  
+    // Lấy thông tin chi tiết của một sản phẩm dựa trên ProductID.
     public Product getById(int id) {
         String sql = "SELECT * FROM Product WHERE ProductID = ?";
         try {
@@ -142,12 +71,12 @@ public class ProductDAO extends DBContext {
         return null;
     }
 
-    // ===============================
-    // 4. INSERT AND GET ID
-    // ===============================
+    
+    // Thêm sản phẩm mới và trả về ID vừa được sinh ra tự động trong Database.
     public int insertAndGetId(Product p) {
         String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
+            //lấy ID product vừa insert
             PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, p.getCode());
             ps.setString(2, p.getName());
@@ -168,9 +97,8 @@ public class ProductDAO extends DBContext {
         return -1;
     }
 
-    // ===============================
-    // 5. INSERT (NORMAL)
-    // ===============================
+    
+    // Thêm sản phẩm mới (không cần lấy lại ID).
     public void insert(Product p) {
         String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
@@ -188,9 +116,7 @@ public class ProductDAO extends DBContext {
         }
     }
 
-    // ===============================
-    // 6. UPDATE
-    // ===============================
+    // Cập nhật thông tin sản phẩm hiện có.
     public void update(Product p) {
         String sql = "UPDATE Product SET Code=?, Name=?, Description=?, Image=?, CategoryID=?, UnitID=?, SupplierID=? WHERE ProductID=?";
         try {
@@ -209,61 +135,24 @@ public class ProductDAO extends DBContext {
         }
     }
 
-    // ===============================
-    // 7. DELETE (trả boolean: true nếu thành công)
-    // ===============================
+  
+    // Xóa sản phẩm theo ID.
     public boolean delete(int id) {
         String sql = "DELETE FROM Product WHERE ProductID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
-            return rows > 0;
+            return rows > 0; // có dòng bị ảnh hương nên true
         } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    // ===============================
-    // 8. SEARCH + PAGINATION (ORIGINAL STYLE)
-    // ===============================
-    public List<Product> search(String keyword, int categoryId, int unitId, int page, int pageSize) {
-        List<Product> list = new ArrayList<>();
-        String sql = """
-            SELECT * FROM Product
-            WHERE (? IS NULL OR Name LIKE ? OR Code LIKE ?)
-            AND (? = 0 OR CategoryID = ?)
-            AND (? = 0 OR UnitID = ?)
-            ORDER BY ProductID
-            OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-        """;
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            String search = "%" + keyword + "%";
-            ps.setString(1, keyword);
-            ps.setString(2, search);
-            ps.setString(3, search);
-            ps.setInt(4, categoryId);
-            ps.setInt(5, categoryId);
-            ps.setInt(6, unitId);
-            ps.setInt(7, unitId);
-            ps.setInt(8, (page - 1) * pageSize);
-            ps.setInt(9, pageSize);
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                list.add(mapResultSetToProduct(rs));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return list;
-    }
-
-    // ===============================
-    // 9. GET PRODUCTS BY SUPPLIER
-    // ===============================
+   
+    // Lấy danh sách sản phẩm thuộc về một nhà cung cấp cụ thể.
     public List<Product> getProductsBySupplier(int supplierId) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product WHERE SupplierID = ?";
@@ -280,9 +169,8 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    // ===============================
-// 10. GET ALL
-// ===============================
+
+    // Lấy toàn bộ danh sách sản phẩm, sắp xếp ID giảm dần (mới nhất lên đầu).
     public List<Product> getAll() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
@@ -302,7 +190,7 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    // Hàm dùng chung để map ResultSet sang Product (giúp code sạch hơn)
+    // Hàm dùng chung để map ResultSet sang Product object
     private Product mapResultSetToProduct(ResultSet rs) throws Exception {
         Product p = new Product();
         p.setId(rs.getInt("ProductID"));
@@ -315,103 +203,102 @@ public class ProductDAO extends DBContext {
         p.setSupplier(supplierDAO.getById(rs.getInt("SupplierID")));
         return p;
     }
-    // ===============================
-    // HÀM MAIN ĐỂ TEST CÁC CHỨC NĂNG
-    // ===============================
-
-    public boolean isCodeExists(String code) {
-        String sql = "SELECT 1 FROM Product WHERE Code = ?";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
-            ps.setString(1, code);
-            ResultSet rs = ps.executeQuery();
-            return rs.next(); // có record là true
-        } catch (Exception e) {
-            e.printStackTrace();
+    // Đếm tổng số lượng sản phẩm phù hợp với các tiêu chí tìm kiếm (keyword, category, supplier).
+    // Phục vụ cho việc tính toán tổng số trang của phân trang.
+    public int count(String keyword, int categoryId, int supplierId) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
+            params.add("%" + keyword + "%");
+            params.add("%" + keyword + "%");
         }
+        if (categoryId > 0) {
+            sql.append(" AND CategoryID = ?");
+            params.add(categoryId);
+        }
+        if (supplierId > 0) {
+            sql.append(" AND SupplierID = ?");
+            params.add(supplierId);
+        }
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (Exception e) { e.printStackTrace(); }
+        return 0;
+    }
+
+    // Tìm kiếm sản phẩm kết hợp Phân trang (Pagination).
+    // Sử dụng OFFSET và FETCH NEXT để lấy đúng số bản ghi của trang hiện tại.
+    public List<Product> search(String keyword, int categoryId, int supplierId, int page, int pageSize) {
+        List<Product> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (Name LIKE ? OR Code LIKE ?)");
+            params.add("%" + keyword + "%");
+            params.add("%" + keyword + "%");
+        }
+        if (categoryId > 0) {
+            sql.append(" AND CategoryID = ?");
+            params.add(categoryId);
+        }
+        if (supplierId > 0) {
+            sql.append(" AND SupplierID = ?");
+            params.add(supplierId);
+        }
+        //Bỏ x dòng đầu Lấy y dòng tiếp theo
+
+        sql.append(" ORDER BY ProductID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+        params.add((page - 1) * pageSize);
+        params.add(pageSize);
+
+        try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                list.add(mapResultSetToProduct(rs));
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return list;
+    }
+
+    // Kiểm tra xem mã sản phẩm đã tồn tại hay chưa (loại trừ ID hiện tại khi Edit).
+    public boolean isCodeExists(String code, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Product WHERE Code = ? AND ProductID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setString(1, code);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
 
-    public boolean isNameExists(String name) {
-        String sql = "SELECT 1 FROM Product WHERE Name = ?";
-        try {
-            PreparedStatement ps = connection.prepareStatement(sql);
+    public boolean isNameExists(String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Product WHERE Name = ? AND ProductID != ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, name);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (Exception e) { e.printStackTrace(); }
+        return false;
+    }
+    // Kiểm tra xem sản phẩm có bất kỳ biến thể chi tiết nào trong bảng Product_Detail không.
+    // Dùng để chặn xóa sản phẩm đã có dữ liệu ràng buộc.
+    public boolean hasProductDetail(int id) {
+        String sql = "SELECT 1 FROM Product_Detail WHERE ProductID = ?";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, id);
             ResultSet rs = ps.executeQuery();
             return rs.next();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
         return false;
-    }
-
-    public boolean isCodeDuplicatedForUpdate(int id, String newCode) {
-        try {
-            // Lấy product cũ
-            Product old = getById(id);
-            if (old == null) {
-                return false;
-            }
-
-            // Nếu code không đổi → OK luôn
-            if (old.getCode() != null && old.getCode().equalsIgnoreCase(newCode)) {
-                return false;
-            }
-
-            // Nếu có đổi → check trùng DB
-            return isCodeExists(newCode);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    public boolean isNameDuplicatedForUpdate(int id, String newName) {
-        try {
-            Product old = getById(id);
-            if (old == null) {
-                return false;
-            }
-
-            if (old.getName() != null && old.getName().equalsIgnoreCase(newName)) {
-                return false;
-            }
-
-            return isNameExists(newName);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-    
-    public boolean hasProduct(int categoryId) {
-    String sql = "SELECT 1 FROM Product WHERE CategoryID = ?";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setInt(1, categoryId);
-        ResultSet rs = ps.executeQuery();
-        return rs.next(); // có ít nhất 1 product
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return false;
-}
-    public boolean hasProductDetail(int id) {
-    String sql = "select * from Product_Detail p where p.ProductID = ?";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setInt(1, id);
-        ResultSet rs = ps.executeQuery();
-        return rs.next();
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-    return false;
-}
-    
-    public static void main(String[] args) {
-        ProductDAO p = new ProductDAO();
-        boolean a = p.hasProductDetail(1);
-        if(a) System.out.println("ok");
     }
 }

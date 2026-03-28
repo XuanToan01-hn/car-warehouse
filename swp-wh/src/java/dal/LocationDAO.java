@@ -38,6 +38,8 @@ public class LocationDAO extends DBContext {
         List<Location> list = new ArrayList<>();
         if (connection == null) return list;
 
+        // SQL lấy toàn bộ danh sách vị trí kèm theo tên kho và tổng lượng hàng hiện có (CurrentStock).
+        // Sử dụng LEFT JOIN với Location_Product để tính tổng ngay cả khi vị trí đó đang trống.
         String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName, "
                 + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
                 + "FROM Location l "
@@ -63,6 +65,8 @@ public class LocationDAO extends DBContext {
         String pattern = "%" + (keyword == null ? "" : keyword) + "%";
         boolean filterWh = warehouseId > 0;
 
+        // SQL tìm kiếm vị trí theo từ khóa (mã hoặc tên) và có thể lọc theo WarehouseID.
+        // Phần WHERE được xây dựng động tùy thuộc vào việc có chọn kho cụ thể hay không (filterWh).
         String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName, "
                 + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
                 + "FROM Location l "
@@ -92,6 +96,7 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
+    // SQL thêm mới một vị trí vào kho.
     public void insert(Location l) {
         String sql = "INSERT INTO Location (WarehouseID, LocationCode, LocationName, MaxCapacity) VALUES (?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -113,6 +118,7 @@ public class LocationDAO extends DBContext {
         List<Location> list = new ArrayList<>();
         if (connection == null) return list;
         
+        // SQL lấy danh sách vị trí của một kho cụ thể.
         String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, w.WarehouseName, "
                 + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
                 + "FROM Location l "
@@ -136,6 +142,7 @@ public class LocationDAO extends DBContext {
     public Location getById(int id) {
         if (connection == null) return null;
         
+        // SQL lấy thông tin vị trí theo ID, bao gồm cả lượng hàng hiện có.
         String sql = "SELECT l.LocationID, l.WarehouseID, l.LocationCode, l.LocationName, l.MaxCapacity, "
                 + "COALESCE(SUM(lp.Quantity), 0) AS CurrentStock "
                 + "FROM Location l "
@@ -156,6 +163,7 @@ public class LocationDAO extends DBContext {
         return null;
     }
 
+    // SQL cập nhật thông tin vị trí.
     public void update(Location l) {
         String sql = "UPDATE Location SET WarehouseID = ?, LocationCode = ?, LocationName = ?, MaxCapacity = ? WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -178,6 +186,8 @@ public class LocationDAO extends DBContext {
         List<LocationProduct> list = new ArrayList<>();
         if (connection == null) return list;
         
+        // SQL lấy danh sách sản phẩm và số lượng tương ứng đang nằm tại một vị trí (LocationID).
+        // Chỉ lấy những dòng có số lượng lớn hơn 0.
         String sql = "SELECT lp.LocationID, lp.ProductDetailID, lp.Quantity, "
                 + "pd.ProductID, p.Code, p.Name AS ProductName, pd.SerialNumber, pd.Color "
                 + "FROM Location_Product lp "
@@ -217,6 +227,7 @@ public class LocationDAO extends DBContext {
         List<Location> list = new ArrayList<>();
         if (connection == null) return list;
         
+        // SQL tìm tất cả các vị trí đang chứa một biến thể sản phẩm cụ thể (ProductDetailID).
         String sql = "SELECT l.LocationID, l.LocationName, w.WarehouseName, lp.Quantity, l.MaxCapacity " +
                      "FROM Location_Product lp " +
                      "JOIN Location l ON lp.LocationID = l.LocationID " +
@@ -245,7 +256,7 @@ public class LocationDAO extends DBContext {
 
     public boolean delete(int id) {
         if (connection == null) return false;
-        // Step 1: remove all Location_Product rows (including qty=0)
+        // Bước 1: Xóa các liên kết sản phẩm tại vị trí này trong bảng Location_Product.
         String sqlLp = "DELETE FROM Location_Product WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sqlLp)) {
             ps.setInt(1, id);
@@ -253,7 +264,8 @@ public class LocationDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // Step 2: null-out Inventory_Transaction.LocationID (preserve history)
+        // Bước 2: Cập nhật các giao dịch kho (Inventory_Transaction) liên quan thành NULL 
+        // để tránh lỗi khóa ngoại nhưng vẫn giữ lại lịch sử giao dịch.
         String sqlIt = "UPDATE Inventory_Transaction SET LocationID = NULL WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sqlIt)) {
             ps.setInt(1, id);
@@ -261,7 +273,7 @@ public class LocationDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // Step 3: null-out Transfer_Order FK references (preserve transfer history)
+        // Bước 3: Cập nhật các đơn chuyển kho (Transfer_Order) liên quan thành NULL.
         String sqlTfFrom = "UPDATE Transfer_Order SET FromLocationID = NULL WHERE FromLocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sqlTfFrom)) {
             ps.setInt(1, id);
@@ -276,7 +288,7 @@ public class LocationDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // Step 4: delete the location itself
+        // Bước 4: Cuối cùng mới xóa bản ghi vị trí trong bảng Location.
         String sql = "DELETE FROM Location WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -291,6 +303,7 @@ public class LocationDAO extends DBContext {
         List<LocationProduct> list = new ArrayList<>();
         if (connection == null) return list;
         
+        // SQL lấy báo cáo tồn kho chi tiết: Sản phẩm nào, ở vị trí nào, thuộc kho nào, số lượng bao nhiêu.
         String sql = "SELECT lp.LocationID, lp.ProductDetailID, lp.Quantity, " +
                 "l.LocationName, w.WarehouseName, " +
                 "pd.ProductID, p.Name as ProductName, pd.SerialNumber, pd.Color " +
@@ -332,6 +345,7 @@ public class LocationDAO extends DBContext {
         return list;
     }
 
+    // SQL kiểm tra sự tồn tại của mã vị trí trong một kho (tránh trùng mã trong cùng một kho).
     public boolean isLocationCodeExists(int warehouseId, String code, int excludeId) {
         String sql = "SELECT COUNT(*) FROM Location WHERE WarehouseID = ? AND LocationCode = ? AND LocationID != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

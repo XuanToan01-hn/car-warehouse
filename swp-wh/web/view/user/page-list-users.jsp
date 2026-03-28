@@ -57,10 +57,11 @@
                                                 <button type="submit" class="search-btn-inside" title="Search">🔎</button>
                                             </div>
 
+                                            <%-- FIX: dùng selectedRoleId (String) để so sánh an toàn --%>
                                             <select name="roleId" onchange="this.form.submit()" class="search-select-custom">
                                                 <option value="">-- All Roles --</option>
                                                 <c:forEach var="r" items="${roles}">
-                                                    <option value="${r.id}" ${roleId == r.id ? 'selected' : ''}>${r.roleName}</option>
+                                                    <option value="${r.id}" ${selectedRoleId == r.id.toString() ? 'selected' : ''}>${r.roleName}</option>
                                                 </c:forEach>
                                             </select>
                                         </div>
@@ -104,18 +105,18 @@
                                                 <td>${u.phone}</td>
                                                 <td>${u.role.roleName}</td>
                                                 <td class="actions-group">
-                                                    <a href="javascript:void(0);" class="action-link text-primary" 
+                                                    <a href="javascript:void(0);" class="action-link text-primary"
                                                        onclick="openUserChangePasswordModal('${u.id}', '${currentPage}', '${u.userCode}', '${keyword}')">Reset</a> |
-                                                    <a href="javascript:void(0);" class="action-link text-primary" 
+                                                    <a href="javascript:void(0);" class="action-link text-primary"
                                                        onclick="openEditModel('${u.id}', '${u.userCode}', '${u.fullName}', '${u.username}', '${u.male}', '${u.dateOfBirth}', '${u.email}', '${u.phone}', '${u.role.id}', '${currentPage}', '${keyword}', '${u.warehouse != null ? u.warehouse.id : 0}')">Edit</a> |
 
                                                     <c:choose>
                                                         <c:when test="${u.isActive}">
-                                                            <a href="javascript:void(0);" class="text-danger font-weight-bold" 
+                                                            <a href="javascript:void(0);" class="text-danger font-weight-bold"
                                                                onclick="confirmToggleStatus('${u.id}', '${u.fullName}', 0, '${currentPage}', '${keyword}')">Deactivate</a>
                                                         </c:when>
                                                         <c:otherwise>
-                                                            <a href="javascript:void(0);" class="text-success font-weight-bold" 
+                                                            <a href="javascript:void(0);" class="text-success font-weight-bold"
                                                                onclick="confirmToggleStatus('${u.id}', '${u.fullName}', 1, '${currentPage}', '${keyword}')">Activate</a>
                                                         </c:otherwise>
                                                     </c:choose>
@@ -128,14 +129,14 @@
 
                             <div class="pagination mt-3 d-flex justify-content-end">
                                 <c:if test="${currentPage > 1}">
-                                    <a href="userlist?page=${currentPage - 1}&keyword=${keyword}&roleId=${roleId}" class="btn btn-outline-primary mx-1">&lt;</a>
+                                    <a href="userlist?page=${currentPage - 1}&keyword=${keyword}&roleId=${selectedRoleId}" class="btn btn-outline-primary mx-1">&lt;</a>
                                 </c:if>
                                 <c:forEach begin="1" end="${totalPages}" var="i">
-                                    <a href="userlist?page=${i}&keyword=${keyword}&roleId=${roleId}" 
+                                    <a href="userlist?page=${i}&keyword=${keyword}&roleId=${selectedRoleId}"
                                        class="${i == currentPage ? 'btn btn-primary' : 'btn btn-outline-primary'} mx-1">${i}</a>
                                 </c:forEach>
                                 <c:if test="${currentPage < totalPages}">
-                                    <a href="userlist?page=${currentPage + 1}&keyword=${keyword}&roleId=${roleId}" class="btn btn-outline-primary mx-1">&gt;</a>
+                                    <a href="userlist?page=${currentPage + 1}&keyword=${keyword}&roleId=${selectedRoleId}" class="btn btn-outline-primary mx-1">&gt;</a>
                                 </c:if>
                             </div>
                         </div>
@@ -144,6 +145,7 @@
             </div>
         </div>
 
+        <%-- Modal: Reset Password --%>
         <div id="customChangePasswordModal" class="custom-modal" style="display:none;">
             <div class="custom-modal-content">
                 <h3 id="changePasswordTitle">Update Password</h3>
@@ -167,6 +169,7 @@
             </div>
         </div>
 
+        <%-- Modal: Edit User --%>
         <div id="customEditUserModal" class="custom-modal" style="display:none;">
             <div class="custom-modal-content">
                 <h3>Edit User Profile</h3>
@@ -211,6 +214,7 @@
             </div>
         </div>
 
+        <%-- Modal: Toggle Status --%>
         <div id="customStatusModal" class="custom-modal" style="display:none;">
             <div class="custom-modal-content">
                 <h3 id="statusModalTitle">Confirm Status Change</h3>
@@ -232,73 +236,77 @@
         <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
 
         <script>
-                            // --- Password Modal ---
-                            function openUserChangePasswordModal(id, page, code, kw) {
-                                document.getElementById("customChangePasswordUserId").value = id;
-                                document.getElementById("changePasswordPage").value = page;
-                                document.getElementById("changePasswordKeyword").value = kw;
-                                document.getElementById("changePasswordTitle").innerText = "Reset Password: " + code;
-                                document.getElementById("customChangePasswordModal").style.display = "flex";
-                            }
-                            function closeUserChangePasswordModal() {
-                                document.getElementById("customChangePasswordModal").style.display = "none";
-                            }
+            // --- Password Modal ---
+            function openUserChangePasswordModal(id, page, code, kw) {
+                document.getElementById("customChangePasswordUserId").value = id;
+                document.getElementById("changePasswordPage").value = page;
+                document.getElementById("changePasswordKeyword").value = kw;
+                document.getElementById("changePasswordTitle").innerText = "Reset Password: " + code;
+                document.getElementById("customChangePasswordModal").style.display = "flex";
+            }
+            function closeUserChangePasswordModal() {
+                document.getElementById("customChangePasswordModal").style.display = "none";
+            }
 
-                            // --- Edit Modal ---
-                            function toggleWarehouseEdit() {
-                                const roleId = document.getElementById("editRoleId").value;
-                                const warehouseGroup = document.getElementById("editWarehouseGroup");
-                                if (roleId == "3" || roleId == "5") {
-                                    warehouseGroup.style.display = "block";
-                                } else {
-                                    warehouseGroup.style.display = "none";
-                                    document.getElementById("editWarehouseId").value = "0";
-                                }
-                            }
+            // --- Edit Modal ---
+            function toggleWarehouseEdit() {
+                const roleId = document.getElementById("editRoleId").value;
+                const warehouseGroup = document.getElementById("editWarehouseGroup");
+                if (roleId == "3" || roleId == "5") {
+                    warehouseGroup.style.display = "block";
+                } else {
+                    warehouseGroup.style.display = "none";
+                    document.getElementById("editWarehouseId").value = "0";
+                }
+            }
 
-                            function openEditModel(id, code, name, user, male, dob, email, phone, roleId, page, kw, whId) {
-                                document.getElementById("editUserId").value = id;
-                                document.getElementById("editFullName").value = name;
-                                document.getElementById("editMale").value = male;
-                                document.getElementById("editDateOfBirth").value = dob;
-                                document.getElementById("editEmail").value = email;
-                                document.getElementById("editPhone").value = phone;
-                                document.getElementById("editRoleId").value = roleId;
-                                document.getElementById("editPage").value = page;
-                                document.getElementById("editKeyword").value = kw;
-                                document.getElementById("editWarehouseId").value = (whId && whId !== 'null' && whId !== '0') ? whId : "0";
-                                toggleWarehouseEdit();
-                                document.getElementById("customEditUserModal").style.display = "flex";
-                            }
-                            function closeEditUserModal() {
-                                document.getElementById("customEditUserModal").style.display = "none";
-                            }
+            function openEditModel(id, code, name, user, male, dob, email, phone, roleId, page, kw, whId) {
+                document.getElementById("editUserId").value = id;
+                document.getElementById("editFullName").value = name;
+                document.getElementById("editMale").value = male;
+                document.getElementById("editDateOfBirth").value = dob;
+                document.getElementById("editEmail").value = email;
+                document.getElementById("editPhone").value = phone;
+                document.getElementById("editRoleId").value = roleId;
+                document.getElementById("editPage").value = page;
+                document.getElementById("editKeyword").value = kw;
+                document.getElementById("editWarehouseId").value = (whId && whId !== 'null' && whId !== '0') ? whId : "0";
+                toggleWarehouseEdit();
+                document.getElementById("customEditUserModal").style.display = "flex";
+            }
+            function closeEditUserModal() {
+                document.getElementById("customEditUserModal").style.display = "none";
+            }
 
-function confirmToggleStatus(id, name, targetStatus, page, kw) {
-    document.getElementById("statusUserId").value = id;
-    document.getElementById("statusValue").value = targetStatus;
-    document.getElementById("statusPage").value = page;
-    document.getElementById("statusKeyword").value = kw;
+            // --- Status Modal ---
+            function confirmToggleStatus(id, name, targetStatus, page, kw) {
+                document.getElementById("statusUserId").value = id;
+                document.getElementById("statusValue").value = targetStatus;
+                document.getElementById("statusPage").value = page;
+                document.getElementById("statusKeyword").value = kw;
 
-    const title = document.getElementById("statusModalTitle");
-    const msg = document.getElementById("statusModalMessage");
-    const btn = document.getElementById("statusSubmitBtn");
+                const title = document.getElementById("statusModalTitle");
+                const msg = document.getElementById("statusModalMessage");
+                const btn = document.getElementById("statusSubmitBtn");
 
-    if (targetStatus === 1) {
-        title.innerText = "Activate Account";
-        title.style.color = "#28a745";
-        msg.innerHTML = "Are you sure you want to <b>Activate</b> account for <b>" + name + "</b>?";
-        btn.innerText = "Activate Now";
-        btn.className = "btn btn-success";
-    } else {
-        title.innerText = "Deactivate Account";
-        title.style.color = "#dc3545";
-        msg.innerHTML = "Are you sure you want to <b>Deactivate</b> account for <b>" + name + "</b>?<br>This user will no longer be able to login.";
-        btn.innerText = "Deactivate Now";
-        btn.className = "btn btn-danger";
-    }
-    document.getElementById("customStatusModal").style.display = "flex";
-}
+                if (targetStatus === 1) {
+                    title.innerText = "Activate Account";
+                    title.style.color = "#28a745";
+                    msg.innerHTML = "Are you sure you want to <b>Activate</b> account for <b>" + name + "</b>?";
+                    btn.innerText = "Activate Now";
+                    btn.className = "btn btn-success";
+                } else {
+                    title.innerText = "Deactivate Account";
+                    title.style.color = "#dc3545";
+                    msg.innerHTML = "Are you sure you want to <b>Deactivate</b> account for <b>" + name + "</b>?<br>This user will no longer be able to login.";
+                    btn.innerText = "Deactivate Now";
+                    btn.className = "btn btn-danger";
+                }
+                document.getElementById("customStatusModal").style.display = "flex";
+            }
+            function closeStatusModal() {
+                document.getElementById("customStatusModal").style.display = "none";
+            }
         </script>
     </body>
 </html>

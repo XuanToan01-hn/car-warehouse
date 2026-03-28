@@ -375,16 +375,14 @@
                                         <c:remove var="error" scope="session" />
                                     </c:if>
                                     <c:if test="${empty mode}">
-                                        <%--============================================================FILTER + SEARCH
-                                            + TABLE — hidden when mode is not
-                                            empty============================================================--%>
+                                      
                                             <form action="locations" method="get" class="filter-bar">
                                                 <%-- Warehouse filter --%>
                                                     <div class="filter-box">
                                                         <i class="ri-filter-2-line"></i>
                                                         <span class="font-weight-bold">Warehouse:</span>
                                                         <select name="warehouseId" onchange="this.form.submit()">
-                                                            <option value="0">All Warehouses</option>
+
                                                             <c:forEach var="w" items="${warehouses}">
                                                                 <option value="${w.id}" ${selectedWarehouseId==w.id
                                                                     ? 'selected' : '' }>

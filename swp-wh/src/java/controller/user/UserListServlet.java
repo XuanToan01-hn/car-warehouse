@@ -15,32 +15,21 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.List;
-import model.Location;
 import model.Role;
 import model.User;
 import dal.WarehouseDAO;
 import model.Warehouse;
+
 /**
  *
-
  */
 @WebServlet(name = "UserListServlet", urlPatterns = {"/userlist"})
 public class UserListServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
@@ -53,15 +42,6 @@ public class UserListServlet extends HttpServlet {
         }
     }
 
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -77,24 +57,37 @@ public class UserListServlet extends HttpServlet {
             session.removeAttribute("success");
         }
 
-        // Lấy keyword và trang hiện tại
+        // Lấy keyword
         String keyword = request.getParameter("keyword");
-        String roleIdParam = request.getParameter("roleId");
-        Integer roleId = null;
-        if (roleIdParam != null && !roleIdParam.isEmpty()) {
-            try {
-                roleId = Integer.parseInt(roleIdParam.trim());
-            } catch (Exception e) {
-                roleId = null;
+        if (keyword != null) {
+            keyword = keyword.trim();
+            if (keyword.isEmpty()) {
+                keyword = null;
             }
         }
 
+        // FIX: Lấy roleId dưới dạng String để truyền sang JSP so sánh an toàn
+        String roleIdParam = request.getParameter("roleId");
+        Integer roleId = null;
+        String selectedRoleId = ""; // String rỗng = "All Roles"
+
+        if (roleIdParam != null && !roleIdParam.trim().isEmpty()) {
+            try {
+                roleId = Integer.parseInt(roleIdParam.trim());
+                selectedRoleId = String.valueOf(roleId); // chỉ set nếu parse thành công
+            } catch (NumberFormatException e) {
+                roleId = null;
+                selectedRoleId = "";
+            }
+        }
+
+        // Phân trang
         int page = 1;
         int pageSize = 10;
-
         if (request.getParameter("page") != null) {
             try {
                 page = Integer.parseInt(request.getParameter("page"));
+                if (page < 1) page = 1;
             } catch (NumberFormatException e) {
                 page = 1;
             }
@@ -103,15 +96,13 @@ public class UserListServlet extends HttpServlet {
         UserDAO userService = new UserDAO();
         RoleDAO roleService = new RoleDAO();
         WarehouseDAO wd = new WarehouseDAO();
+
         List<Warehouse> wh = wd.getAll();
         List<Role> roles = roleService.getAll();
         List<User> listU;
         int totalUsers;
 
-        // Trường hợp có từ khóa tìm kiếm
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            keyword = keyword.trim();
-
+        if (keyword != null && !keyword.isEmpty()) {
             if (roleId != null) {
                 listU = userService.searchUsersWithRole(keyword, roleId, (page - 1) * pageSize, pageSize);
                 totalUsers = userService.countSearchUsersWithRole(keyword, roleId);
@@ -123,9 +114,7 @@ public class UserListServlet extends HttpServlet {
             if (listU.isEmpty()) {
                 request.setAttribute("errorS", "Không tìm thấy người dùng nào phù hợp.");
             }
-
         } else {
-            // Không có từ khóa tìm kiếm
             if (roleId != null) {
                 listU = userService.getUserByRole(roleId, (page - 1) * pageSize, pageSize);
                 totalUsers = userService.countUsersByRole(roleId);
@@ -136,39 +125,28 @@ public class UserListServlet extends HttpServlet {
         }
 
         int totalPages = (int) Math.ceil((double) totalUsers / pageSize);
+        if (totalPages < 1) totalPages = 1;
 
-        request.setAttribute("keyword", keyword);
-        request.setAttribute("roleId", roleId); // giữ lại role đã chọn trên form
+        // FIX: set selectedRoleId là String để JSP so sánh bằng .toString() không bị lỗi type
+        request.setAttribute("keyword", keyword != null ? keyword : "");
+        request.setAttribute("selectedRoleId", selectedRoleId); // String, dùng trong JSP
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("listUser", listU);
         request.setAttribute("roles", roles);
         request.setAttribute("listWarehouse", wh);
+
         request.getRequestDispatcher("view/user/page-list-users.jsp").forward(request, response);
     }
 
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         processRequest(request, response);
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
-
+    }
 }

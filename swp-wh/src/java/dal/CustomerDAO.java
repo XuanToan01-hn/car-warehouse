@@ -10,6 +10,7 @@ import java.util.List;
 
 public class CustomerDAO extends DBContext {
 
+    // Lấy ID khách hàng lớn nhất hiện có để phục vụ việc sinh mã khách hàng tự động (CUS-xxxx).
     public String getNextCustomerCode() {
         String sql = "SELECT MAX(CustomerID) FROM Customer";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -25,6 +26,7 @@ public class CustomerDAO extends DBContext {
         return "CUS-0001";
     }
 
+    // Lấy thông tin chi tiết một khách hàng dựa trên CustomerID (ID tự tăng).
     public Customer getById(int id) {
         String sql = "SELECT * FROM Customer WHERE CustomerID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -39,6 +41,7 @@ public class CustomerDAO extends DBContext {
         return null;
     }
 
+    // Lấy thông tin khách hàng dựa trên mã định danh (CustomerCode).
     public Customer getByCode(String customerCode) {
         if (customerCode == null || customerCode.trim().isEmpty()) return null;
         String sql = "SELECT * FROM Customer WHERE CustomerCode = ?";
@@ -54,6 +57,7 @@ public class CustomerDAO extends DBContext {
         return null;
     }
 
+    // Lấy toàn bộ danh sách khách hàng từ Database.
     public List<Customer> getAll() {
         List<Customer> list = new ArrayList<>();
         String sql = "SELECT * FROM Customer ORDER BY CustomerID";
@@ -68,6 +72,7 @@ public class CustomerDAO extends DBContext {
         return list;
     }
 
+    // Tìm kiếm khách hàng theo nhiều tiêu chí: Mã, Tên hoặc Số điện thoại.
     public List<Customer> search(String keyword) {
         List<Customer> list = new ArrayList<>();
         String sql = "SELECT * FROM Customer WHERE CustomerCode LIKE ? OR Name LIKE ? OR Phone LIKE ? ORDER BY CustomerID";
@@ -86,6 +91,7 @@ public class CustomerDAO extends DBContext {
         return list;
     }
 
+    // Thêm một khách hàng mới vào Database.
     public void insert(Customer c) {
         String sql = "INSERT INTO Customer (CustomerCode, Name, Phone, Email, Address) VALUES (?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -100,6 +106,7 @@ public class CustomerDAO extends DBContext {
         }
     }
 
+    // Cập nhật thông tin của một khách hàng hiện có.
     public void update(Customer c) {
         String sql = "UPDATE Customer SET CustomerCode = ?, Name = ?, Phone = ?, Email = ?, Address = ? WHERE CustomerID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -141,9 +148,9 @@ public class CustomerDAO extends DBContext {
         return s == null ? "" : s.trim();
     }
 
+    // Kiểm tra xem Email đã tồn tại hay chưa (tránh trùng lặp khi Add/Edit).
     public boolean isEmailExists(String email, int excludeId) {
         if (email == null || email.trim().isEmpty()) return false;
-        //check xem có id nào khác có cùng gmail ko
         String sql = "SELECT COUNT(*) FROM Customer WHERE Email = ? AND CustomerID != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, email.trim());
@@ -160,9 +167,9 @@ public class CustomerDAO extends DBContext {
         return false;
     }
 
+    // Kiểm tra xem Số điện thoại đã tồn tại hay chưa (tránh trùng lặp khi Add/Edit).
     public boolean isPhoneExists(String phone, int excludeId) {
         if (phone == null || phone.trim().isEmpty()) return false;
-        //check xem có id nào khác có cùng sdt ko
         String sql = "SELECT COUNT(*) FROM Customer WHERE Phone = ? AND CustomerID != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, phone.trim());

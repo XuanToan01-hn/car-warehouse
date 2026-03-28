@@ -94,12 +94,6 @@
                             </a>
                         </li>
 
-                        <li>
-                            <a href="list-product-detail" class="svg-icon">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/product.png">
-                                <span class="ml-4">Product Detail</span>
-                            </a>
-                        </li>
 
                         <li>
                             <a href="purchase-orders" class="svg-icon">

@@ -17,7 +17,12 @@ public class SalesOrderDAO extends DBContext {
 // Hàm lấy danh sách đơn hàng có search, filter và phân trang
 public List<SalesOrder> getOrdersByWarehouse(int warehouseId, String searchQuery, Integer status, int pageIndex, int pageSize) {
     List<SalesOrder> list = new ArrayList<>();
-    // Base SQL
+// Thêm điều kiện WHERE so.WarehouseID = ? và lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
+    // lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
+    //lấy tổng đơn đặt, tổng đơn xuất thưcj tế
+    // SQL lấy danh sách đơn bán hàng của một kho cụ thể.
+    // - OrderedQty: Tổng số lượng sản phẩm được đặt trong đơn hàng (tính từ bảng Sales_Order_Detail).
+    // - DeliveredQty: Tổng số lượng sản phẩm thực tế đã được xuất kho (tính từ bảng Goods_Issue_Detail thông qua bảng Goods_Issue).
     StringBuilder sql = new StringBuilder(
             "SELECT so.*, " +
             "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
@@ -95,10 +100,13 @@ public int getTotalOrdersCount(int warehouseId, String searchQuery, Integer stat
     //đồng thời tính tổng số lượng đặt, lượng giao thực tế mỗi đơn
 public SalesOrder getWarehouseOrderById(int id) {
      //lấy in4 đơn hàng
+    // SQL Header: Lấy thông tin chung của đơn hàng và tên người tạo (CreatorName).
     String sqlHeader = "SELECT so.*, u.FullName as CreatorName FROM Sales_Order so " +
                        "JOIN Users u ON so.CreateBy = u.UserID WHERE so.SalesOrderID = ?";
     
    // tính xem mỗi dòng đã  đặt/giao bao nhiêu
+    // SQL Details: Lấy danh sách sản phẩm trong đơn hàng kèm theo số lượng thực tế đã được giao (DeliveredQty).
+    // ISNULL giúp trả về 0 nếu sản phẩm đó chưa được xuất kho lần nào.
     String sqlDetails = "SELECT sod.*, " +
                         "(SELECT ISNULL(SUM(gid.QuantityActual), 0) " +
                         " FROM Goods_Issue_Detail gid " +
@@ -138,6 +146,8 @@ public SalesOrder getWarehouseOrderById(int id) {
 public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
     List<SalesOrderDetail> list = new ArrayList<>();
     // Lấy chi tiết hàng hóa vs tổng số lượng giao
+    // SQL lấy chi tiết hàng hóa của một đơn hàng với tổng số lượng đã giao thực tế.
+    // Lọc theo từng dòng sản phẩm chi tiết (ProductDetailID) trong cùng đơn hàng đó.
     String sql = "SELECT sod.*, " +
                  " (SELECT ISNULL(SUM(gid.QuantityActual), 0) FROM Goods_Issue gi " +
                  "  JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID " +
@@ -164,6 +174,8 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
     private ProductDetailDAO pdd = new ProductDetailDAO();
     public List<SalesOrder> getAll() {
         List<SalesOrder> list = new ArrayList<>();
+        // SQL lấy toàn bộ đơn hàng, tính toán tổng lượng đặt và lượng xuất kho thực tế. 
+        // Sắp xếp theo ngày tạo mới nhất (CreatedDate DESC).
         String sql = "SELECT so.*, " +
                      "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
                      "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
@@ -184,6 +196,7 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
 //lấy tất cả đơn hàng, với mỗi đơn tính tổng lượng đặt/giao theo status tương ứng
     public List<SalesOrder> getByStatus(int status) {
         List<SalesOrder> list = new ArrayList<>();
+        // SQL lọc đơn hàng theo trạng thái (Status) như: 1-Chờ xử lý, 2-Đang giao...
         String sql = "SELECT so.*, " +
                      "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
                      "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
@@ -205,6 +218,7 @@ public List<SalesOrderDetail> getDetailsByOrderId(int orderId) {
     }
 //Lấy 1 SalesOrder theo ID với in4, số lượng đặt và giao,
 public SalesOrder getById(int id) {
+    // SQL lấy chi tiết một đơn hàng cụ thể theo SalesOrderID.
     String sql = "SELECT so.*, " +
                  "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
                  "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
@@ -227,15 +241,19 @@ public SalesOrder getById(int id) {
     return null;
 }
 
-//Thêm đơn hàng (header) vào Sales_Order
-//   Thêm danh sách sản phẩm (detail) vào Sales_Order_Detail
+    // THỰC HIỆN LƯU ĐƠN HÀNG (Sử dụng Transaction để đảm bảo tính toàn vẹn dữ liệu)
     public void insert(SalesOrder order, List<SalesOrderDetail> details) {
+        // SQL 1: Chèn thông tin chung (Header) của đơn hàng
         String sqlOrder = "INSERT INTO Sales_Order (OrderCode, CustomerID, Status, TotalAmount, Note, CreateBy, WarehouseID) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        // SQL 2: Chèn các dòng chi tiết sản phẩm (Details)
         String sqlDetail = "INSERT INTO Sales_Order_Detail (SalesOrderID, ProductDetailID, Quantity, Price, SubTotal) VALUES (?, ?, ?, ?, ?)";
         
         try {
+            // Bước 0: BẮT ĐẦU TRANSACTION - Tắt chế độ tự động lưu (AutoCommit = false)
             connection.setAutoCommit(false);
+
             try (PreparedStatement psOrder = connection.prepareStatement(sqlOrder, Statement.RETURN_GENERATED_KEYS)) {
+                // Bước 1: CHÈN THÔNG TIN CHUNG (Sales_Order)
                 psOrder.setString(1, order.getOrderCode());
                 psOrder.setInt(2, order.getCustomer().getId());
                 psOrder.setInt(3, order.getStatus());
@@ -249,26 +267,32 @@ public SalesOrder getById(int id) {
                 }
                 psOrder.executeUpdate();
                 
+                // Bước 2: LẤY ID TỰ SINH CỦA ĐƠN HÀNG VỬA CHÈN
                 ResultSet rs = psOrder.getGeneratedKeys();
                 if (rs.next()) {
                     int orderId = rs.getInt(1);
+                    // Bước 3: CHÈN DỮ LIỆU CHI TIẾT SẢN PHẨM (Sử dụng Batch Update để tăng hiệu năng)
                     try (PreparedStatement psDetail = connection.prepareStatement(sqlDetail)) {
                         for (SalesOrderDetail detail : details) {
-                            psDetail.setInt(1, orderId);
+                            psDetail.setInt(1, orderId); // Gán ID đơn hàng cha cho dòng chi tiết
                             psDetail.setInt(2, detail.getProductDetail().getId());
                             psDetail.setInt(3, detail.getQuantity());
                             psDetail.setDouble(4, detail.getPrice());
                             psDetail.setDouble(5, detail.getSubTotal());
-                            psDetail.addBatch();
+                            psDetail.addBatch(); // Cho vào hàng đợi (batch)
                         }
-                        psDetail.executeBatch();
+                        psDetail.executeBatch(); // Thực thi đồng loạt tất cả các dòng sản phẩm
                     }
                 }
+                
+                // Bước 4a: CHỐT DỮ LIỆU (COMMIT) - Nếu chạy đến đây mà không có lỗi thì lưu vĩnh viễn
                 connection.commit();
             } catch (SQLException e) {
+                // Bước 4b: HỦY BỔ THAY ĐỔI (ROLLBACK) - Nếu có bất kỳ dòng nào lỗi, hủy toàn bộ đơn hàng
                 connection.rollback();
-                throw e;
+                throw e; // Báo lỗi ra lớp bên ngoài xử lý
             } finally {
+                // Trả lời lại trạng thái mặc định của kết nối
                 connection.setAutoCommit(true);
             }
         } catch (SQLException e) {
