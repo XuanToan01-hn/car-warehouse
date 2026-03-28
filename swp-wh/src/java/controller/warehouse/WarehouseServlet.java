@@ -150,7 +150,7 @@ public class WarehouseServlet extends HttpServlet {
                     try {
                         int id = Integer.parseInt(idStr.trim());
                         
-                        //Check if warehouse has locations
+                        // Safeguard: Check if warehouse has locations
                         dal.LocationDAO locationDAO = new dal.LocationDAO();
                         List<model.Location> locations = locationDAO.getByWarehouseId(id);
                         
@@ -176,8 +176,8 @@ public class WarehouseServlet extends HttpServlet {
     }
 
     private boolean isValidName(String name) {
-       
-        return name.matches("^[\\p{L}\\s\\d]+$"); //
+        // Only letters and spaces, including Vietnamese characters
+        return name.matches("^[\\p{L}\\s\\d]+$"); // Warehouses might have numbers
     }
 
     private static String trimParam(String s) {

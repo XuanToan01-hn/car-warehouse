@@ -132,7 +132,7 @@ public class LocationDAO extends DBContext {
         }
         return list;
     }
-//trả về 1 object location hoặc null thôi
+
     public Location getById(int id) {
         if (connection == null) return null;
         
@@ -212,7 +212,7 @@ public class LocationDAO extends DBContext {
         }
         return list;
     }
-//Sản phẩm chi tiết này đang nằm ở những kho/vị trí nào
+
     public List<Location> getLocationsByProductDetail(int pdId) {
         List<Location> list = new ArrayList<>();
         if (connection == null) return list;
@@ -253,7 +253,7 @@ public class LocationDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // Giữ lịch sử Inventory_Transaction
+        // Step 2: null-out Inventory_Transaction.LocationID (preserve history)
         String sqlIt = "UPDATE Inventory_Transaction SET LocationID = NULL WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sqlIt)) {
             ps.setInt(1, id);
@@ -261,7 +261,7 @@ public class LocationDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // Step 3: Giữ lịch sử chuyển kho
+        // Step 3: null-out Transfer_Order FK references (preserve transfer history)
         String sqlTfFrom = "UPDATE Transfer_Order SET FromLocationID = NULL WHERE FromLocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sqlTfFrom)) {
             ps.setInt(1, id);
@@ -276,7 +276,7 @@ public class LocationDAO extends DBContext {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        // Step 4: xóa
+        // Step 4: delete the location itself
         String sql = "DELETE FROM Location WHERE LocationID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, id);
@@ -331,8 +331,7 @@ public class LocationDAO extends DBContext {
         }
         return list;
     }
-//COUNT > 0 → có id khác trùng → true
-    // cùng kho cùng code/name nhưng ko phải itself
+
     public boolean isLocationCodeExists(int warehouseId, String code, int excludeId) {
         String sql = "SELECT COUNT(*) FROM Location WHERE WarehouseID = ? AND LocationCode = ? AND LocationID != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

@@ -236,7 +236,7 @@
                     <h1 class="font-weight-bold h2">Customer Management</h1>
                     <c:choose>
                         <c:when test="${mode == 'add' or mode == 'edit'}">
-                           
+                            <%-- When form is open, button navigates back to list --%>
                             <a href="customers" class="btn-cancel">
                                 <i class="ri-arrow-left-line mr-1"></i> Back to List
                             </a>
@@ -249,14 +249,13 @@
                     </c:choose>
                 </div>
 
-             
+                <%-- Flash messages --%>
                 <c:if test="${not empty sessionScope.error}">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert"
                          style="border-radius: 12px; font-weight: 600;">
                         <i class="ri-error-warning-line mr-2"></i> ${sessionScope.error}
                         <button type="button" class="close" data-dismiss="alert"><span>&times;</span></button>
                     </div>
-                    <% xóa error sau mỗi session%>
                     <c:remove var="error" scope="session" />
                 </c:if>
                 <c:if test="${not empty sessionScope.success}">
@@ -268,7 +267,9 @@
                     <c:remove var="success" scope="session" />
                 </c:if>
 
-               
+                <%-- ============================================================
+                     INLINE FORM — shown when mode=add or mode=edit
+                     ============================================================ --%>
                 <c:if test="${mode == 'add' or mode == 'edit'}">
                     <div class="form-card">
                         <div class="form-card-header">
@@ -281,7 +282,7 @@
                         </div>
 
                         <form action="customers" method="post">
-
+                            <%-- action field: add or update --%>
                             <input type="hidden" name="action"
                                    value="${mode == 'edit' ? 'update' : 'add'}">
                             <c:if test="${mode == 'edit'}">
@@ -340,10 +341,16 @@
                     </div>
                 </c:if>
 
-                
+                <%-- ============================================================
+                     SEARCH + TABLE — always shown
+                     ============================================================ --%>
 
                 <c:if test="${empty mode}">
-                    
+                    <%-- ============================================================
+                         SEARCH + TABLE — hidden when mode is not empty
+                         ============================================================ --%>
+
+                    <%-- Search form (GET) --%>
                     <form action="customers" method="get" class="search-section">
                         <i class="ri-search-line"></i>
                         <input type="text" name="search"
@@ -391,11 +398,11 @@
                                                 </td>
                                                 <td><span class="text-secondary">${c.address}</span></td>
                                                 <td class="text-right">
-                        
+                                                    <%-- Edit: link to same page with mode=edit&id=... --%>
                                                     <a href="customers?mode=edit&id=${c.id}" class="btn-action btn-edit mr-2">
                                                         <i class="ri-pencil-line"></i> Edit
                                                     </a>
-                                         
+                                                    <%-- Delete: POST form, no JS confirm --%>
                                                     <form action="customers" method="post" style="display:inline;">
                                                         <input type="hidden" name="action" value="delete">
                                                         <input type="hidden" name="customerId" value="${c.id}">
@@ -418,7 +425,7 @@
                                 </table>
                             </div>
 
-                           
+                            <%-- Pagination --%>
                             <c:if test="${totalPages > 1}">
                                 <nav aria-label="Page navigation" class="mt-4 pb-4">
                                     <ul class="pagination justify-content-center">
@@ -429,13 +436,12 @@
                                         </li>
 
                                         <c:forEach begin="1" end="${totalPages}" var="i">
-                                            <% highlight dấu trang hiện tại %>
                                             <li class="page-item ${currentPage == i ? 'active' : ''}">
                                                 <a class="page-link"
                                                    href="customers?page=${i}&search=${search}">${i}</a>
                                             </li>
                                         </c:forEach>
-                                       <% page cuối thì ko có next %>
+
                                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                             <a class="page-link"
                                                href="customers?page=${currentPage + 1}&search=${search}">Next</a>

@@ -249,7 +249,7 @@
                     </c:choose>
                 </div>
 
-          
+                <%-- Flash messages --%>
                 <c:if test="${not empty sessionScope.error}">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert"
                          style="border-radius: 12px; font-weight: 600;">
@@ -267,7 +267,9 @@
                     <c:remove var="success" scope="session" />
                 </c:if>
 
-                
+                <%-- ============================================================
+                     INLINE FORM — shown when mode=add or mode=edit
+                     ============================================================ --%>
                 <c:if test="${mode == 'add' or mode == 'edit'}">
                     <div class="form-card">
                         <div class="form-card-header">
@@ -327,7 +329,11 @@
                     </div>
                 </c:if>
                 <c:if test="${empty mode}">
-                 
+                    <%-- ============================================================
+                         SEARCH + TABLE — hidden when mode is not empty
+                         ============================================================ --%>
+
+                    <%-- Search form (GET) --%>
                     <form action="warehouses" method="get" class="search-section">
                         <i class="ri-search-line"></i>
                         <input type="text" name="search"
@@ -364,11 +370,11 @@
                                                 <td><span class="text-secondary">${w.address}</span></td>
                                                 <td><span class="text-secondary">${w.description}</span></td>
                                                 <td class="text-right">
-                                                 
+                                                    <%-- Edit: link với mode=edit&id=... --%>
                                                     <a href="warehouses?mode=edit&id=${w.id}" class="btn-action btn-edit mr-2">
                                                         <i class="ri-pencil-line"></i> Edit
                                                     </a>
-                                                  
+                                                    <%-- Delete: POST form --%>
                                                     <form action="warehouses" method="post" style="display:inline;">
                                                         <input type="hidden" name="action" value="delete">
                                                         <input type="hidden" name="id" value="${w.id}">

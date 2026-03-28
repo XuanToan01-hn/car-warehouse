@@ -225,16 +225,17 @@ public class CustomerServlet extends HttpServlet {
     }
 
     private boolean isValidName(String name) {
-        // Chỉ bao gồm chữ cái và khoảng trắng
+        // Only letters and spaces, including Vietnamese characters
         return name.matches("^[\\p{L}\\s]+$");
     }
 
     private boolean isValidPhone(String phone) {
-        // 10 số bắt đầu là số 0
+        // Exactly 10 digits, starts with 0
         return phone.matches("^0\\d{9}$");
     }
 
     private boolean isValidEmail(String email) {
+        // Basic email regex
         return email.matches("^[A-Za-z0-9+_.-]+@(.+)$");
     }
 

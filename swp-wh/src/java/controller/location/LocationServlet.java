@@ -39,28 +39,28 @@ public class LocationServlet extends HttpServlet {
                 break;
         }
 
-        // lấy whouse cho dropdown
+        // Load warehouses for filter dropdown
         List<Warehouse> warehouses = warehouseDAO.getAll();
         request.setAttribute("warehouses", warehouses);
 
-        // 
+        // Resolve warehouseId filter
         String whIdStr = request.getParameter("warehouseId");
         int warehouseId = 0;
         if (whIdStr != null && !whIdStr.trim().isEmpty()) {
             try { warehouseId = Integer.parseInt(whIdStr.trim()); } catch (NumberFormatException ignored) {}
         }
-        // lấy wh đầu nếu ko cái nào đc chọn
+        // Default to first warehouse if none selected
         if (warehouseId == 0 && !warehouses.isEmpty()) {
             warehouseId = warehouses.get(0).getId();
         }
         request.setAttribute("selectedWarehouseId", warehouseId);
 
-        // search
+        // Search keyword
         String search = request.getParameter("search");
         String keyword = (search != null) ? search.trim() : "";
         request.setAttribute("search", keyword);
 
-        // lấy location theo wh
+        // Load filtered locations
         List<Location> allLocations = locationDAO.search(warehouseId, keyword);
         
         // Pagination Logic
@@ -147,7 +147,7 @@ public class LocationServlet extends HttpServlet {
 
             List<LocationProduct> rawProducts = dao.getProductsByLocation(id);
 
-            //Nếu cùng product + màu → cộng số lượng lại
+            // Grouping logic (Simplified: Model + Color)
             Map<String, Map<String, Object>> groupedMap = new LinkedHashMap<>();
             int totalQty = 0;
             for (LocationProduct lp : rawProducts) {
@@ -155,9 +155,9 @@ public class LocationServlet extends HttpServlet {
                 int pid = lp.getProduct().getId();
                 String color = (lp.getProductDetail() != null && lp.getProductDetail().getColor() != null) 
                                ? lp.getProductDetail().getColor() : "N/A";
-                //Tạo “key” để phân nhóm
+                
                 String key = pid + "_" + color;
-                //Nếu chưa có nhóm thif tạo mới
+                
                 if (!groupedMap.containsKey(key)) {
                     Map<String, Object> group = new HashMap<>();
                     group.put("product", lp.getProduct());
@@ -166,7 +166,6 @@ public class LocationServlet extends HttpServlet {
                     groupedMap.put(key, group);
                 }
                 Map<String, Object> group = groupedMap.get(key);
-                //cộng dồn
                 group.put("totalQty", (int) group.get("totalQty") + lp.getQuantity());
             }
 

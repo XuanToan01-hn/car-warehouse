@@ -249,7 +249,7 @@
                     </c:choose>
                 </div>
 
-             
+                <%-- Flash messages --%>
                 <c:if test="${not empty sessionScope.error and empty mode}">
                     <div class="alert alert-danger alert-dismissible fade show" role="alert"
                          style="border-radius: 12px; font-weight: 600;">
@@ -266,7 +266,9 @@
                     <c:remove var="success" scope="session" />
                 </c:if>
 
-             
+                <%-- ============================================================
+                     INLINE FORM — shown when mode=add or mode=edit
+                     ============================================================ --%>
                 <c:if test="${mode == 'add' or mode == 'edit'}">
                     <div class="form-card">
                         <div class="form-card-header">
@@ -278,7 +280,7 @@
                             </h5>
                         </div>
 
-                       <% hien thi loi trong form %>
+                        <%-- Error inside form --%>
                         <c:if test="${not empty sessionScope.error}">
                             <div class="alert alert-danger alert-dismissible fade show" role="alert"
                                  style="border-radius: 12px; font-weight: 600; margin-bottom: 1.5rem;">
@@ -334,9 +336,11 @@
                     <c:remove var="error" scope="session" />
                 </c:if>
                 <c:if test="${empty mode}">
-                   
+                    <%-- ============================================================
+                         FILTER + SEARCH + TABLE — hidden when mode is not empty
+                         ============================================================ --%>
                     <form action="locations" method="get" class="filter-bar">
-                       <% filter wh %>
+                        <%-- Warehouse filter --%>
                         <div class="filter-box">
                             <i class="ri-filter-2-line"></i>
                             <span class="font-weight-bold">Warehouse:</span>
@@ -351,7 +355,7 @@
                             </select>
                         </div>
 
-                        <% Search %>
+                        <%-- Search --%>
                         <div class="filter-box" style="min-width: 300px;">
                             <i class="ri-search-line"></i>
                             <input type="text" name="search" class="search-input"
@@ -420,7 +424,7 @@
                                 </table>
                             </div>
 
-                            <% Pagination %>
+                            <%-- Pagination --%>
                             <c:if test="${totalPages > 1}">
                                 <nav aria-label="Page navigation" class="mt-4">
                                     <ul class="pagination justify-content-center">
