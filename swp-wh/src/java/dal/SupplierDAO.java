@@ -185,6 +185,47 @@ public class SupplierDAO extends DBContext {
     }
 
     // ===============================
+    // UNIQUENESS CHECKS (for validation)
+    // ===============================
+    public boolean isNameExists(String name, int excludeId) {
+        String sql = "SELECT COUNT(*) FROM Supplier WHERE LOWER(Name) = LOWER(?) AND SupplierID != ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, name);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean isPhoneExists(String phone, int excludeId) {
+        if (phone == null || phone.isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM Supplier WHERE Phone = ? AND SupplierID != ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, phone);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    public boolean isEmailExists(String email, int excludeId) {
+        if (email == null || email.isEmpty()) return false;
+        String sql = "SELECT COUNT(*) FROM Supplier WHERE LOWER(Email) = LOWER(?) AND SupplierID != ?";
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ps.setString(1, email);
+            ps.setInt(2, excludeId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1) > 0;
+        } catch (SQLException e) { e.printStackTrace(); }
+        return false;
+    }
+
+    // ===============================
     // DELETE
     // ===============================
     public boolean delete(int id) {

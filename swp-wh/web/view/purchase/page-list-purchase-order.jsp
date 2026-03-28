@@ -251,13 +251,6 @@
                                                             class="btn-action btn-view mr-1">
                                                             <i class="ri-eye-line"></i> View
                                                         </a>
-                                                        <c:if
-                                                            test="${(sessionScope.user.role.id == 3 or sessionScope.user.role.id == 5) and (po.status == 2 or po.status == 3)}">
-                                                            <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
-                                                                class="btn-action btn-receipt">
-                                                                <i class="ri-truck-line"></i> Create Receipt
-                                                            </a>
-                                                        </c:if>
                                                     </td>
                                                 </tr>
                                             </c:forEach>

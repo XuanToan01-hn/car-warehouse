@@ -82,6 +82,33 @@ public class PurchaseOrderDAO extends DBContext {
         return list;
     }
 
+    public List<PurchaseOrder> getPendingPOs() {
+        List<PurchaseOrder> list = new ArrayList<>();
+        String sql = """
+                SELECT po.PurchaseOrderID, po.OrderCode, po.Status, po.TotalAmount,
+                       po.CreatedDate, po.CreateBy,
+                       po.SupplierID, s.Name AS SupplierName,
+                       ISNULL((SELECT SUM(pod.Quantity) FROM Purchase_Order_Detail pod WHERE pod.PurchaseOrderID = po.PurchaseOrderID), 0) AS OrderedQty,
+                       ISNULL((SELECT SUM(grd.QuantityActual)
+                               FROM Goods_Receipt gr
+                               JOIN Goods_Receipt_Detail grd ON gr.ReceiptID = grd.ReceiptID
+                               WHERE gr.PurchaseOrderID = po.PurchaseOrderID AND gr.Status IN (2, 4)), 0) AS ReceivedQty
+                FROM Purchase_Order po
+                LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID
+                WHERE po.Status IN (2, 3)
+                ORDER BY po.CreatedDate DESC
+                """;
+        try {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next())
+                list.add(mapRow(rs));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
     // ===============================
     // SEARCH + PAGINATE
     // ===============================

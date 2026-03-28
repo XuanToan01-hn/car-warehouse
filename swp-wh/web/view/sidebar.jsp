@@ -1,7 +1,9 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
     <c:set var="roleId" value="${sessionScope.user.role.id}" />
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
 
 
     <div class="iq-sidebar sidebar-default">
@@ -21,41 +23,41 @@
                 <ul id="iq-sidebar-toggle" class="iq-menu">
 
                     <!-- ================= ADMIN ================= -->
-  <c:if test="${roleId == 1}">
-                    <li>
-                        <a href="inventory-log" class="svg-icon">
-                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
-                            <span class="ml-4">Inventory Log</span>
-                        </a>
-                    </li>
+                    <c:if test="${roleId == 1}">
+                        <li>
+                            <a href="inventory-log" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Inventory Log</span>
+                            </a>
+                        </li>
 
-                    <li>
-                        <a href="userlist" class="svg-icon">
-                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
-                            <span class="ml-4">User List</span>
-                        </a>
-                    </li>
+                        <li>
+                            <a href="userlist" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">User List</span>
+                            </a>
+                        </li>
 
-                    <li>
-                        <a href="permissions" class="svg-icon">
-                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
-                            <span class="ml-4">Security - permission</span>
-                        </a>
-                    </li>
+                        <li>
+                            <a href="permissions" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Security - permission</span>
+                            </a>
+                        </li>
 
-                    <li>
-                        <a href="inventory-report" class="svg-icon">
-                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
-                            <span class="ml-4">Inventory Report</span>
-                        </a>
-                    </li> 
-                    <li>
-                        <a href="low-stock" class="svg-icon">
-                            <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
-                            <span class="ml-4">Report low stock</span>
-                        </a>
-                    </li>
-                </c:if>
+                        <li>
+                            <a href="inventory-report" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Inventory Report</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="low-stock" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Report low stock</span>
+                            </a>
+                        </li>
+                    </c:if>
 
 
 
@@ -109,15 +111,15 @@
                         </li>
 
 
-<!--                        <li>
+                        <!--                        <li>
                             <a href="external-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
                                 <span class="ml-4">External Transfer</span>
                             </a>
                         </li>-->
 
-                            <a href="warehouse-transfer" class="svg-icon">
-<!--                         <li>
+<!--                        <a href="warehouse-transfer" class="svg-icon">
+                                                     <li>
                                <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Warehouse Ops</span>
                             </a>
@@ -125,12 +127,12 @@
 
 
 
-                        <li>
-                            <a href="manage-suppliers" class="svg-icon">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/people.png">
-                                <span class="ml-4">Suppliers</span>
-                            </a>
-                        </li>
+                            <li>
+                                <a href="manage-suppliers" class="svg-icon">
+                                    <img src="${pageContext.request.contextPath}/assets/images/icon/people.png">
+                                    <span class="ml-4">Suppliers</span>
+                                </a>
+                            </li>
                     </c:if>
 
 
@@ -164,7 +166,7 @@
                         </li>
 
 
-<!--                        <li>
+                        <!--                        <li>
                             <a href="external-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/purchases.png">
                                 <span class="ml-4">External Transfer</span>
@@ -177,7 +179,7 @@
                             </a>
                         </li>
 
-<!--                        <li>
+                        <!--                        <li>
                             <a href="warehouse-transfer" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Warehouse Ops</span>
@@ -288,9 +290,11 @@
                 font-weight: 500 !important;
                 color: #475569 !important;
             }
+
             .iq-sidebar-menu .iq-menu li a i {
                 font-size: 18px !important;
             }
+
             .iq-sidebar-menu .iq-menu li a img {
                 width: 20px !important;
                 height: 20px !important;
