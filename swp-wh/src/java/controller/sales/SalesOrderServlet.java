@@ -37,7 +37,7 @@ public class SalesOrderServlet extends HttpServlet {
                 showCreateForm(request, response);
                 break;
             case "warehouse-list":
-                List<SalesOrder> warehouseOrders = salesOrderDAO.getAll(); // Hàm getAll của bạn đã có OrderedQty/DeliveredQty
+                List<SalesOrder> warehouseOrders = salesOrderDAO.getAll();
                 request.setAttribute("orders", warehouseOrders);
                 request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
                 break;
@@ -116,7 +116,7 @@ public class SalesOrderServlet extends HttpServlet {
         request.setAttribute("warehouses", warehouseDAO.getAll());
         request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
     }
-
+//load danh sách sản phẩm theo kho
     private void ajaxGetProducts(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int warehouseId = Integer.parseInt(request.getParameter("warehouseId"));
@@ -156,16 +156,31 @@ public class SalesOrderServlet extends HttpServlet {
         HttpSession session = request.getSession();
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            user = new UserDAO().getById(1); // Mock user nếu chưa login
+            user = new UserDAO().getById(1); // 
         }
         int customerId = Integer.parseInt(request.getParameter("customerId"));
         int warehouseId = Integer.parseInt(request.getParameter("warehouseId"));
         String note = request.getParameter("note");
+        //Trả về thời gian hiện tại tính bằng mili giây kể từ 01/01/1970
         String orderCode = "SO-" + System.currentTimeMillis();
 
         String[] productDetailIds = request.getParameterValues("productDetailId");
         String[] quantities = request.getParameterValues("quantity");
         String[] prices = request.getParameterValues("price");
+
+        // Validation for duplicate products
+        if (productDetailIds != null) {
+            java.util.Set<String> idSet = new java.util.HashSet<>();
+            for (String id : productDetailIds) {
+                if (id != null && !id.trim().isEmpty()) {
+                    if (!idSet.add(id)) {
+                        session.setAttribute("error", "Lỗi: Không được chọn trùng lặp sản phẩm trong cùng một đơn hàng!");
+                        response.sendRedirect(request.getContextPath() + "/sales-order?action=create");
+                        return;
+                    }
+                }
+            }
+        }
 
         List<SalesOrderDetail> details = new ArrayList<>();
         List<String> inventoryErrors = new ArrayList<>(); // Danh sách chứa lỗi tồn kho
@@ -180,7 +195,7 @@ public class SalesOrderServlet extends HttpServlet {
                 int reqQty = Integer.parseInt(quantities[i]);
                 double price = Double.parseDouble(prices[i]);
 
-                // Create and add detail regardless of stock availability
+                // tạo đơn ko qtam đến số luong kho
                 SalesOrderDetail detail = new SalesOrderDetail();
                 detail.setProductDetail(pdDAO.getById(pdId));
                 detail.setQuantity(reqQty);
@@ -197,7 +212,7 @@ public class SalesOrderServlet extends HttpServlet {
         order.setOrderCode(orderCode);
         order.setCustomer(customerDAO.getById(customerId));
         order.setWarehouse(warehouseDAO.getById(warehouseId));
-        order.setStatus(1); // Trạng thái: Draft/Created
+        order.setStatus(1); // Trạng thái: Created
         order.setNote(note);
         order.setCreateBy(user);
         order.setTotalAmount(totalAmount);
@@ -210,19 +225,19 @@ public class SalesOrderServlet extends HttpServlet {
             throws ServletException, IOException {
         int id = Integer.parseInt(request.getParameter("id"));
 
-        // 1. Lấy thông tin đơn hàng lên để kiểm tra
+
         SalesOrder order = salesOrderDAO.getById(id);
 
         if (order != null) {
-            // 2. Kiểm tra nếu đã có hàng được giao (DeliveredQty > 0)
+            // kiểm tra nếu đã có hàng được giao (DeliveredQty > 0)
             if (order.getDeliveredQty() > 0) {
-                // Không cho hủy, gửi thông báo lỗi về trang list hoặc view
+                
                 request.getSession().setAttribute("error", "Không thể hủy đơn hàng đã phát sinh giao dịch xuất kho!");
                 response.sendRedirect(request.getContextPath() + "/sales-order?action=view&id=" + id);
                 return;
             }
 
-            // 3. Nếu chưa giao hàng (DeliveredQty == 0), tiến hành hủy (Status = 4)
+            // 3. Nếu chưa giao hàng tiến hành hủy (Status = 4)
             salesOrderDAO.updateStatus(id, 4);
             request.getSession().setAttribute("message", "Đã hủy đơn hàng thành công.");
         }
@@ -230,12 +245,12 @@ public class SalesOrderServlet extends HttpServlet {
         response.sendRedirect(request.getContextPath() + "/sales-order?action=list");
     }
 
-    // Hàm mới để chuyển đến trang danh sách của kho
+    // 
     private void listOrdersForWarehouse(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         List<SalesOrder> list = salesOrderDAO.getAll();
         request.setAttribute("orders", list);
-        // Forward sang trang JSP dành riêng cho Warehouse
+        // 
         request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
     }
     
