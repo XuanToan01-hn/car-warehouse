@@ -18,6 +18,7 @@ public class ProductDAO extends DBContext {
     UnitDAO unitDAO = new UnitDAO();
     SupplierDAO supplierDAO = new SupplierDAO();
 
+    // Lấy ID lớn nhất hiện tại để phục vụ việc sinh mã sản phẩm tự động (PRO-xxxx)
     public String getNextProductCode() {
         String sql = "SELECT MAX(ProductID) FROM Product";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -32,7 +33,8 @@ public class ProductDAO extends DBContext {
         return "PRO-0001";
     }
 
-//lấy thông tin sản phẩm theo warehouse
+    // Lấy danh sách sản phẩm có tồn kho (Quantity > 0) tại một kho cụ thể.
+    // Phải join qua nhiều bảng: Product -> Product_Detail -> Location_Product -> Location.
     public List<Product> getProductsByWarehouse(int warehouseId) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT DISTINCT p.* FROM Product p " +
@@ -53,8 +55,7 @@ public class ProductDAO extends DBContext {
 
 
   
-    // 3. GET BY ID
-    
+    // Lấy thông tin chi tiết của một sản phẩm dựa trên ProductID.
     public Product getById(int id) {
         String sql = "SELECT * FROM Product WHERE ProductID = ?";
         try {
@@ -71,6 +72,7 @@ public class ProductDAO extends DBContext {
     }
 
     
+    // Thêm sản phẩm mới và trả về ID vừa được sinh ra tự động trong Database.
     public int insertAndGetId(Product p) {
         String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
@@ -96,6 +98,7 @@ public class ProductDAO extends DBContext {
     }
 
     
+    // Thêm sản phẩm mới (không cần lấy lại ID).
     public void insert(Product p) {
         String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
@@ -113,6 +116,7 @@ public class ProductDAO extends DBContext {
         }
     }
 
+    // Cập nhật thông tin sản phẩm hiện có.
     public void update(Product p) {
         String sql = "UPDATE Product SET Code=?, Name=?, Description=?, Image=?, CategoryID=?, UnitID=?, SupplierID=? WHERE ProductID=?";
         try {
@@ -132,6 +136,7 @@ public class ProductDAO extends DBContext {
     }
 
   
+    // Xóa sản phẩm theo ID.
     public boolean delete(int id) {
         String sql = "DELETE FROM Product WHERE ProductID = ?";
         try {
@@ -147,6 +152,7 @@ public class ProductDAO extends DBContext {
 
 
    
+    // Lấy danh sách sản phẩm thuộc về một nhà cung cấp cụ thể.
     public List<Product> getProductsBySupplier(int supplierId) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product WHERE SupplierID = ?";
@@ -164,6 +170,7 @@ public class ProductDAO extends DBContext {
     }
 
 
+    // Lấy toàn bộ danh sách sản phẩm, sắp xếp ID giảm dần (mới nhất lên đầu).
     public List<Product> getAll() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
@@ -196,6 +203,8 @@ public class ProductDAO extends DBContext {
         p.setSupplier(supplierDAO.getById(rs.getInt("SupplierID")));
         return p;
     }
+    // Đếm tổng số lượng sản phẩm phù hợp với các tiêu chí tìm kiếm (keyword, category, supplier).
+    // Phục vụ cho việc tính toán tổng số trang của phân trang.
     public int count(String keyword, int categoryId, int supplierId) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Product WHERE 1=1");
         List<Object> params = new ArrayList<>();
@@ -222,6 +231,8 @@ public class ProductDAO extends DBContext {
         return 0;
     }
 
+    // Tìm kiếm sản phẩm kết hợp Phân trang (Pagination).
+    // Sử dụng OFFSET và FETCH NEXT để lấy đúng số bản ghi của trang hiện tại.
     public List<Product> search(String keyword, int categoryId, int supplierId, int page, int pageSize) {
         List<Product> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder("SELECT * FROM Product WHERE 1=1");
@@ -257,6 +268,7 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
+    // Kiểm tra xem mã sản phẩm đã tồn tại hay chưa (loại trừ ID hiện tại khi Edit).
     public boolean isCodeExists(String code, int excludeId) {
         String sql = "SELECT COUNT(*) FROM Product WHERE Code = ? AND ProductID != ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -278,8 +290,8 @@ public class ProductDAO extends DBContext {
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
-//Không cần lấy dữ liệu cụ thể
-//Chỉ cần kiểm tra có dòng nào tồn tại hay không
+    // Kiểm tra xem sản phẩm có bất kỳ biến thể chi tiết nào trong bảng Product_Detail không.
+    // Dùng để chặn xóa sản phẩm đã có dữ liệu ràng buộc.
     public boolean hasProductDetail(int id) {
         String sql = "SELECT 1 FROM Product_Detail WHERE ProductID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {

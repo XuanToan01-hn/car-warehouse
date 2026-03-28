@@ -143,8 +143,12 @@ public class ProductServlet extends HttpServlet {
                     return;
                 }
 
-                // Handle Image Update
+                // --- XỬ LÝ ẢNH (BƯỚC 1: UPLOAD) ---
+                // Gọi hàm uploadFile để xử lý file từ request. 
+                // Hàm này sẽ trả về tên file duy nhất (UUID) nếu người dùng có chọn ảnh mới, ngược lại trả về null.
                 String imageFileName = uploadFile(request);
+
+                // Lấy thông tin sản phẩm hiện tại từ Database để có thể giữ lại ảnh cũ nếu người dùng không chọn ảnh mới.
                 Product oldP = productDAO.getById(id);
 
                 Product p = new Product();
@@ -156,26 +160,37 @@ public class ProductServlet extends HttpServlet {
                 p.setUnit(unitDAO.getUnitById(unitId));
                 p.setSupplier(supplierDAO.getById(supId));
                 
-              // có ảnh mới up ảnh mới
-              //có ảnh cũ giữ ảnh cũ
+                // --- XỬ LÝ ẢNH (BƯỚC 2: CẬP NHẬT TÊN FILE VÀO ĐỐI TƯỢNG) ---
+                // Trường hợp 1: Nếu người dùng có chọn ảnh mới (uploadFile thành công trả về tên file)
                 if (imageFileName != null && !imageFileName.isEmpty()) {
-                    p.setImage(imageFileName);
-                } else if (oldP != null) {
-                    p.setImage(oldP.getImage());
-                } else {
-                    p.setImage("no-image.png");
+                    p.setImage(imageFileName); // Lưu tên file mới vào đối tượng Product
+                } 
+                // Trường hợp 2: Nếu không chọn ảnh mới nhưng sản phẩm hiện tại đã có ảnh cũ
+                else if (oldP != null && oldP.getImage() != null) {
+                    p.setImage(oldP.getImage()); // Giữ nguyên tên file cũ
+                } 
+                // Trường hợp 3: Nếu là sản phẩm mới hoàn toàn hoặc chưa có ảnh
+                else {
+                    p.setImage("no-image.png"); // Gán ảnh mặc định
                 }
 
+                // Thực hiện lưu tất cả thông tin (bao gồm cả tên file ảnh mới/cũ) vào Database
                 productDAO.update(p);
                 request.getSession().setAttribute("success", "Cập nhật sản phẩm thành công!");
                 break;
             }
             case "delete": {
+                // Bước 1: Lấy ID của sản phẩm cần xóa từ request
                 int id = Integer.parseInt(request.getParameter("id"));
-                // Check if product has details (simple safeguard)
+                
+                // Bước 2: KIỂM TRA RÀNG BUỘC (Safeguard)
+                // - Kiểm tra xem sản phẩm này đã được tạo các biến thể chi tiết (Product Detail) chưa. 
+                // - Ví dụ: iPhone 15 đã có IMEI, màu sắc cụ thể... thì không thể xóa được để tránh lỗi Database.
                 if (productDAO.hasProductDetail(id)) {
+                    // Nếu đã có dữ liệu ràng buộc -> Gán thông báo lỗi vào Session và chặn xóa
                     request.getSession().setAttribute("error", "Không thể xóa sản phẩm vì đã có biến thể chi tiết hoặc đang được sử dụng!");
                 } else {
+                    // Bước 3: THỰC HIỆN XÓA (nếu là sản phẩm "sạch", chưa có dữ liệu giao dịch)
                     if (productDAO.delete(id)) {
                         request.getSession().setAttribute("success", "Xóa sản phẩm thành công!");
                     } else {
@@ -188,40 +203,57 @@ public class ProductServlet extends HttpServlet {
         response.sendRedirect("list-product");
     }
 
+    /**
+     * Hàm hỗ trợ xử lý upload file ảnh từ form multipart/form-data.
+     * @param request HttpServletRequest chứa dữ liệu form
+     * @return Tên file duy nhất đã được lưu trên server, hoặc null nếu không có file/lỗi
+     */
     private String uploadFile(HttpServletRequest request) {
         try {
+            // Bước 1: Trích xuất phần dữ liệu file từ input có attribute name="image"
             Part part = request.getPart("image");
+            
+            // Kiểm tra nếu người dùng không chọn file hoặc file rỗng
             if (part == null || part.getSize() <= 0) {
-                return null;
+                return null; // Trả về null để Servlet biết không cần cập nhật ảnh mới
             }
 
+            // Lấy tên file gốc (ví dụ: "xe-hoi.jpg")
             String originalFileName = part.getSubmittedFileName();
             if (originalFileName == null || originalFileName.isEmpty()) {
                 return null;
             }
 
-            // Tạo tên file unique
+            // Bước 2: Tạo tên file duy nhất để tránh trùng lặp trên server (ví dụ: "550e8400-e29b...jpg")
+            // Lấy phần mở rộng của file (.jpg, .png, ...)
             String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            // Sử dụng UUID để tạo chuỗi ngẫu nhiên không bao giờ trùng lặp
             String uniqueFileName = UUID.randomUUID().toString() + fileExtension;
-//xác định đường dẫn lưu file
+            
+            // Bước 3: Xác định thư mục vật lý trên server để chứa ảnh (trong thư mục cài đặt của Tomcat)
             String uploadPath = getServletContext().getRealPath("/") + "assets/images/product/";
-             //Tạo folder nếu chưa có
+            
+            // Tạo thư mục nếu nó chưa tồn tại trên ổ đĩa
             File uploadDir = new File(uploadPath);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
             }
 
+            // Bước 4: Lưu dữ liệu byte từ bộ nhớ (Stream) vào file vật lý đã tạo trên ổ đĩa
             File file = new File(uploadPath + uniqueFileName);
             try (InputStream input = part.getInputStream();
                  OutputStream output = new FileOutputStream(file)) {
-                byte[] buffer = new byte[1024];
+                byte[] buffer = new byte[1024]; // Bộ đệm 1KB để đọc/ghi dữ liệu
                 int length;
+                // Đọc từng khối dữ liệu từ input stream và ghi vào output stream cho đến hết file
                 while ((length = input.read(buffer)) > 0) {
                     output.write(buffer, 0, length);
                 }
             }
+            // Trả về tên file UUID để lưu vào cột Image trong bảng Product của Database
             return uniqueFileName;
         } catch (Exception e) {
+            // In lỗi ra console nếu quá trình upload gặp sự cố (ví dụ: hết dung lượng đĩa, sai quyền ghi...)
             e.printStackTrace();
             return null;
         }

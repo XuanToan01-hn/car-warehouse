@@ -255,31 +255,36 @@
             <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
 
             <script>
+                // Hàm xử lý khi người dùng thay đổi Kho (Warehouse)
                 function warehouseChanged() {
                     const warehouseId = document.getElementById('warehouseId').value;
                     const itemsContainer = document.getElementById('items-container');
                     
+                    // Nếu không chọn kho, xóa hết các dòng sản phẩm hiện tại
                     if (!warehouseId) {
                         itemsContainer.innerHTML = '';
-                        addItem(); // Re-add one empty row if reset
+                        addItem(); // Thêm lại một dòng trống mặc định
                         return;
                     }
 
-                    // For existing rows, refresh their product lists
+                    // Nếu có kho, cập nhật lại danh sách sản phẩm (Dropdown) cho tất cả các dòng hiện có
                     const mainSelects = document.querySelectorAll('.product-main-select');
                     mainSelects.forEach(select => {
                         fetchProductsForSelect(select, warehouseId);
                     });
                 }
-//lấy danh sách product theo warehouse
+
+                // Hàm thực hiện AJAX để lấy danh sách sản phẩm theo kho
                 function fetchProductsForSelect(select, warehouseId) {
                     const contextPath = '${pageContext.request.contextPath}';
+                    // Gọi Servlet với action ajax-get-products để lấy mã HTML của các <option> sản phẩm
                     fetch(contextPath + '/sales-order?action=ajax-get-products&warehouseId=' + warehouseId)
                         .then(response => response.text())
                         .then(html => {
-                            select.innerHTML = html;
-                            select.disabled = false;
-                            // Reset detail select too
+                            select.innerHTML = html; // Đổ dữ liệu vào dropdown
+                            select.disabled = false; // Kích hoạt dropdown
+                            
+                            // Reset lại dropdown Biến thể của dòng đó
                             const row = select.closest('.item-row');
                             const detailSelect = row.querySelector('.product-detail-select');
                             detailSelect.innerHTML = '<option value="">-- Select Product --</option>';
@@ -287,25 +292,30 @@
                         });
                 }
 
+                // Hàm thêm một dòng chọn sản phẩm mới (sử dụng HTML Template)
                 function addItem() {
                     const warehouseId = document.getElementById('warehouseId').value;
                     const container = document.getElementById('items-container');
+                    // Clone nội dung từ <template id="item-template">
                     const template = document.getElementById('item-template').content.cloneNode(true);
                     
                     const newRow = template.querySelector('.item-row');
                     const mainSelect = newRow.querySelector('.product-main-select');
                     
-                    container.appendChild(newRow);
+                    container.appendChild(newRow); // Thêm dòng mới vào container
                     
+                    // Nếu đã chọn kho từ trước, tự động load luôn danh sách sản phẩm cho dòng mới này
                     if (warehouseId) {
                         fetchProductsForSelect(mainSelect, warehouseId);
                     }
                 }
 
+                // Hàm xóa một dòng sản phẩm
                 function removeItem(btn) {
                     btn.closest('.item-row').remove();
                 }
 
+                // Hàm load danh sách Biến thể (Màu, Số khung...) khi người dùng chọn một Model xe
                 function loadVariants(mainSelect) {
                     const productId = mainSelect.value;
                     const warehouseId = document.getElementById('warehouseId').value;
@@ -323,6 +333,7 @@
                         return;
                     }
 
+                    // Gọi AJAX lấy danh sách chi tiết các xe đang có sẵn trong kho đó
                     fetch(contextPath + '/sales-order?action=ajax-get-details&productId=' + productId + '&warehouseId=' + warehouseId)
                         .then(response => response.text())
                         .then(html => {
@@ -331,6 +342,7 @@
                         });
                 }
 
+                // Hàm xử lý khi chọn một xe cụ thể (Biến thể)
                 function updateRowInfo(detailSelect) {
                     const selectedValue = detailSelect.value;
                     if (!selectedValue) {
@@ -340,26 +352,26 @@
                         return;
                     }
 
-                    // Check for duplicates
+                    // KIỂM TRA TRÙNG LẶP: Đảm bảo một xe (biến thể) không được chọn 2 lần trong cùng 1 đơn hàng
                     const allDetailSelects = document.querySelectorAll('.product-detail-select');
                     let duplicateFound = false;
                     allDetailSelects.forEach(s => {
-                        //Nếu có dòng khác chọn cùng variant thì trùng
                         if (s !== detailSelect && s.value === selectedValue) {
                             duplicateFound = true;
                         }
                     });
 
+                    // Nếu phát hiện trùng, thông báo và reset lựa chọn
                     if (duplicateFound) {
                         if (typeof Swal !== 'undefined') {
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Duplicate Product',
-                                text: 'This product variant has already been selected in another row.',
+                                text: 'Biến thể này đã được chọn ở dòng khác. Vui lòng chọn xe khác!',
                                 confirmButtonColor: '#0EA5E9'
                             });
                         } else {
-                            alert('This product variant has already been selected in another row.');
+                            alert('Biến thể này đã được chọn ở dòng khác. Vui lòng chọn xe khác!');
                         }
                         detailSelect.value = "";
                         const row = detailSelect.closest('.item-row');
@@ -368,6 +380,7 @@
                         return;
                     }
 
+                    // TỰ ĐỘNG GỢI Ý GIÁ BÁN: Lấy giá gốc từ thuộc tính data-price và nhân thêm 20% lợi nhuận
                     const selectedOption = detailSelect.options[detailSelect.selectedIndex];
                     const row = detailSelect.closest('.item-row');
                     const priceInput = row.querySelector('input[name="price"]');
@@ -381,6 +394,7 @@
                     }
                 }
 
+                // Khi trang web vừa load xong, tự động thêm một dòng sản phẩm đầu tiên
                 window.onload = function () {
                     addItem();
                 };

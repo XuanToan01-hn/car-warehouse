@@ -168,15 +168,16 @@ public class SalesOrderServlet extends HttpServlet {
         String[] quantities = request.getParameterValues("quantity");
         String[] prices = request.getParameterValues("price");
 
-        // Validation for duplicate products
-        //Tạo Set để kiểm tra trùng vì set ko chứa phần tử trùng
+        
+        // Dùng HashSet để kiểm tra vì Set không cho phép chứa phần tử trùng.
         if (productDetailIds != null) {
             java.util.Set<String> idSet = new java.util.HashSet<>();
             for (String id : productDetailIds) {
                 if (id != null && !id.trim().isEmpty()) {
-                    //Nếu thêm id vào Set KHÔNG thành công tức là bị trùng
+                    // Nếu id đã tồn tại trong Set, hàm .add() sẽ trả về FALSE
                     if (!idSet.add(id)) {
-                        session.setAttribute("error", "Lỗi: Không được chọn trùng lặp sản phẩm trong cùng một đơn hàng!");
+                        // Phát hiện trùng lặp -> Báo lỗi và quay lại trang tạo đơn
+                        session.setAttribute("error", "Lỗi: Một xe (VIN/Số khung) không được xuất hiện 2 lần trong cùng một đơn hàng!");
                         response.sendRedirect(request.getContextPath() + "/sales-order?action=create");
                         return;
                     }
@@ -214,7 +215,7 @@ public class SalesOrderServlet extends HttpServlet {
         order.setOrderCode(orderCode);
         order.setCustomer(customerDAO.getById(customerId));
         order.setWarehouse(warehouseDAO.getById(warehouseId));
-        order.setStatus(1); // Trạng thái: Created
+        order.setStatus(1); // Created
         order.setNote(note);
         order.setCreateBy(user);
         order.setTotalAmount(totalAmount);

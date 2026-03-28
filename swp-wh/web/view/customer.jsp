@@ -267,9 +267,7 @@
                     <c:remove var="success" scope="session" />
                 </c:if>
 
-                <%-- ============================================================
-                     INLINE FORM — shown when mode=add or mode=edit
-                     ============================================================ --%>
+                
                 <c:if test="${mode == 'add' or mode == 'edit'}">
                     <div class="form-card">
                         <div class="form-card-header">
@@ -341,14 +339,10 @@
                     </div>
                 </c:if>
 
-                <%-- ============================================================
-                     SEARCH + TABLE — always shown
-                     ============================================================ --%>
+    
 
                 <c:if test="${empty mode}">
-                    <%-- ============================================================
-                         SEARCH + TABLE — hidden when mode is not empty
-                         ============================================================ --%>
+                  
 
                     <%-- Search form (GET) --%>
                     <form action="customers" method="get" class="search-section">
@@ -402,7 +396,7 @@
                                                     <a href="customers?mode=edit&id=${c.id}" class="btn-action btn-edit mr-2">
                                                         <i class="ri-pencil-line"></i> Edit
                                                     </a>
-                                                    <%-- Delete: POST form, no JS confirm --%>
+                                                    
                                                     <form action="customers" method="post" style="display:inline;">
                                                         <input type="hidden" name="action" value="delete">
                                                         <input type="hidden" name="customerId" value="${c.id}">
