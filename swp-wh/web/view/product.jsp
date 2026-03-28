@@ -207,12 +207,14 @@
                             </c:if>
 
                             <div class="row">
-                                <div class="col-md-4 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Product Code</label>
-                                    <input type="text" name="code" class="form-control" placeholder="e.g. PROD-001" required
-                                           value="${mode == 'edit' ? editProduct.code : ''}">
+                                    <input type="text" name="code" class="form-control" 
+                                           placeholder="Auto-generated" 
+                                           value="${mode == 'edit' ? editProduct.code : nextCode}"
+                                           readonly>
                                 </div>
-                                <div class="col-md-8 mb-3">
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Product Name</label>
                                     <input type="text" name="name" class="form-control" placeholder="Enter product name" required
                                            value="${mode == 'edit' ? editProduct.name : ''}">

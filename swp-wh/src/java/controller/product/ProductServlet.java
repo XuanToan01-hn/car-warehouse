@@ -86,6 +86,7 @@ public class ProductServlet extends HttpServlet {
             }
         } else if ("add".equals(mode)) {
             request.setAttribute("mode", "add");
+            request.setAttribute("nextCode", productDAO.getNextProductCode());
         }
 
         request.getRequestDispatcher("/view/product.jsp").forward(request, response);
@@ -101,18 +102,15 @@ public class ProductServlet extends HttpServlet {
 
         switch (action) {
             case "add": {
-                String code = request.getParameter("code");
+                // Tự động tạo mã sản phẩm
+                String code = productDAO.getNextProductCode();
                 String name = request.getParameter("name");
                 String description = request.getParameter("description");
                 int catId = Integer.parseInt(request.getParameter("categoryId"));
                 int unitId = Integer.parseInt(request.getParameter("unitId"));
                 int supId = Integer.parseInt(request.getParameter("supplierId"));
 
-                if (productDAO.isCodeExists(code, 0)) {
-                    request.getSession().setAttribute("error", "Mã sản phẩm đã tồn tại!");
-                    response.sendRedirect("list-product?mode=add");
-                    return;
-                }
+                // (Bỏ qua kiểm tra mã trùng lặp vì đây là mã tự sinh)
 
                 // Handle Image Upload
                 String imageFileName = uploadFile(request);

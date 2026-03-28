@@ -13,11 +13,26 @@ import model.Supplier;
 
 public class ProductDAO extends DBContext {
 
-    // Khởi tạo các DAO để dùng chung, tránh tạo mới liên tục trong vòng lặp
+
     CategoryDAO categoryDAO = new CategoryDAO();
     UnitDAO unitDAO = new UnitDAO();
     SupplierDAO supplierDAO = new SupplierDAO();
 
+    public String getNextProductCode() {
+        String sql = "SELECT MAX(ProductID) FROM Product";
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                int nextId = rs.getInt(1) + 1;
+                return String.format("PRO-%04d", nextId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return "PRO-0001";
+    }
+
+//lấy thông tin sản phẩm theo warehouse
     public List<Product> getProductsByWarehouse(int warehouseId) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT DISTINCT p.* FROM Product p " +
@@ -37,9 +52,9 @@ public class ProductDAO extends DBContext {
     }
 
 
-    // ===============================
+  
     // 3. GET BY ID
-    // ===============================
+    
     public Product getById(int id) {
         String sql = "SELECT * FROM Product WHERE ProductID = ?";
         try {
@@ -55,12 +70,11 @@ public class ProductDAO extends DBContext {
         return null;
     }
 
-    // ===============================
-    // 4. INSERT AND GET ID
-    // ===============================
+    
     public int insertAndGetId(Product p) {
         String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
+            //lấy ID product vừa insert
             PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS);
             ps.setString(1, p.getCode());
             ps.setString(2, p.getName());
@@ -81,9 +95,7 @@ public class ProductDAO extends DBContext {
         return -1;
     }
 
-    // ===============================
-    // 5. INSERT (NORMAL)
-    // ===============================
+    
     public void insert(Product p) {
         String sql = "INSERT INTO Product (Code, Name, Description, Image, CategoryID, UnitID, SupplierID) VALUES (?, ?, ?, ?, ?, ?, ?)";
         try {
@@ -101,9 +113,6 @@ public class ProductDAO extends DBContext {
         }
     }
 
-    // ===============================
-    // 6. UPDATE
-    // ===============================
     public void update(Product p) {
         String sql = "UPDATE Product SET Code=?, Name=?, Description=?, Image=?, CategoryID=?, UnitID=?, SupplierID=? WHERE ProductID=?";
         try {
@@ -122,16 +131,14 @@ public class ProductDAO extends DBContext {
         }
     }
 
-    // ===============================
-    // 7. DELETE (trả boolean: true nếu thành công)
-    // ===============================
+  
     public boolean delete(int id) {
         String sql = "DELETE FROM Product WHERE ProductID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
             int rows = ps.executeUpdate();
-            return rows > 0;
+            return rows > 0; // có dòng bị ảnh hương nên true
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -139,9 +146,7 @@ public class ProductDAO extends DBContext {
     }
 
 
-    // ===============================
-    // 9. GET PRODUCTS BY SUPPLIER
-    // ===============================
+   
     public List<Product> getProductsBySupplier(int supplierId) {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product WHERE SupplierID = ?";
@@ -158,9 +163,7 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    // ===============================
-// 10. GET ALL
-// ===============================
+
     public List<Product> getAll() {
         List<Product> list = new ArrayList<>();
         String sql = "SELECT * FROM Product ORDER BY ProductID DESC";
@@ -180,7 +183,7 @@ public class ProductDAO extends DBContext {
         return list;
     }
 
-    // Hàm dùng chung để map ResultSet sang Product (giúp code sạch hơn)
+    // Hàm dùng chung để map ResultSet sang Product object
     private Product mapResultSetToProduct(ResultSet rs) throws Exception {
         Product p = new Product();
         p.setId(rs.getInt("ProductID"));
@@ -236,6 +239,8 @@ public class ProductDAO extends DBContext {
             sql.append(" AND SupplierID = ?");
             params.add(supplierId);
         }
+        //Bỏ x dòng đầu Lấy y dòng tiếp theo
+
         sql.append(" ORDER BY ProductID DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
         params.add((page - 1) * pageSize);
         params.add(pageSize);
@@ -273,7 +278,8 @@ public class ProductDAO extends DBContext {
         } catch (Exception e) { e.printStackTrace(); }
         return false;
     }
-
+//Không cần lấy dữ liệu cụ thể
+//Chỉ cần kiểm tra có dòng nào tồn tại hay không
     public boolean hasProductDetail(int id) {
         String sql = "SELECT 1 FROM Product_Detail WHERE ProductID = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
