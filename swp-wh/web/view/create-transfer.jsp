@@ -13,6 +13,20 @@
             <style>
                 body {
                     background-color: #f8fafc;
+
+                }
+
+                .content-page {
+                    padding-top: 0px !important;
+                }
+
+                .container-fluid {
+                    padding-top: 0 !important;
+                }
+
+                .page-header {
+                    padding: 1rem 0 0.5rem 0;
+                    margin-bottom: 0.5rem !important;
                 }
 
                 .card-form {
@@ -146,7 +160,7 @@
                     <jsp:include page="header.jsp" />
                     <div class="content-page">
                         <div class="container-fluid">
-                            <div class="page-header mb-4">
+                            <div class="page-header">
                                 <h1 class="font-weight-bold h3">Create Internal Transfer Request</h1>
                                 <p class="text-muted">Transfer products between locations within the same warehouse.</p>
                             </div>

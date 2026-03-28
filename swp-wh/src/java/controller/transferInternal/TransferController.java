@@ -104,14 +104,14 @@ public class TransferController extends HttpServlet {
                         String pName = (pd != null && pd.getProduct() != null)
                                 ? "[" + pd.getSerialNumber() + "] " + pd.getProduct().getName() + " - " + pd.getColor()
                                 : "Unknown Product #" + to.getProductDetailId();
-                        
+
                         Map<String, Object> map = new HashMap<>();
                         map.put("name", pName);
                         map.put("qty", to.getQuantity());
                         productDetailsList.add(map);
                         totalQty += to.getQuantity();
                     }
-                    
+
                     request.setAttribute("t", orders.get(0));
                     request.setAttribute("productList", productDetailsList);
                     request.setAttribute("totalQuantity", totalQty);
@@ -196,15 +196,26 @@ public class TransferController extends HttpServlet {
             out.flush();
             return;
         } else {
-            // Show history of completed/in-progress internal transfers within the user's warehouse
+            // Pagination Logic
             HttpSession session = request.getSession();
-            User user = (User) session.getAttribute("user");
+            model.User user = (model.User) session.getAttribute("user");
             Integer warehouseId = (user != null && user.getWarehouse() != null) ? user.getWarehouse().getId() : null;
-            
-            // Re-use the paged logic to find internal transfers (same warehouse FROM and TO)
-            List<TransferOrder> internalHistory = transDAO.getTransfersPaged(null, null, warehouseId, "internal", 1, 100);
-            
+
+            int pageSize = 5;
+            String pageStr = request.getParameter("page");
+            int currentPage = (pageStr != null && !pageStr.isEmpty()) ? Integer.parseInt(pageStr) : 1;
+
+            int totalItems = transDAO.getTransfersCount(null, null, warehouseId, "internal");
+            int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+            if (currentPage > totalPages && totalPages > 0)
+                currentPage = totalPages;
+
+            List<TransferOrder> internalHistory = transDAO.getTransfersPaged(null, null, warehouseId, "internal",
+                    currentPage, pageSize);
+
             request.setAttribute("pendingList", internalHistory);
+            request.setAttribute("currentPage", currentPage);
+            request.setAttribute("totalPages", totalPages);
             request.getRequestDispatcher("/view/transfer-list.jsp").forward(request, response);
         }
     }
@@ -268,7 +279,8 @@ public class TransferController extends HttpServlet {
             if (dao.createAndExecuteInternalTransfer(o, details)) {
                 request.getSession().setAttribute("msg", "Internal transfer executed and stock updated successfully!");
             } else {
-                request.getSession().setAttribute("err", "Failed to execute transfer! Please check stock availability.");
+                request.getSession().setAttribute("err",
+                        "Failed to execute transfer! Please check stock availability.");
             }
             response.sendRedirect("internal-transfer?action=view");
         } else if ("approve".equals(action)) {
