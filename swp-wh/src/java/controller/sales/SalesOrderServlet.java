@@ -169,10 +169,12 @@ public class SalesOrderServlet extends HttpServlet {
         String[] prices = request.getParameterValues("price");
 
         // Validation for duplicate products
+        //Tạo Set để kiểm tra trùng vì set ko chứa phần tử trùng
         if (productDetailIds != null) {
             java.util.Set<String> idSet = new java.util.HashSet<>();
             for (String id : productDetailIds) {
                 if (id != null && !id.trim().isEmpty()) {
+                    //Nếu thêm id vào Set KHÔNG thành công tức là bị trùng
                     if (!idSet.add(id)) {
                         session.setAttribute("error", "Lỗi: Không được chọn trùng lặp sản phẩm trong cùng một đơn hàng!");
                         response.sendRedirect(request.getContextPath() + "/sales-order?action=create");

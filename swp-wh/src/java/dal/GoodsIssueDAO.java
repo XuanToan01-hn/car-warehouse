@@ -122,7 +122,7 @@ String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID,
             try { connection.setAutoCommit(true); } catch (SQLException e) { }
         }
     }
-
+//định nghĩa status 2 và 3
     private void updateSalesOrderStatus(int soId) throws SQLException {
         String sqlCheck = "SELECT "
                 + "(SELECT SUM(quantity) FROM Sales_Order_Detail WHERE SalesOrderID = ?) as Total, "
