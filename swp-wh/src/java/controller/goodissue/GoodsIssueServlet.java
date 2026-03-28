@@ -1,4 +1,3 @@
-
 package controller.goodissue;
 
 import dal.*;
@@ -21,7 +20,7 @@ public class GoodsIssueServlet extends HttpServlet {
     private final SalesOrderDAO soDAO = new SalesOrderDAO();
     private final LocationProductDAO lpDAO = new LocationProductDAO();
 
-  @Override
+    @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String action = request.getParameter("action");
@@ -43,29 +42,42 @@ public class GoodsIssueServlet extends HttpServlet {
     }
 
     private void listWarehouseOrders(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        // 1. Lấy User từ session
-        User user = (User) request.getSession().getAttribute("user");
-        if (user == null) {
-            response.sendRedirect("login");
-            return;
-        }
-
-        List<SalesOrder> warehouseOrders;
-        
-        // 2. Phân quyền hiển thị: 
-        // Nếu là Thủ kho (giả sử RoleID = 3), chỉ lấy đơn của kho đó. 
-        // Nếu là Admin/Manager, lấy tất cả.
-        if (user.getRole().getId() == 3 && user.getWarehouse() != null) {
-            int warehouseId = user.getWarehouse().getId();
-            warehouseOrders = soDAO.getOrdersByWarehouse(warehouseId);
-        } else {
-            warehouseOrders = soDAO.getAll();
-        }
-
-        request.setAttribute("orders", warehouseOrders);
-        request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
+        throws ServletException, IOException {
+    User user = (User) request.getSession().getAttribute("user");
+    if (user == null) {
+        response.sendRedirect("login");
+        return;
     }
+
+    // 1. Lấy tham số search & filter
+    String searchQuery = request.getParameter("search");
+    String statusRaw = request.getParameter("statusFilter");
+    Integer statusFilter = (statusRaw != null && !statusRaw.isEmpty()) ? Integer.parseInt(statusRaw) : null;
+
+    // 2. Lấy tham số phân trang
+    int pageIndex = 1;
+    int pageSize = 10; 
+    String pageRaw = request.getParameter("page");
+    if (pageRaw != null && !pageRaw.isEmpty()) {
+        pageIndex = Integer.parseInt(pageRaw);
+    }
+
+    int warehouseId = user.getWarehouse().getId(); // Giả định Role 3 luôn có warehouse
+    
+    // 3. Gọi DAO lấy dữ liệu
+    List<SalesOrder> orders = soDAO.getOrdersByWarehouse(warehouseId, searchQuery, statusFilter, pageIndex, pageSize);
+    int totalRecords = soDAO.getTotalOrdersCount(warehouseId, searchQuery, statusFilter);
+    int totalPages = (int) Math.ceil((double) totalRecords / pageSize);
+
+    // 4. Gửi dữ liệu sang JSP
+    request.setAttribute("orders", orders);
+    request.setAttribute("currentPage", pageIndex);
+    request.setAttribute("totalPages", totalPages);
+    request.setAttribute("searchVal", searchQuery);
+    request.setAttribute("statusVal", statusFilter);
+
+    request.getRequestDispatcher("/view/good-issue/sales-order-staff-list.jsp").forward(request, response);
+}
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -80,10 +92,8 @@ public class GoodsIssueServlet extends HttpServlet {
             int soId = Integer.parseInt(idRaw);
             SalesOrder order = soDAO.getById(soId);
 
-            // BẢO MẬT: Kiểm tra xem đơn hàng có thuộc kho của nhân viên này không
             if (user.getRole().getId() == 3) {
                 if (order.getWarehouse() == null || order.getWarehouse().getId() != user.getWarehouse().getId()) {
-                    // Nếu nhân viên kho cố tình truy cập đơn hàng kho khác qua ID trên URL
                     response.sendRedirect("goods-issue?action=list");
                     return;
                 }
@@ -94,18 +104,13 @@ public class GoodsIssueServlet extends HttpServlet {
                 return;
             }
 
-            // Lấy WarehouseID từ đơn hàng (vì Sales đã chỉ định kho này)
             int selectedWhId = order.getWarehouse().getId();
-
-            // Lấy danh sách Location thuộc Warehouse đó
             List<Location> locations = new LocationDAO().getByWarehouseId(selectedWhId);
             
-            // Xác định Location đang được chọn (mặc định là cái đầu tiên nếu chưa chọn)
             String locIdParam = request.getParameter("locationId");
             int selectedLocId = (locIdParam != null) ? Integer.parseInt(locIdParam)
                                     : (locations.isEmpty() ? 0 : locations.get(0).getId());
 
-            // Lấy dữ liệu tồn kho thực tế tại vị trí đó
             List<Object[]> uiDetails = giDAO.getDetailsForUI(soId, selectedLocId);
 
             request.setAttribute("order", order);
@@ -119,6 +124,7 @@ public class GoodsIssueServlet extends HttpServlet {
             response.sendRedirect("goods-issue?action=list");
         }
     }
+
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -136,7 +142,7 @@ public class GoodsIssueServlet extends HttpServlet {
         }
 
         User user = (User) request.getSession().getAttribute("user");
-        if (user == null) user = new UserDAO().getById(1); // Fallback nếu session hết hạn
+        if (user == null) user = new UserDAO().getById(1);
 
         GoodsIssue gi = new GoodsIssue();
         gi.setIssueCode("GIN-" + System.currentTimeMillis());
@@ -144,7 +150,7 @@ public class GoodsIssueServlet extends HttpServlet {
         gi.setLocation(new Location());
         gi.getLocation().setId(locId);
         gi.setCreateBy(user);
-        gi.setStatus(1); // Đã xuất
+        gi.setStatus(1);
 
         List<GoodsIssueDetail> details = new ArrayList<>();
         List<String> errors = new ArrayList<>();
@@ -163,12 +169,11 @@ public class GoodsIssueServlet extends HttpServlet {
                     int remaining = originalDetail.getQuantity() - originalDetail.getDeliveredQty();
                     int stockAtLoc = lpDAO.getStockAtLocation(locId, pdId);
 
-                    // Validation tập trung
                     if (qtyToShip > remaining) {
-                        errors.add(originalDetail.getProductDetail().getProduct().getName() + ": Xuất quá số lượng nợ (" + remaining + ")");
+                        errors.add(originalDetail.getProductDetail().getProduct().getName() + ": Exceeds remaining quantity (" + remaining + ")");
                     }
                     if (qtyToShip > stockAtLoc) {
-                        errors.add(originalDetail.getProductDetail().getProduct().getName() + ": Kho không đủ tồn (" + stockAtLoc + ")");
+                        errors.add(originalDetail.getProductDetail().getProduct().getName() + ": Insufficient stock at location (" + stockAtLoc + ")");
                     }
 
                     GoodsIssueDetail gid = new GoodsIssueDetail();
@@ -177,13 +182,12 @@ public class GoodsIssueServlet extends HttpServlet {
                     gid.setQuantityExpected(remaining);
                     details.add(gid);
                 } catch (NumberFormatException e) {
-                    // Bỏ qua dòng nếu số lượng nhập sai định dạng
                 }
             }
         }
 
         if (errors.isEmpty() && details.isEmpty()) {
-            errors.add("Vui lòng nhập số lượng xuất cho ít nhất một sản phẩm.");
+            errors.add("Please enter a shipment quantity for at least one item.");
         }
 
         if (!errors.isEmpty()) {
@@ -192,9 +196,10 @@ public class GoodsIssueServlet extends HttpServlet {
         }
 
         if (giDAO.confirmIssue(gi, details)) {
-            response.sendRedirect("sales-order?action=warehouse-list");
+            request.getSession().setAttribute("successMessage", "Shipment document " + gi.getIssueCode() + " created successfully!");
+            response.sendRedirect("goods-issue?action=list");
         } else {
-            errors.add("Lỗi hệ thống: Không thể lưu phiếu xuất. Vui lòng kiểm tra lại tồn kho hoặc nhật ký giao dịch.");
+            errors.add("System Error: Unable to save Goods Issue. Please check inventory logs.");
             handleError(request, response, soId, locId, order, errors);
         }
     }

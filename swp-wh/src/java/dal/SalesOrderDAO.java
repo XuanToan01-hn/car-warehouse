@@ -12,31 +12,48 @@ public class SalesOrderDAO extends DBContext {
     private final UserDAO userDAO = new UserDAO();
     private final WarehouseDAO warehouseDAO = new WarehouseDAO();
     
-    public static void main(String[] args) {
-        SalesOrderDAO SO = new SalesOrderDAO();
-        List<SalesOrder> s = SO.getOrdersByWarehouse(2);
-        for(SalesOrder sa : s){
-            System.out.println(sa.getId());
-        }
-    }
+
     
-    
-    public List<SalesOrder> getOrdersByWarehouse(int warehouseId) {
+// Hàm lấy danh sách đơn hàng có search, filter và phân trang
+public List<SalesOrder> getOrdersByWarehouse(int warehouseId, String searchQuery, Integer status, int pageIndex, int pageSize) {
     List<SalesOrder> list = new ArrayList<>();
-    // Thêm điều kiện WHERE so.WarehouseID = ? và lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
-    // lọc các trạng thái cần xuất kho (ví dụ: 1-Chờ, 2-Giao một phần)
-    //lấy tổng đơn đặt, tổng đơn xuất thưcj tế
-    String sql = "SELECT so.*, " +
-                 "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
-                 "(SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID) as DeliveredQty " +
-                 "FROM Sales_Order so " +
-                 "WHERE so.WarehouseID = ? " + 
-                 "ORDER BY so.CreatedDate DESC";
-    try (PreparedStatement ps = connection.prepareStatement(sql)) {
-        ps.setInt(1, warehouseId);
+    // Base SQL
+    StringBuilder sql = new StringBuilder(
+            "SELECT so.*, " +
+            "(SELECT SUM(quantity) FROM Sales_Order_Detail sod WHERE sod.SalesOrderID = so.SalesOrderID) as OrderedQty, " +
+            "ISNULL((SELECT SUM(gid.QuantityActual) FROM Goods_Issue gi JOIN Goods_Issue_Detail gid ON gi.IssueID = gid.IssueID WHERE gi.SalesOrderID = so.SalesOrderID), 0) as DeliveredQty " +
+            "FROM Sales_Order so WHERE so.WarehouseID = ? "
+    );
+
+    // Thêm điều kiện Search (theo OrderCode)
+    if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+        sql.append(" AND so.OrderCode LIKE ? ");
+    }
+    // Thêm điều kiện Filter Status
+    if (status != null && status > 0) {
+        sql.append(" AND so.Status = ? ");
+    }
+
+    // Order và Phân trang (OFFSET FETCH yêu cầu SQL Server 2012+)
+    sql.append(" ORDER BY so.CreatedDate DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY");
+
+    try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+        int paramIdx = 1;
+        ps.setInt(paramIdx++, warehouseId);
+
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            ps.setString(paramIdx++, "%" + searchQuery + "%");
+        }
+        if (status != null && status > 0) {
+            ps.setInt(paramIdx++, status);
+        }
+        
+        ps.setInt(paramIdx++, (pageIndex - 1) * pageSize);
+        ps.setInt(paramIdx++, pageSize);
+
         try (ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                SalesOrder so = mapRow(rs);
+                SalesOrder so = mapRow(rs); // Giả định bạn đã có hàm mapRow chuẩn
                 so.setOrderedQty(rs.getInt("OrderedQty"));
                 so.setDeliveredQty(rs.getInt("DeliveredQty"));
                 list.add(so);
@@ -46,6 +63,33 @@ public class SalesOrderDAO extends DBContext {
         e.printStackTrace();
     }
     return list;
+}
+
+// Hàm đếm tổng số bản ghi (để tính tổng số trang)
+public int getTotalOrdersCount(int warehouseId, String searchQuery, Integer status) {
+    StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM Sales_Order WHERE WarehouseID = ? ");
+    if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+        sql.append(" AND OrderCode LIKE ? ");
+    }
+    if (status != null && status > 0) {
+        sql.append(" AND Status = ? ");
+    }
+
+    try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
+        int paramIdx = 1;
+        ps.setInt(paramIdx++, warehouseId);
+        if (searchQuery != null && !searchQuery.trim().isEmpty()) {
+            ps.setString(paramIdx++, "%" + searchQuery + "%");
+        }
+        if (status != null && status > 0) {
+            ps.setInt(paramIdx++, status);
+        }
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) return rs.getInt(1);
+    } catch (SQLException e) {
+        e.printStackTrace();
+    }
+    return 0;
 }
     //Lấy danh sách đơn bán (SalesOrder) theo kho (warehouseId)
     //đồng thời tính tổng số lượng đặt, lượng giao thực tế mỗi đơn

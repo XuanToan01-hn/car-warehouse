@@ -93,7 +93,7 @@ public class ListCategory extends HttpServlet {
             return;
         }
 
-        final int PAGE_SIZE = 10;
+        final int PAGE_SIZE = 5;
         String keyword = request.getParameter("search");
         if (keyword == null) {
             keyword = "";
