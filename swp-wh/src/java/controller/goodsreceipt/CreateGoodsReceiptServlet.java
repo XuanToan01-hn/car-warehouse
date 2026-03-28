@@ -3,7 +3,11 @@ package controller.goodsreceipt;
 import dal.GoodsReceiptDAO;
 import dal.LocationDAO;
 import dal.PurchaseOrderDAO;
+import dal.UserDAO;
+import dal.WarehouseDAO;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import jakarta.servlet.ServletException;
@@ -22,30 +26,84 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
         GoodsReceiptDAO grDAO = new GoodsReceiptDAO();
         LocationDAO locationDAO = new LocationDAO();
         PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
+        WarehouseDAO whDAO = new WarehouseDAO();
 
-        // Danh sách PO đã Confirmed để dropdown chọn
-        List<PurchaseOrder> confirmedPOs = grDAO.getConfirmedPOs();
-        request.setAttribute("confirmedPOs", confirmedPOs);
-
-        // Danh sách Location để chọn nơi nhập - Lọc theo kho của nhân viên
         User user = (User) request.getSession().getAttribute("user");
-        List<Location> locations;
-        if (user != null && user.getWarehouse() != null) {
-            locations = locationDAO.getByWarehouseId(user.getWarehouse().getId());
-        } else {
-            locations = locationDAO.getAll();
+        
+        // 1. Load list of warehouses
+        List<Warehouse> warehouses = whDAO.getAll();
+        request.setAttribute("warehouses", warehouses);
+
+        // 2. Handle selected warehouse
+        String whIdStr = request.getParameter("warehouseId");
+        int selectedWhId = 0;
+        if (whIdStr != null && !whIdStr.isEmpty()) {
+            selectedWhId = Integer.parseInt(whIdStr);
+        } else if (user != null && user.getWarehouse() != null && user.getWarehouse().getId() > 0) {
+            selectedWhId = user.getWarehouse().getId();
+        } else if (!warehouses.isEmpty()) {
+            selectedWhId = warehouses.get(0).getId();
         }
+        request.setAttribute("selectedWhId", selectedWhId);
+
+        // 3. Load locations for the selected warehouse
+        List<Location> locations = locationDAO.getByWarehouseId(selectedWhId);
         request.setAttribute("locations", locations);
 
-        // Nếu có poId → tự load PO đó và sản phẩm
+        // 4. Handle selected location
+        String locIdStr = request.getParameter("locationId");
+        int selectedLocId = 0;
+        if (locIdStr != null && !locIdStr.isEmpty()) {
+            selectedLocId = Integer.parseInt(locIdStr);
+        } else if (!locations.isEmpty()) {
+            selectedLocId = locations.get(0).getId();
+        }
+        request.setAttribute("selectedLocId", selectedLocId);
+
+        // 5. Handle PO and items
         String poIdStr = request.getParameter("poId");
         if (poIdStr != null && !poIdStr.isEmpty()) {
             try {
                 int poId = Integer.parseInt(poIdStr);
-                PurchaseOrder selectedPO = poDAO.getById(poId);
-                request.setAttribute("selectedPO", selectedPO);
-            } catch (NumberFormatException ignored) {
-            }
+                PurchaseOrder po = poDAO.getById(poId);
+                if (po != null) {
+                    request.setAttribute("order", po);
+                    
+                    // Fetch delivered totals and stock at location
+                    Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
+                    
+                    List<Integer> pdIds = new ArrayList<>();
+                    if (po.getDetails() != null) {
+                        for (PurchaseOrderDetail pod : po.getDetails()) {
+                            if (pod.getProductDetail() != null) pdIds.add(pod.getProductDetail().getId());
+                        }
+                    }
+                    Map<Integer, Integer> stockMap = grDAO.getStockAtLocation(selectedLocId, pdIds);
+
+                    // Prepare UI details: [name, variantLabel, orderedQty, deliveredQty, remainingQty, stockAtLoc, pdId, color, productId]
+                    List<Object[]> uiDetails = new ArrayList<>();
+                    if (po.getDetails() != null) {
+                        for (PurchaseOrderDetail pod : po.getDetails()) {
+                            ProductDetail pd = pod.getProductDetail();
+                            int pdId = (pd != null) ? pd.getId() : 0;
+                            int productId = (pod.getProduct() != null) ? pod.getProduct().getId() : 0;
+                            
+                            String name = (pod.getProduct() != null) ? pod.getProduct().getName() : "Unknown";
+                            String variant = (pd != null) ? (pd.getLotNumber() != null ? "Lot: " + pd.getLotNumber() + " | Ser: " + pd.getSerialNumber() : pd.getSerialNumber()) : "-";
+                            int ordered = pod.getQuantity();
+                            int delivered = deliveredMap.getOrDefault(pdId, 0);
+                            int remaining = ordered - delivered;
+                            int stockAtLoc = stockMap.getOrDefault(pdId, 0);
+                            String color = (pd != null) ? pd.getColor() : "-";
+
+                            uiDetails.add(new Object[]{
+                                name, variant, ordered, delivered, remaining, stockAtLoc, pdId, color, productId
+                            });
+                        }
+                    }
+                    request.setAttribute("uiDetails", uiDetails);
+                }
+            } catch (NumberFormatException ignored) {}
         }
 
         request.getRequestDispatcher("/view/goods-receipt/page-create-goods-receipt.jsp")
@@ -60,141 +118,108 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
         PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
         LocationDAO locationDAO = new LocationDAO();
         User currentUser = (User) request.getSession().getAttribute("user");
-        // DEV fallback: nếu chưa đăng nhập, dùng mock user ID=1
         if (currentUser == null) {
-            currentUser = new User();
-            currentUser.setId(1);
+            currentUser = new UserDAO().getById(1);
         }
 
+        int poId = 0;
         try {
-            int poId = Integer.parseInt(request.getParameter("poId"));
+            poId = Integer.parseInt(request.getParameter("poId"));
             int locationId = Integer.parseInt(request.getParameter("locationId"));
             String note = request.getParameter("note");
 
+            String[] productDetailIds = request.getParameterValues("productDetailId[]");
             String[] productIds = request.getParameterValues("productId[]");
             String[] qtyExpected = request.getParameterValues("qtyExpected[]");
             String[] qtyActual  = request.getParameterValues("qtyActual[]");
-            String[] productDetailIds = request.getParameterValues("productDetailId[]");
 
-            if (productIds == null || productIds.length == 0) {
-                request.getSession().setAttribute("error", "Vui lòng chọn Purchase Order và nhập số lượng thực tế nhận trước khi lưu.");
-                response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
+            if (productDetailIds == null || productDetailIds.length == 0) {
+                request.getSession().setAttribute("error", "Product list is empty.");
+                response.sendRedirect(request.getContextPath() + "/create-goods-receipt?poId=" + poId);
                 return;
             }
 
-            // ---- Validate location capacity ----
-            Location location = locationDAO.getById(locationId);
-            if (location != null && location.getMaxCapacity() != null && location.getMaxCapacity() > 0) {
-                int totalActualQty = 0;
-                if (qtyActual != null) {
-                    for (String qa : qtyActual) {
-                        if (qa != null && !qa.isEmpty()) {
-                            totalActualQty += Integer.parseInt(qa);
-                        }
-                    }
-                }
-                int remaining = location.getMaxCapacity() - location.getCurrentStock();
-                if (totalActualQty > remaining) {
-                    String locName = location.getLocationName();
-                    request.getSession().setAttribute("error",
-                        "Kho \"" + locName + "\" đã đầy hoặc không đủ chỗ! "
-                        + "Sức chứa còn lại: " + remaining + " units, "
-                        + "số lượng cần nhập: " + totalActualQty + " units. "
-                        + "Vui lòng chọn kho khác hoặc giảm số lượng nhận.");
-                    response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
-                    return;
-                }
+            // 1. CAPACITY VALIDATION
+            Location loc = locationDAO.getById(locationId);
+            if (loc == null) {
+                request.getSession().setAttribute("error", "Location does not exist.");
+                response.sendRedirect(request.getContextPath() + "/create-goods-receipt?poId=" + poId);
+                return;
             }
-            // ---- End capacity validation ----
 
-            // ---- Validate remaining qty (actual qty must not exceed what PO still needs) ----
-            Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
-            PurchaseOrder poForValidation = poDAO.getById(poId);
-            if (poForValidation != null && poForValidation.getDetails() != null && qtyActual != null) {
-                // Build a map of ProductDetailID -> PO ordered qty
-                Map<Integer, Integer> poQtyMap = new java.util.HashMap<>();
-                for (PurchaseOrderDetail pod : poForValidation.getDetails()) {
-                    if (pod.getProductDetail() != null) {
-                        poQtyMap.put(pod.getProductDetail().getId(), pod.getQuantity());
-                    }
-                }
-                boolean overLimit = false;
-                for (int i = 0; i < productDetailIds.length && i < qtyActual.length; i++) {
-                    int pdId = Integer.parseInt(productDetailIds[i]);
-                    int actual = Integer.parseInt(qtyActual[i]);
-                    int poQty = poQtyMap.getOrDefault(pdId, 0);
-                    int delivered = deliveredMap.getOrDefault(pdId, 0);
-                    int remainingQty = poQty - delivered;
-                    if (remainingQty < 0) remainingQty = 0;
-                    if (actual > remainingQty) {
-                        overLimit = true;
-                        break;
-                    }
-                }
-                if (overLimit) {
-                    request.getSession().setAttribute("error",
-                        "Số lượng nhập vượt quá số lượng còn lại có thể nhận. Vui lòng kiểm tra và sửa lại.");
-                    response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
+            int totalIncoming = 0;
+            List<GoodsReceiptDetail> details = new java.util.ArrayList<>();
+            for (int i = 0; i < productDetailIds.length; i++) {
+                int actual = Integer.parseInt(qtyActual[i]);
+                if (actual <= 0) continue;
+                totalIncoming += actual;
+
+                GoodsReceiptDetail d = new GoodsReceiptDetail();
+                Product p = new Product();
+                p.setId((productIds != null && productIds.length > i) ? Integer.parseInt(productIds[i]) : 0);
+                d.setProduct(p);
+
+                ProductDetail pd = new ProductDetail();
+                pd.setId(Integer.parseInt(productDetailIds[i]));
+                d.setProductDetail(pd);
+
+                d.setQuantityExpected(Integer.parseInt(qtyExpected[i]));
+                d.setQuantityActual(actual);
+                details.add(d);
+            }
+
+            if (details.isEmpty()) {
+                request.getSession().setAttribute("error", "Please input actual received quantity > 0 for at least one item.");
+                response.sendRedirect(request.getContextPath() + "/create-goods-receipt?poId=" + poId);
+                return;
+            }
+
+            if (loc.getMaxCapacity() != null && loc.getMaxCapacity() > 0) {
+                if (loc.getCurrentStock() + totalIncoming > loc.getMaxCapacity()) {
+                    request.getSession().setAttribute("error", "Error: Location " + loc.getLocationName() + " does not have enough capacity. (Current: " + loc.getCurrentStock() + "/" + loc.getMaxCapacity() + ", Incoming: " + totalIncoming + ")");
+                    response.sendRedirect(request.getContextPath() + "/create-goods-receipt?poId=" + poId + "&locationId=" + locationId);
                     return;
                 }
             }
-            // ---- End remaining qty validation ----
+
+            // 2. STATUS LOGIC: Determine if this receipt is the final one for the PO
+            Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
+            PurchaseOrder poObj = poDAO.getById(poId);
+            int totalOrderRemaining = 0;
+            if (poObj != null && poObj.getDetails() != null) {
+                for (PurchaseOrderDetail pod : poObj.getDetails()) {
+                    int pdId = (pod.getProductDetail() != null) ? pod.getProductDetail().getId() : 0;
+                    totalOrderRemaining += (pod.getQuantity() - deliveredMap.getOrDefault(pdId, 0));
+                }
+            }
+
+            // If incoming qty < total remaining qty of PO, set GRO status to 4 (Partial)
+            int finalGROStatus = (totalIncoming >= totalOrderRemaining) ? 2 : 4;
 
             // Build GoodsReceipt header
             GoodsReceipt gr = new GoodsReceipt();
             gr.setReceiptCode(grDAO.generateReceiptCode());
-            PurchaseOrder po = new PurchaseOrder();
-            po.setId(poId);
-            gr.setPurchaseOrder(po);
-            Location loc = new Location();
-            loc.setId(locationId);
+            PurchaseOrder poRef = new PurchaseOrder();
+            poRef.setId(poId);
+            gr.setPurchaseOrder(poRef);
             gr.setLocation(loc);
-            gr.setStatus(1); // Draft
             gr.setNote(note);
             gr.setCreateBy(currentUser);
+            gr.setStatus(finalGROStatus);
 
-            // Build detail list từ form
-            List<GoodsReceiptDetail> details = new java.util.ArrayList<>();
-            for (int i = 0; i < productIds.length; i++) {
-                GoodsReceiptDetail d = new GoodsReceiptDetail();
-                Product p = new Product();
-                p.setId(Integer.parseInt(productIds[i]));
-                d.setProduct(p);
-
-                // Set ProductDetail nếu user đã chọn variant
-                if (productDetailIds != null && productDetailIds.length > i) {
-                    int pdId = Integer.parseInt(productDetailIds[i]);
-                    if (pdId > 0) {
-                        ProductDetail pd = new ProductDetail();
-                        pd.setId(pdId);
-                        d.setProductDetail(pd);
-                    }
-                }
-
-                int expected = Integer.parseInt(qtyExpected[i]);
-                d.setQuantityExpected(expected);
-
-                if (qtyActual != null && qtyActual.length > i && qtyActual[i] != null && !qtyActual[i].isEmpty()) {
-                    d.setQuantityActual(Integer.parseInt(qtyActual[i]));
-                } else {
-                    d.setQuantityActual(expected);
-                }
-                details.add(d);
-            }
-
-            int receiptId = grDAO.createDraft(gr, details);
+            int receiptId = grDAO.createAndConfirmReceipt(gr, details);
 
             if (receiptId > 0) {
-                request.getSession().setAttribute("success", "Tạo Goods Receipt Order thành công!");
+                request.getSession().setAttribute("success", "Goods Receipt created successfully!");
                 response.sendRedirect(request.getContextPath() + "/detail-goods-receipt?id=" + receiptId);
             } else {
-                request.getSession().setAttribute("error", "Có lỗi xảy ra khi tạo Goods Receipt. Vui lòng thử lại.");
-                response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
+                request.getSession().setAttribute("error", "An error occurred while creating the Goods Receipt. Please try again.");
+                response.sendRedirect(request.getContextPath() + "/create-goods-receipt?poId=" + poId);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            request.getSession().setAttribute("error", "Dữ liệu không hợp lệ: " + e.getMessage());
-            response.sendRedirect(request.getContextPath() + "/create-goods-receipt");
+            request.getSession().setAttribute("error", "Invalid data: " + e.getMessage());
+            response.sendRedirect(request.getContextPath() + "/create-goods-receipt" + (poId > 0 ? "?poId=" + poId : ""));
         }
     }
 }
