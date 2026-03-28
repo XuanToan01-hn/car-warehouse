@@ -67,7 +67,12 @@
                                 <span class="ml-4">Inventory Log</span>
                             </a>
                         </li>
-
+                        <li>
+                            <a href="list-category" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
+                                <span class="ml-4">Category</span>
+                            </a>
+                        </li>
                         <li>
                             <a href="list-product" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/product.png">

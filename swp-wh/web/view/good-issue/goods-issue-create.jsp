@@ -65,7 +65,7 @@
                                     <p class="mb-0 small text-muted">Chọn nhà kho, vị trí và nhập số lượng thực xuất cho từng sản phẩm.</p>
                                 </div>
                                 <div class="card-header-toolbar d-flex align-items-center">
-                                    <a href="sales-order?action=warehouse-list" class="btn btn-light">
+                                    <a href="goods-issue" class="btn btn-light">
                                         <i class="fas fa-arrow-left mr-1"></i>Quay lại
                                     </a>
                                 </div>
