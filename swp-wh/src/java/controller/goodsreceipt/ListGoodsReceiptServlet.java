@@ -36,12 +36,21 @@ public class ListGoodsReceiptServlet extends HttpServlet {
         if (page < 1)
             page = 1;
 
+        // 0. Get user info
+        model.User user = (model.User) request.getSession().getAttribute("user");
+        int warehouseId = 0; // 0 = all (Show all if Admin/Manager)
+        if (user != null && user.getRole() != null && user.getRole().getId() == 3) {
+            if (user.getWarehouse() != null) {
+                warehouseId = user.getWarehouse().getId();
+            }
+        }
+
         // 1. Fetch relevant data (Pending POs and GRO History)
         java.util.List<Object> combinedList = new java.util.ArrayList<>();
 
         // Show pending POs if no specific GRO status filter is active
         if (statusFilter == 0) {
-            List<model.PurchaseOrder> pendingPOs = poDAO.getPendingPOs();
+            List<model.PurchaseOrder> pendingPOs = poDAO.getPendingPOs(warehouseId);
             for (model.PurchaseOrder po : pendingPOs) {
                 boolean matchesKeyword = keyword.isEmpty() ||
                         po.getOrderCode().toLowerCase().contains(keyword.toLowerCase()) ||
@@ -55,7 +64,7 @@ public class ListGoodsReceiptServlet extends HttpServlet {
         }
 
         // 2. Fetch GRO History
-        List<GoodsReceipt> grHistory = grDAO.searchAndPaginate(keyword, statusFilter, 0, 1000);
+        List<GoodsReceipt> grHistory = grDAO.searchAndPaginate(keyword, statusFilter, 0, 1000, warehouseId);
         combinedList.addAll(grHistory);
 
         // 3. Sort: Pending POs always at the top, then sort by date descending

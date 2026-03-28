@@ -126,13 +126,6 @@
                         </li>-->
 
 
-
-                            <li>
-                                <a href="manage-suppliers" class="svg-icon">
-                                    <img src="${pageContext.request.contextPath}/assets/images/icon/people.png">
-                                    <span class="ml-4">Suppliers</span>
-                                </a>
-                            </li>
                     </c:if>
 
 
@@ -216,12 +209,12 @@
                             </a>
                         </li>
 
-                        <li>
+<!--                        <li>
                             <a href="goods-receipt" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Goods Receipt</span>
                             </a>
-                        </li>
+                        </li>-->
 
                         <li>
                             <a href="manage-suppliers" class="svg-icon">

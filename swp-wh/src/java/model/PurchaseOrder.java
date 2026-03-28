@@ -11,6 +11,7 @@ public class PurchaseOrder {
     private int status;
     private double totalAmount;
     private User createBy;
+    private Warehouse warehouse;
     private List<PurchaseOrderDetail> details;
     private int orderedQty;
     private int receivedQty;
@@ -96,6 +97,14 @@ public class PurchaseOrder {
 
     public void setReceivedQty(int receivedQty) {
         this.receivedQty = receivedQty;
+    }
+
+    public Warehouse getWarehouse() {
+        return warehouse;
+    }
+
+    public void setWarehouse(Warehouse warehouse) {
+        this.warehouse = warehouse;
     }
 
     public String getStatusLabel() {
