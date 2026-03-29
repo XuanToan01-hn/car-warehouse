@@ -64,12 +64,6 @@
                     <!-- ================= WAREHOUSE MANAGER ================= -->
                     <c:if test="${roleId == 2}">
                           <li>
-                            <a href="low-stock" class="svg-icon">
-                                <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
-                                <span class="ml-4">Report low stock</span>
-                            </a>
-                          </li>
-                          <li>
                             <a href="inventory-report" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/inventory.png">
                                 <span class="ml-4">Inventory Report</span>

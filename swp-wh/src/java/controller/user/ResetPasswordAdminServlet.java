@@ -92,11 +92,11 @@ public class ResetPasswordAdminServlet extends HttpServlet {
                 return;
             }
 
-            if (!InputValidator.isValid(newPassword, InputValidator.PASSWORD)) {
-                session.setAttribute("error", "Password must be at least 8 characters long, including uppercase, lowercase, numbers, and special characters.");
-                response.sendRedirect("userlist?page=" + page);
-                return;
-            }
+//            if (!InputValidator.isValid(newPassword, InputValidator.PASSWORD)) {
+//                session.setAttribute("error", "Password must be at least 8 characters long, including uppercase, lowercase, numbers, and special characters.");
+//                response.sendRedirect("userlist?page=" + page);
+//                return;
+//            }
 
             UserDAO userService = new UserDAO();
             String passwordEncoding = EndCode.toSHA1(newPassword);
