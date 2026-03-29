@@ -48,7 +48,7 @@ public class AddProductDetail extends HttpServlet {
 
             // Validate Lot Number format (LN + 6 digits)
             if (!InputValidator.isEmpty(lotNumber) && !InputValidator.isValid(lotNumber, InputValidator.LOT_NUMBER)) {
-                request.setAttribute("error", "Lot Number phải có định dạng LN + 6 chữ số (VD: LN000001)");
+                request.setAttribute("error", "Lot Number format must be LN + 6 numbers (Ex: LN000001)");
                 request.setAttribute("listProduct", new ProductDAO().getAll());
                 request.getRequestDispatcher("view/product-detail/page-add-product-detail.jsp").forward(request, response);
                 return;
@@ -56,7 +56,7 @@ public class AddProductDetail extends HttpServlet {
 
             // Validate Serial Number format (SN + 6 digits)
             if (!InputValidator.isEmpty(serialNumber) && !InputValidator.isValid(serialNumber, InputValidator.SERIAL_NUMBER)) {
-                request.setAttribute("error", "Serial Number phải có định dạng SN + 6 chữ số (VD: SN000001)");
+                request.setAttribute("error", "Serial Number Format must be SN + 6 numbers (Ex: SN000001)");
                 request.setAttribute("listProduct", new ProductDAO().getAll());
                 request.getRequestDispatcher("view/product-detail/page-add-product-detail.jsp").forward(request, response);
                 return;
