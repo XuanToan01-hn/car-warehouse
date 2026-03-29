@@ -1,13 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package dal;
-
-/**
- *
- * @author Asus
- */
 
 import context.DBContext;
 import java.sql.*;
@@ -34,7 +25,6 @@ public class TransferDAO extends DBContext {
                 "ON (target.LocationID = source.LocationID AND target.ProductDetailID = source.ProductDetailID) " +
                 "WHEN MATCHED THEN UPDATE SET Quantity = target.Quantity + source.Qty " +
                 "WHEN NOT MATCHED THEN INSERT (LocationID, ProductDetailID, Quantity) VALUES (source.LocationID, source.ProductDetailID, source.Qty);";
-        String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate) VALUES (?, ?, ?, ?, ?, GETDATE())";
 
         try {
             connection.setAutoCommit(false);
@@ -55,7 +45,6 @@ public class TransferDAO extends DBContext {
                 PreparedStatement psDetail = connection.prepareStatement(sqlDetail);
                 PreparedStatement psSub = connection.prepareStatement(sqlSub);
                 PreparedStatement psAdd = connection.prepareStatement(sqlAdd);
-                PreparedStatement psLog = connection.prepareStatement(sqlLog);
 
                 for (TransferOrderDetail detail : details) {
                     // Detail
@@ -75,27 +64,10 @@ public class TransferDAO extends DBContext {
                     psAdd.setInt(2, detail.getProductDetailId());
                     psAdd.setInt(3, detail.getQuantity());
                     psAdd.addBatch();
-
-                    // Log OUT (3)
-                    psLog.setInt(1, detail.getProductDetailId());
-                    psLog.setInt(2, order.getFromLocationId());
-                    psLog.setInt(3, 3); // TRANSFER_OUT
-                    psLog.setInt(4, -detail.getQuantity());
-                    psLog.setString(5, code);
-                    psLog.addBatch();
-
-                    // Log IN (4)
-                    psLog.setInt(1, detail.getProductDetailId());
-                    psLog.setInt(2, order.getToLocationId());
-                    psLog.setInt(3, 4); // TRANSFER_IN
-                    psLog.setInt(4, detail.getQuantity());
-                    psLog.setString(5, code);
-                    psLog.addBatch();
                 }
                 psDetail.executeBatch();
                 psSub.executeBatch();
                 psAdd.executeBatch();
-                psLog.executeBatch();
                 
                 connection.commit();
                 return true;
@@ -176,7 +148,6 @@ public class TransferDAO extends DBContext {
 
     public List<TransferOrder> getTransfersById(int id) {
         List<TransferOrder> list = new ArrayList<>();
-        // Use the same paging logic but filter ONLY by ID to get all product rows
         StringBuilder sql = new StringBuilder(
                 "SELECT t.TransferOrderID, t.TransferCode, t.FromLocationID, t.ToLocationID, t.Status, t.TransferDate, t.Note, " +
                 "fl.LocationName as FromLocationName, tl.LocationName as ToLocationName, " +
@@ -317,7 +288,7 @@ public class TransferDAO extends DBContext {
                 to.setFromWarehouseName(rs.getString("FromWarehouseName"));
                 to.setToWarehouseName(rs.getString("ToWarehouseName"));
                 to.setStatus(rs.getInt("Status"));
-                to.setProductId(rs.getInt("ItemCount")); // Use productId field to store item count
+                to.setProductId(rs.getInt("ItemCount")); 
                 to.setQuantity(rs.getInt("TotalQuantity"));
                 to.setNote(rs.getString("Note"));
                 list.add(to);
@@ -333,7 +304,6 @@ public class TransferDAO extends DBContext {
                 "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
                 "WHERE t.TransferOrderID = ?";
         String sqlSub = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
-        String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) VALUES (?,?,?,?,?)";
         String sqlUpdateStatus = "UPDATE Transfer_Order SET Status = ? WHERE TransferOrderID = ?";
 
         try {
@@ -342,42 +312,31 @@ public class TransferDAO extends DBContext {
             psGet.setInt(1, transferId);
             ResultSet rs = psGet.executeQuery();
             PreparedStatement psSub = connection.prepareStatement(sqlSub);
-            PreparedStatement psLog = connection.prepareStatement(sqlLog);
             
             boolean hasData = false;
-            int transferStatus = -1; // To store the status of the transfer order
+            int transferStatus = -1;
             while (rs.next()) {
                 hasData = true;
-                if (transferStatus == -1) { // Get status from the first row
+                if (transferStatus == -1) {
                     transferStatus = rs.getInt("Status");
                 }
                 if (transferStatus != APPROVED) {
-                    connection.rollback(); // Rollback if status is not APPROVED
-                    return false; // Only Approved can be shipped
+                    connection.rollback();
+                    return false;
                 }
                 int fromLoc = rs.getInt("FromLocationID");
                 int pdId = rs.getInt("ProductDetailID");
                 int qty = rs.getInt("Quantity");
-                String code = rs.getString("TransferCode");
 
                 // Subtract from source
                 psSub.setInt(1, qty);
                 psSub.setInt(2, fromLoc);
                 psSub.setInt(3, pdId);
                 psSub.addBatch();
-
-                // Log Out (3: TRANSFER_OUT)
-                psLog.setInt(1, pdId);
-                psLog.setInt(2, fromLoc);
-                psLog.setInt(3, 3);
-                psLog.setInt(4, -qty);
-                psLog.setString(5, code);
-                psLog.addBatch();
             }
 
             if (hasData) {
                 psSub.executeBatch();
-                psLog.executeBatch();
 
                 // Update Status to InTransit
                 PreparedStatement psStatus = connection.prepareStatement(sqlUpdateStatus);
@@ -390,16 +349,10 @@ public class TransferDAO extends DBContext {
             }
             return false;
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-            }
+            try { connection.rollback(); } catch (SQLException ex) { }
             e.printStackTrace();
         } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-            }
+            try { connection.setAutoCommit(true); } catch (SQLException e) { }
         }
         return false;
     }
@@ -413,7 +366,6 @@ public class TransferDAO extends DBContext {
                 "ON (target.LocationID = source.LocationID AND target.ProductDetailID = source.ProductDetailID) " +
                 "WHEN MATCHED THEN UPDATE SET Quantity = target.Quantity + source.Qty " +
                 "WHEN NOT MATCHED THEN INSERT (LocationID, ProductDetailID, Quantity) VALUES (source.LocationID, source.ProductDetailID, source.Qty);";
-        String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) VALUES (?,?,?,?,?)";
         String sqlUpdateStatus = "UPDATE Transfer_Order SET Status = ? WHERE TransferOrderID = ?";
 
         try {
@@ -422,42 +374,31 @@ public class TransferDAO extends DBContext {
             psGet.setInt(1, transferId);
             ResultSet rs = psGet.executeQuery();
             PreparedStatement psAdd = connection.prepareStatement(sqlAdd);
-            PreparedStatement psLog = connection.prepareStatement(sqlLog);
             
             boolean hasData = false;
-            int transferStatus = -1; // To store the status of the transfer order
+            int transferStatus = -1;
             while (rs.next()) {
                 hasData = true;
-                if (transferStatus == -1) { // Get status from the first row
+                if (transferStatus == -1) {
                     transferStatus = rs.getInt("Status");
                 }
                 if (transferStatus != IN_TRANSIT) {
-                    connection.rollback(); // Rollback if status is not IN_TRANSIT
-                    return false; // Must be In Transit to be received
+                    connection.rollback();
+                    return false;
                 }
                 int toLoc = rs.getInt("ToLocationID");
                 int pdId = rs.getInt("ProductDetailID");
                 int qty = rs.getInt("Quantity");
-                String code = rs.getString("TransferCode");
 
                 // Add to dest
                 psAdd.setInt(1, toLoc);
                 psAdd.setInt(2, pdId);
                 psAdd.setInt(3, qty);
                 psAdd.addBatch();
-
-                // Log In (4: TRANSFER_IN)
-                psLog.setInt(1, pdId);
-                psLog.setInt(2, toLoc);
-                psLog.setInt(3, 4);
-                psLog.setInt(4, qty);
-                psLog.setString(5, code);
-                psLog.addBatch();
             }
 
             if (hasData) {
                 psAdd.executeBatch();
-                psLog.executeBatch();
 
                 // Update Status to Completed
                 PreparedStatement psStatus = connection.prepareStatement(sqlUpdateStatus);
@@ -470,50 +411,34 @@ public class TransferDAO extends DBContext {
             }
             return false;
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-            }
+            try { connection.rollback(); } catch (SQLException ex) { }
             e.printStackTrace();
         } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-            }
+            try { connection.setAutoCommit(true); } catch (SQLException e) { }
         }
         return false;
     }
 
     public boolean executeTransfer(int transferId) {
-        // ... (keep original code as is for backward compatibility)
-        String sqlGet = "SELECT t.FromLocationID, t.ToLocationID, d.ProductID, d.ProductDetailID, d.Quantity, t.TransferCode "
-                +
-                "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
+        String sqlGet = "SELECT t.FromLocationID, t.ToLocationID, d.ProductDetailID, d.Quantity, t.TransferCode "
+                + "FROM Transfer_Order t JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
                 "WHERE t.TransferOrderID = ?";
         String sqlSub = "UPDATE Location_Product SET Quantity = Quantity - ? WHERE LocationID = ? AND ProductDetailID = ?";
-
-        // SQL Server MERGE for sqlAdd
         String sqlAdd = "MERGE INTO Location_Product AS target " +
                 "USING (SELECT ? AS LocationID, ? AS ProductDetailID, ? AS Qty) AS source " +
                 "ON (target.LocationID = source.LocationID AND target.ProductDetailID = source.ProductDetailID) " +
-                "WHEN MATCHED THEN " +
-                "    UPDATE SET Quantity = target.Quantity + source.Qty " +
-                "WHEN NOT MATCHED THEN " +
-                "    INSERT (LocationID, ProductDetailID, Quantity) VALUES (source.LocationID, source.ProductDetailID, source.Qty);";
-
-        String sqlLog = "INSERT INTO Inventory_Transaction (ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode) VALUES (?,?,?,?,?)";
+                "WHEN MATCHED THEN UPDATE SET Quantity = target.Quantity + source.Qty " +
+                "WHEN NOT MATCHED THEN INSERT (LocationID, ProductDetailID, Quantity) VALUES (source.LocationID, source.ProductDetailID, source.Qty);";
         String sqlUpdateStatus = "UPDATE Transfer_Order SET Status = 2 WHERE TransferOrderID = ?";
 
         try {
-            connection.setAutoCommit(false); // Bắt đầu Transaction
+            connection.setAutoCommit(false);
 
-            // B1: Lấy thông tin phiếu
             PreparedStatement psGet = connection.prepareStatement(sqlGet);
             psGet.setInt(1, transferId);
             ResultSet rs = psGet.executeQuery();
             PreparedStatement psSub = connection.prepareStatement(sqlSub);
             PreparedStatement psAdd = connection.prepareStatement(sqlAdd);
-            PreparedStatement psLog = connection.prepareStatement(sqlLog);
 
             boolean hasData = false;
             while (rs.next()) {
@@ -522,64 +447,35 @@ public class TransferDAO extends DBContext {
                 int toLoc = rs.getInt("ToLocationID");
                 int pdId = rs.getInt("ProductDetailID");
                 int qty = rs.getInt("Quantity");
-                String code = rs.getString("TransferCode");
 
-                // B2: Trừ số lượng kho xuất
                 psSub.setInt(1, qty);
                 psSub.setInt(2, fromLoc);
                 psSub.setInt(3, pdId);
                 psSub.addBatch();
 
-                // B3: Cộng số lượng kho nhập (MERGE SQL Server)
                 psAdd.setInt(1, toLoc);
                 psAdd.setInt(2, pdId);
                 psAdd.setInt(3, qty);
                 psAdd.addBatch();
-
-                // B4: Ghi log giao dịch (2 dòng: Xuất và Nhập)
-                // Log Xuất
-                psLog.setInt(1, pdId);
-                psLog.setInt(2, fromLoc);
-                psLog.setInt(3, 3); // 3: TRANSFER_OUT
-                psLog.setInt(4, -qty);
-                psLog.setString(5, code);
-                psLog.addBatch();
-                // Log Nhập
-                psLog.setInt(1, pdId);
-                psLog.setInt(2, toLoc);
-                psLog.setInt(3, 4); // 4: TRANSFER_IN
-                psLog.setInt(4, qty);
-                psLog.setString(5, code);
-                psLog.addBatch();
             }
 
             if (hasData) {
                 psSub.executeBatch();
                 psAdd.executeBatch();
-                psLog.executeBatch();
 
-                // B5: Đổi trạng thái phiếu thành Hoàn thành (2)
                 PreparedStatement psStatus = connection.prepareStatement(sqlUpdateStatus);
                 psStatus.setInt(1, transferId);
                 psStatus.executeUpdate();
 
-                connection.commit(); // Thành công toàn bộ
+                connection.commit();
                 return true;
             }
             return false;
         } catch (SQLException e) {
-            try {
-                connection.rollback();
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
+            try { connection.rollback(); } catch (SQLException ex) { }
             e.printStackTrace();
         } finally {
-            try {
-                connection.setAutoCommit(true);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            try { connection.setAutoCommit(true); } catch (SQLException e) { }
         }
         return false;
     }
@@ -587,7 +483,7 @@ public class TransferDAO extends DBContext {
     public int getReservedQuantity(int locId, int pdId) {
         String sql = "SELECT SUM(d.Quantity) as Reserved FROM Transfer_Order t " +
                 "JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
-                "WHERE t.FromLocationID = ? AND d.ProductDetailID = ? AND t.Status = 1"; // Status 1: APPROVED
+                "WHERE t.FromLocationID = ? AND d.ProductDetailID = ? AND t.Status = 1"; 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setInt(1, locId);
             ps.setInt(2, pdId);

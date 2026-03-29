@@ -87,7 +87,12 @@
                                 <span class="ml-4">Products</span>
                             </a>
                         </li>
-
+                        <li>
+                            <a href="list-product-detail" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/product.png">
+                                <span class="ml-4">Products Detail</span>
+                            </a>
+                        </li>
 
                         <li>
                             <a href="purchase-orders" class="svg-icon">
@@ -220,12 +225,12 @@
                             </a>
                         </li>
 
-                        <!--                        <li>
+                                                <li>
                             <a href="goods-receipt" class="svg-icon">
                                 <img src="${pageContext.request.contextPath}/assets/images/icon/import.png">
                                 <span class="ml-4">Goods Receipt</span>
                             </a>
-                        </li>-->
+                        </li>
 
                         <li>
                             <a href="manage-suppliers" class="svg-icon">

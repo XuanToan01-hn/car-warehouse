@@ -237,7 +237,6 @@
                         <div class="col-md-2">
                             <div class="form-group mb-0">
                                 <label class="form-label">Unit Price ($)</label>
-                                //có thể tự sửa vì ko có readonly
                                 <input type="number" name="price" class="form-control" step="0.01" required>
                             </div>
                         </div>
