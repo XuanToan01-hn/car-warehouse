@@ -24,6 +24,7 @@ public class TransferOrder {
     private int productId;
     private int productDetailId;
     private int quantity;
+    private String productName;
 
     // Additional fields for display
     private String fromLocationName;
@@ -33,31 +34,72 @@ public class TransferOrder {
     private String fromWarehouseName;
     private String toWarehouseName;
 
-    public TransferOrder() {}
+    public TransferOrder() {
+    }
 
-    public int getId() { return id; }
-    public void setId(int id) { this.id = id; }
+    public int getId() {
+        return id;
+    }
 
-    public String getTransferCode() { return transferCode; }
-    public void setTransferCode(String transferCode) { this.transferCode = transferCode; }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public int getFromLocationId() { return fromLocationId; }
-    public void setFromLocationId(int fromLocationId) { this.fromLocationId = fromLocationId; }
+    public String getTransferCode() {
+        return transferCode;
+    }
 
-    public int getToLocationId() { return toLocationId; }
-    public void setToLocationId(int toLocationId) { this.toLocationId = toLocationId; }
+    public void setTransferCode(String transferCode) {
+        this.transferCode = transferCode;
+    }
 
-    public int getStatus() { return status; }
-    public void setStatus(int status) { this.status = status; }
+    public int getFromLocationId() {
+        return fromLocationId;
+    }
 
-    public int getProductId() { return productId; }
-    public void setProductId(int productId) { this.productId = productId; }
+    public void setFromLocationId(int fromLocationId) {
+        this.fromLocationId = fromLocationId;
+    }
 
-    public int getProductDetailId() { return productDetailId; }
-    public void setProductDetailId(int productDetailId) { this.productDetailId = productDetailId; }
+    public int getToLocationId() {
+        return toLocationId;
+    }
 
-    public int getQuantity() { return quantity; }
-    public void setQuantity(int quantity) { this.quantity = quantity; }
+    public void setToLocationId(int toLocationId) {
+        this.toLocationId = toLocationId;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
+    public void setStatus(int status) {
+        this.status = status;
+    }
+
+    public int getProductId() {
+        return productId;
+    }
+
+    public void setProductId(int productId) {
+        this.productId = productId;
+    }
+
+    public int getProductDetailId() {
+        return productDetailId;
+    }
+
+    public void setProductDetailId(int productDetailId) {
+        this.productDetailId = productDetailId;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
 
     public String getNote() {
         return note;
@@ -75,35 +117,77 @@ public class TransferOrder {
         this.createBy = createBy;
     }
 
-    public String getFromLocationName() { return fromLocationName; }
-    public void setFromLocationName(String fromLocationName) { this.fromLocationName = fromLocationName; }
+    public String getFromLocationName() {
+        return fromLocationName;
+    }
 
-    public String getToLocationName() { return toLocationName; }
-    public void setToLocationName(String toLocationName) { this.toLocationName = toLocationName; }
+    public void setFromLocationName(String fromLocationName) {
+        this.fromLocationName = fromLocationName;
+    }
 
-    public int getFromWarehouseId() { return fromWarehouseId; }
-    public void setFromWarehouseId(int fromWarehouseId) { this.fromWarehouseId = fromWarehouseId; }
+    public String getToLocationName() {
+        return toLocationName;
+    }
 
-    public int getToWarehouseId() { return toWarehouseId; }
-    public void setToWarehouseId(int toWarehouseId) { this.toWarehouseId = toWarehouseId; }
+    public void setToLocationName(String toLocationName) {
+        this.toLocationName = toLocationName;
+    }
 
-    public String getFromWarehouseName() { return fromWarehouseName; }
-    public void setFromWarehouseName(String fromWarehouseName) { this.fromWarehouseName = fromWarehouseName; }
+    public int getFromWarehouseId() {
+        return fromWarehouseId;
+    }
+
+    public void setFromWarehouseId(int fromWarehouseId) {
+        this.fromWarehouseId = fromWarehouseId;
+    }
+
+    public int getToWarehouseId() {
+        return toWarehouseId;
+    }
+
+    public void setToWarehouseId(int toWarehouseId) {
+        this.toWarehouseId = toWarehouseId;
+    }
+
+    public String getFromWarehouseName() {
+        return fromWarehouseName;
+    }
+
+    public void setFromWarehouseName(String fromWarehouseName) {
+        this.fromWarehouseName = fromWarehouseName;
+    }
 
     public String getStatusLabel() {
         switch (status) {
-            case 0: return "Pending";
-            case 1: return "Approved";
-            case 2: return "In-Transit";
-            case 3: return "Completed";
-            case 4: return "Cancelled";
-            default: return "Unknown";
+            case 0:
+                return "Pending";
+            case 1:
+                return "Approved";
+            case 2:
+                return "In-Transit";
+            case 3:
+                return "Completed";
+            case 4:
+                return "Cancelled";
+            default:
+                return "Unknown";
         }
     }
 
-    public String getToWarehouseName() { return toWarehouseName; }
-    public void setToWarehouseName(String toWarehouseName) { this.toWarehouseName = toWarehouseName; }
-    
-    
-    
+    public String getToWarehouseName() {
+        return toWarehouseName;
+    }
+
+    public void setToWarehouseName(String toWarehouseName) {
+        this.toWarehouseName = toWarehouseName;
+    }
+
+    public String getProductName() {
+        return productName;
+    }
+
+    public void setProductName(String productName) {
+        this.productName = productName;
+    }
+
 }

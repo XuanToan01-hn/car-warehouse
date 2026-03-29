@@ -87,6 +87,12 @@
                                 <span class="ml-4">Products</span>
                             </a>
                         </li>
+                        <li>
+                            <a href="list-product-detail" class="svg-icon">
+                                <img src="${pageContext.request.contextPath}/assets/images/icon/product.png">
+                                <span class="ml-4">Products Detail</span>
+                            </a>
+                        </li>
 
 
                         <li>
