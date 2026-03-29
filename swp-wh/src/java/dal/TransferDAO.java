@@ -243,9 +243,13 @@ public class TransferDAO extends DBContext {
                 "fl.LocationName as FromLocationName, tl.LocationName as ToLocationName, " +
                 "fl.WarehouseID as FromWarehouseID, tl.WarehouseID as ToWarehouseID, " +
                 "fw.WarehouseName as FromWarehouseName, tw.WarehouseName as ToWarehouseName, " +
-                "SUM(d.Quantity) as TotalQuantity, COUNT(d.ProductDetailID) as ItemCount " +
+                "SUM(d.Quantity) as TotalQuantity, COUNT(d.ProductDetailID) as ItemCount, " +
+                "MAX(d.ProductDetailID) as FirstProductDetailID, " +
+                "MAX('[' + pd.SerialNumber + '] ' + p.Name + ' - ' + pd.Color) as ProductName " +
                 "FROM Transfer_Order t " +
                 "LEFT JOIN Transfer_Order_Detail d ON t.TransferOrderID = d.TransferOrderID " +
+                "LEFT JOIN Product_Detail pd ON d.ProductDetailID = pd.ProductDetailID " +
+                "LEFT JOIN Product p ON pd.ProductID = p.ProductID " +
                 "JOIN Location fl ON t.FromLocationID = fl.LocationID " +
                 "JOIN Location tl ON t.ToLocationID = tl.LocationID " +
                 "JOIN Warehouse fw ON fl.WarehouseID = fw.WarehouseID " +
@@ -288,7 +292,11 @@ public class TransferDAO extends DBContext {
                 to.setFromWarehouseName(rs.getString("FromWarehouseName"));
                 to.setToWarehouseName(rs.getString("ToWarehouseName"));
                 to.setStatus(rs.getInt("Status"));
-                to.setProductId(rs.getInt("ItemCount")); 
+
+                to.setProductId(rs.getInt("ItemCount")); // Use productId field to store item count
+                to.setProductDetailId(rs.getInt("FirstProductDetailID"));
+                to.setProductName(rs.getString("ProductName"));
+
                 to.setQuantity(rs.getInt("TotalQuantity"));
                 to.setNote(rs.getString("Note"));
                 list.add(to);

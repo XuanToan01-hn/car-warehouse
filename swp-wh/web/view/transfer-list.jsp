@@ -284,7 +284,7 @@
                                                                         items</span>
                                                                 </c:when>
                                                                 <c:otherwise>
-                                                                    ID: ${item.productDetailId}
+                                                                    ${item.productName}
                                                                 </c:otherwise>
                                                             </c:choose>
                                                         </td>
