@@ -196,6 +196,14 @@ public class TransferController extends HttpServlet {
             out.flush();
             return;
         } else {
+            // Filter Parameters
+            String code = request.getParameter("code");
+            String statusStr = request.getParameter("status");
+            Integer status = (statusStr != null && !statusStr.isEmpty()) ? Integer.parseInt(statusStr) : null;
+            String fromLoc = request.getParameter("fromLoc");
+            String toLoc = request.getParameter("toLoc");
+            String productName = request.getParameter("productName");
+
             // Pagination Logic
             HttpSession session = request.getSession();
             model.User user = (model.User) session.getAttribute("user");
@@ -205,17 +213,25 @@ public class TransferController extends HttpServlet {
             String pageStr = request.getParameter("page");
             int currentPage = (pageStr != null && !pageStr.isEmpty()) ? Integer.parseInt(pageStr) : 1;
 
-            int totalItems = transDAO.getTransfersCount(null, null, warehouseId, "internal");
+            int totalItems = transDAO.getTransfersCount(code, status, warehouseId, "internal", fromLoc, toLoc, productName);
             int totalPages = (int) Math.ceil((double) totalItems / pageSize);
             if (currentPage > totalPages && totalPages > 0)
                 currentPage = totalPages;
 
-            List<TransferOrder> internalHistory = transDAO.getTransfersPaged(null, null, warehouseId, "internal",
-                    currentPage, pageSize);
+            List<TransferOrder> internalHistory = transDAO.getTransfersPaged(code, status, warehouseId, "internal",
+                    fromLoc, toLoc, productName, currentPage, pageSize);
 
             request.setAttribute("pendingList", internalHistory);
             request.setAttribute("currentPage", currentPage);
             request.setAttribute("totalPages", totalPages);
+            
+            // Re-set filter values to request for form persistence
+            request.setAttribute("code", code);
+            request.setAttribute("status", status);
+            request.setAttribute("fromLoc", fromLoc);
+            request.setAttribute("toLoc", toLoc);
+            request.setAttribute("productName", productName);
+
             request.getRequestDispatcher("/view/transfer-list.jsp").forward(request, response);
         }
     }

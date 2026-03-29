@@ -232,7 +232,7 @@ public class TransferDAO extends DBContext {
         return getTransfers(null, APPROVED, null);
     }
 
-    public int getTransfersCount(String code, Integer status, Integer warehouseId, String type) {
+    public int getTransfersCount(String code, Integer status, Integer warehouseId, String type, String fromLoc, String toLoc, String productName) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(DISTINCT t.TransferOrderID) FROM Transfer_Order t " +
                 "JOIN Location fl ON t.FromLocationID = fl.LocationID " +
@@ -244,6 +244,14 @@ public class TransferDAO extends DBContext {
         if (warehouseId != null) sql.append(" AND (fl.WarehouseID = ? OR tl.WarehouseID = ?) ");
         if ("internal".equals(type)) sql.append(" AND fl.WarehouseID = tl.WarehouseID ");
         if ("external".equals(type)) sql.append(" AND fl.WarehouseID != tl.WarehouseID ");
+        if (fromLoc != null && !fromLoc.isEmpty()) sql.append(" AND fl.LocationName LIKE ? ");
+        if (toLoc != null && !toLoc.isEmpty()) sql.append(" AND tl.LocationName LIKE ? ");
+        if (productName != null && !productName.isEmpty()) {
+            sql.append(" AND EXISTS (SELECT 1 FROM Transfer_Order_Detail tod " +
+                       "JOIN Product_Detail pd ON tod.ProductDetailID = pd.ProductDetailID " +
+                       "JOIN Product p ON pd.ProductID = p.ProductID " +
+                       "WHERE tod.TransferOrderID = t.TransferOrderID AND p.Name LIKE ?) ");
+        }
 
         try (PreparedStatement ps = connection.prepareStatement(sql.toString())) {
             int paramIndex = 1;
@@ -253,6 +261,10 @@ public class TransferDAO extends DBContext {
                 ps.setInt(paramIndex++, warehouseId);
                 ps.setInt(paramIndex++, warehouseId);
             }
+            if (fromLoc != null && !fromLoc.isEmpty()) ps.setString(paramIndex++, "%" + fromLoc + "%");
+            if (toLoc != null && !toLoc.isEmpty()) ps.setString(paramIndex++, "%" + toLoc + "%");
+            if (productName != null && !productName.isEmpty()) ps.setString(paramIndex++, "%" + productName + "%");
+            
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt(1);
         } catch (SQLException e) {
@@ -262,10 +274,11 @@ public class TransferDAO extends DBContext {
     }
 
     public List<TransferOrder> getTransfers(String code, Integer status, Integer warehouseId) {
-        return getTransfersPaged(code, status, warehouseId, null, 1, Integer.MAX_VALUE);
+        return getTransfersPaged(code, status, warehouseId, null, null, null, null, 1, Integer.MAX_VALUE);
     }
 
-    public List<TransferOrder> getTransfersPaged(String code, Integer status, Integer warehouseId, String type, int page, int pageSize) {
+    public List<TransferOrder> getTransfersPaged(String code, Integer status, Integer warehouseId, String type, 
+                                               String fromLoc, String toLoc, String productName, int page, int pageSize) {
         List<TransferOrder> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
                 "SELECT t.TransferOrderID, t.TransferCode, t.FromLocationID, t.ToLocationID, t.Status, t.TransferDate, t.Note, " +
@@ -304,6 +317,9 @@ public class TransferDAO extends DBContext {
                 ps.setInt(paramIndex++, warehouseId);
                 ps.setInt(paramIndex++, warehouseId);
             }
+            if (fromLoc != null && !fromLoc.isEmpty()) ps.setString(paramIndex++, "%" + fromLoc + "%");
+            if (toLoc != null && !toLoc.isEmpty()) ps.setString(paramIndex++, "%" + toLoc + "%");
+            if (productName != null && !productName.isEmpty()) ps.setString(paramIndex++, "%" + productName + "%");
             ps.setInt(paramIndex++, (page - 1) * pageSize);
             ps.setInt(paramIndex++, pageSize);
 

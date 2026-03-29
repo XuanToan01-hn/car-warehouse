@@ -246,8 +246,48 @@
                             </c:if>
 
                             <div class="card card-main">
-                                <div class="card-header bg-white border-bottom py-2">
-                                    <h5 class="mb-0 font-weight-bold text-primary">List of Transfer Requests</h5>
+                                <div class="card-header bg-white border-bottom py-3">
+                                    <form action="${isExternal ? 'external-transfer' : 'internal-transfer'}"
+                                        method="get" class="row align-items-end">
+                                        <input type="hidden" name="action" value="view">
+                                        <div class="col-md-2">
+                                            <label class="detail-label mb-1">Transfer Code</label>
+                                            <input type="text" name="code" class="form-control form-control-sm"
+                                                placeholder="IT-..." value="${code}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="detail-label mb-1">Status</label>
+                                            <select name="status" class="form-control form-control-sm">
+                                                <option value="">All Statuses</option>
+                                                <option value="0" ${status==0 ? 'selected' : '' }>Pending</option>
+                                                <option value="1" ${status==1 ? 'selected' : '' }>Approved</option>
+                                                <option value="2" ${status==2 ? 'selected' : '' }>In Transit</option>
+                                                <option value="3" ${status==3 ? 'selected' : '' }>Completed</option>
+                                                <option value="4" ${status==4 ? 'selected' : '' }>Cancelled</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="detail-label mb-1">From Location</label>
+                                            <input type="text" name="fromLoc" class="form-control form-control-sm"
+                                                placeholder="Location name..." value="${fromLoc}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="detail-label mb-1">To Location</label>
+                                            <input type="text" name="toLoc" class="form-control form-control-sm"
+                                                placeholder="Location name..." value="${toLoc}">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="detail-label mb-1">Product Name</label>
+                                            <input type="text" name="productName" class="form-control form-control-sm"
+                                                placeholder="Search product..." value="${productName}">
+                                        </div>
+                                        <div class="col-md-2 d-flex">
+                                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1 mr-2"><i
+                                                    class="ri-filter-3-line"></i> Filter</button>
+                                            <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=view"
+                                                class="btn btn-light btn-sm"><i class="ri-refresh-line"></i></a>
+                                        </div>
+                                    </form>
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="table-responsive">
@@ -336,18 +376,18 @@
                                             <ul class="pagination justify-content-center mb-0">
                                                 <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                                     <a class="page-link"
-                                                        href="internal-transfer?action=view&page=${currentPage - 1}"
+                                                        href="internal-transfer?action=view&page=${currentPage - 1}&code=${code}&status=${status}&fromLoc=${fromLoc}&toLoc=${toLoc}&productName=${productName}"
                                                         tabindex="-1">Previous</a>
                                                 </li>
                                                 <c:forEach begin="1" end="${totalPages}" var="i">
                                                     <li class="page-item ${i == currentPage ? 'active' : ''}">
                                                         <a class="page-link"
-                                                            href="internal-transfer?action=view&page=${i}">${i}</a>
+                                                            href="internal-transfer?action=view&page=${i}&code=${code}&status=${status}&fromLoc=${fromLoc}&toLoc=${toLoc}&productName=${productName}">${i}</a>
                                                     </li>
                                                 </c:forEach>
                                                 <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                                     <a class="page-link"
-                                                        href="internal-transfer?action=view&page=${currentPage + 1}">Next</a>
+                                                        href="internal-transfer?action=view&page=${currentPage + 1}&code=${code}&status=${status}&fromLoc=${fromLoc}&toLoc=${toLoc}&productName=${productName}">Next</a>
                                                 </li>
                                             </ul>
                                         </nav>

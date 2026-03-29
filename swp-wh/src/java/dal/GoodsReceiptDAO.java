@@ -140,7 +140,7 @@ public class GoodsReceiptDAO extends DBContext {
                     gr.setId(rs.getInt("ReceiptID"));
                     gr.setReceiptCode(rs.getString("ReceiptCode"));
                     gr.setStatus(rs.getInt("Status"));
-                    
+
                     int warehouseId = rs.getInt("WarehouseID");
                     if (!rs.wasNull()) {
                         model.Warehouse w = new model.Warehouse();
@@ -365,17 +365,19 @@ public class GoodsReceiptDAO extends DBContext {
     public int count(String keyword, int status, int warehouseId) {
         String sql = "SELECT COUNT(*) FROM Goods_Receipt gr "
                 + "LEFT JOIN Purchase_Order po ON gr.PurchaseOrderID = po.PurchaseOrderID "
-                + "WHERE (gr.ReceiptCode LIKE ? OR po.OrderCode LIKE ?) "
+                + "LEFT JOIN Location l ON gr.LocationID = l.LocationID "
+                + "WHERE (gr.ReceiptCode LIKE ? OR po.OrderCode LIKE ? OR l.LocationName LIKE ?) "
                 + "AND (? = 0 OR gr.Status = ?) "
                 + "AND (? = 0 OR gr.WarehouseID = ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             String kw = "%" + keyword + "%";
             ps.setString(1, kw);
             ps.setString(2, kw);
-            ps.setInt(3, status);
+            ps.setString(3, kw);
             ps.setInt(4, status);
-            ps.setInt(5, warehouseId);
+            ps.setInt(5, status);
             ps.setInt(6, warehouseId);
+            ps.setInt(7, warehouseId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt(1);
@@ -398,7 +400,7 @@ public class GoodsReceiptDAO extends DBContext {
                 + "FROM Goods_Receipt gr "
                 + "LEFT JOIN Purchase_Order po ON gr.PurchaseOrderID = po.PurchaseOrderID "
                 + "LEFT JOIN Location l ON gr.LocationID = l.LocationID "
-                + "WHERE (gr.ReceiptCode LIKE ? OR po.OrderCode LIKE ?) "
+                + "WHERE (gr.ReceiptCode LIKE ? OR po.OrderCode LIKE ? OR l.LocationName LIKE ?) "
                 + "AND (? = 0 OR gr.Status = ?) "
                 + "AND (? = 0 OR gr.WarehouseID = ?) "
                 + "ORDER BY gr.ReceiptDate DESC "
@@ -407,12 +409,13 @@ public class GoodsReceiptDAO extends DBContext {
             String kw = "%" + keyword + "%";
             ps.setString(1, kw);
             ps.setString(2, kw);
-            ps.setInt(3, status);
+            ps.setString(3, kw);
             ps.setInt(4, status);
-            ps.setInt(5, warehouseId);
+            ps.setInt(5, status);
             ps.setInt(6, warehouseId);
-            ps.setInt(7, offset);
-            ps.setInt(8, limit);
+            ps.setInt(7, warehouseId);
+            ps.setInt(8, offset);
+            ps.setInt(9, limit);
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     GoodsReceipt gr = new GoodsReceipt();
@@ -499,7 +502,8 @@ public class GoodsReceiptDAO extends DBContext {
                             d.setQuantity(rs2.getInt("Quantity"));
                             try {
                                 d.setReceivedQuantity(rs2.getInt("ReceivedQty"));
-                            } catch (SQLException ignored) {}
+                            } catch (SQLException ignored) {
+                            }
                             Product p = new Product();
                             // Handle cases where ProductID might be missing in broken lines
                             int productId = rs2.getInt("ProductID");
@@ -623,7 +627,7 @@ public class GoodsReceiptDAO extends DBContext {
 
             // Apply stock updates (previousQtyMap = null means all qty is new)
             applyStockAndTransactions(gr.getLocation().getId(), gr.getReceiptCode(), receiptId, null,
-                    gr.getPurchaseOrder().getId(),gr.getCreateBy().getId());
+                    gr.getPurchaseOrder().getId(), gr.getCreateBy().getId());
 
             // Recalculate PO status
             recalculatePurchaseOrderStatus(gr.getPurchaseOrder().getId());
@@ -659,9 +663,8 @@ public class GoodsReceiptDAO extends DBContext {
                 + "SET QuantityActual = ? "
                 + "WHERE ReceiptDetailID = ? AND ReceiptID = ?";
 
-
         // For recalculating PO status
-String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, CreateBy FROM Goods_Receipt WHERE ReceiptID = ?";
+        String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, CreateBy FROM Goods_Receipt WHERE ReceiptID = ?";
         // Query to decide final status: 2 = Completed, 4 = Partially Received
 
         String sqlQtyCheck = "SELECT "
@@ -740,10 +743,8 @@ String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, Cr
                 psHeader.executeUpdate();
             }
 
-
             // 3. Update stock & inventory transactions based on DB state after update
-            applyStockAndTransactions(locationId, receiptCode, receiptId, previousQtyMap, poId,creatorId);
-
+            applyStockAndTransactions(locationId, receiptCode, receiptId, previousQtyMap, poId, creatorId);
 
             // 4. Recalculate purchase order status
             recalculatePurchaseOrderStatus(poId);
@@ -838,6 +839,7 @@ String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, Cr
 
     /**
      * Find existing GRO (Draft=1 or Partial=4) for a given PO.
+     * 
      * @return ReceiptID if found, -1 otherwise
      */
     public int getReceiptIdByPO(int poId) {
@@ -881,7 +883,7 @@ String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, Cr
      * Nếu null (lần confirm đầu tiên), coi như QuantityActual cũ = 0.
      */
     private void applyStockAndTransactions(int locationId, String receiptCode, int receiptId,
-            Map<Integer, Integer> previousQtyMap, int poId,int userId) throws SQLException {
+            Map<Integer, Integer> previousQtyMap, int poId, int userId) throws SQLException {
         // Lấy detail hiện tại (sau khi đã UPDATE QuantityActual)
         String sqlFetchDetails = "SELECT d.ReceiptDetailID, pd.ProductID, d.ProductDetailID, d.QuantityActual "
                 + "FROM Goods_Receipt_Detail d "
@@ -900,8 +902,8 @@ String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, Cr
                 + "VALUES (?, ?, ?)";
 
         String sqlTrans = "INSERT INTO Inventory_Transaction "
-            + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate, CreateBy) "
-            + "VALUES (?, ?, ?, 1, ?, ?, GETDATE(), ?)";
+                + "(ProductID, ProductDetailID, LocationID, TransactionType, Quantity, ReferenceCode, TransactionDate, CreateBy) "
+                + "VALUES (?, ?, ?, 1, ?, ?, GETDATE(), ?)";
 
         String sqlOldInfo = "SELECT p.Price, COALESCE((SELECT SUM(Quantity) FROM Location_Product "
                 + "WHERE ProductDetailID = p.ProductDetailID), 0) AS TotalStock "
@@ -1005,7 +1007,7 @@ String sqlGetPoId = "SELECT PurchaseOrderID, LocationID, ReceiptCode, Status, Cr
                     psTrans.setInt(3, locationId);
                     psTrans.setInt(4, delta);
                     psTrans.setString(5, receiptCode);
-                    psTrans.setInt(6, userId); 
+                    psTrans.setInt(6, userId);
                     psTrans.addBatch();
                 }
             }
