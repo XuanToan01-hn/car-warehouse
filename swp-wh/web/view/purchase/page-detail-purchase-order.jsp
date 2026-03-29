@@ -64,8 +64,8 @@
                                                                     <strong>${po.supplier.name}</strong><br>
                                                                     <small class="text-muted">
                                                                         ${po.supplier.phone}
-                                                                            &nbsp;|&nbsp;
-                                                                            ${po.supplier.email}
+                                                                        &nbsp;|&nbsp;
+                                                                        ${po.supplier.email}
                                                                     </small>
                                                                 </td>
                                                             </tr>
@@ -201,6 +201,19 @@
                                                                 test="${po.status == 3 && sessionScope.user.role.id == 3}">
                                                                 <div class="border-top pt-3 mt-2">
                                                                     <c:choose>
+                                                                        <c:when test="${not empty poLockedByName}">
+                                                                            <div class="alert alert-warning mb-0"
+                                                                                style="font-size: 0.95rem;">
+                                                                                <i class="fas fa-lock mr-2"></i>
+                                                                                <strong>This PO is being processed by
+                                                                                    <span
+                                                                                        class="text-danger">${poLockedByName}</span>.</strong>
+                                                                                <span class="ml-2 text-muted">The system
+                                                                                    will automatically unlock after
+                                                                                    ${lockMinutes} minutes if there is
+                                                                                    no new activity.</span>
+                                                                            </div>
+                                                                        </c:when>
                                                                         <c:when test="${not empty existingGroId}">
                                                                             <a href="${pageContext.request.contextPath}/detail-goods-receipt?id=${existingGroId}"
                                                                                 class="btn btn-warning btn-lg">
@@ -209,18 +222,21 @@
                                                                             </a>
                                                                             <small class="text-muted ml-3">
                                                                                 <i class="fas fa-info-circle mr-1"></i>
-                                                                                A GRO already exists for this PO — continue updating it
+                                                                                A GRO already exists for this PO —
+                                                                                continue updating it
                                                                             </small>
                                                                         </c:when>
                                                                         <c:otherwise>
                                                                             <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
                                                                                 class="btn btn-success btn-lg">
-                                                                                <i class="fas fa-truck-loading mr-2"></i>Create
+                                                                                <i
+                                                                                    class="fas fa-truck-loading mr-2"></i>Create
                                                                                 Goods Receipt Order
                                                                             </a>
                                                                             <small class="text-muted ml-3">
                                                                                 <i class="fas fa-info-circle mr-1"></i>
-                                                                                PO is Marked Received — ready to create goods receipt
+                                                                                PO is Marked Received — ready to create
+                                                                                goods receipt
                                                                             </small>
                                                                         </c:otherwise>
                                                                     </c:choose>
@@ -257,15 +273,25 @@
                                                                     <td class="variant-cell" style="min-width:140px;">
                                                                         <c:choose>
                                                                             <c:when test="${d.productDetail != null}">
-                                                                                <div class="d-flex flex-column" style="gap:4px;">
+                                                                                <div class="d-flex flex-column"
+                                                                                    style="gap:4px;">
                                                                                     <div style="font-size:0.85rem;">
                                                                                         <span class="font-weight-bold">
-                                                                                            Lot: ${not empty d.productDetail.lotNumber ? d.productDetail.lotNumber : '—'} | 
-                                                                                            Ser: ${not empty d.productDetail.serialNumber ? d.productDetail.serialNumber : '—'}
+                                                                                            Lot: ${not empty
+                                                                                            d.productDetail.lotNumber ?
+                                                                                            d.productDetail.lotNumber :
+                                                                                            '—'} |
+                                                                                            Ser: ${not empty
+                                                                                            d.productDetail.serialNumber
+                                                                                            ?
+                                                                                            d.productDetail.serialNumber
+                                                                                            : '—'}
                                                                                         </span>
-                                                                                        <c:if test="${not empty d.productDetail.color}">
+                                                                                        <c:if
+                                                                                            test="${not empty d.productDetail.color}">
                                                                                             <div class="mt-1">
-                                                                                                <span class="badge" style="background:#e2e8f0;color:#334155;font-size:0.72rem;border-radius:5px;padding:2px 7px;">${d.productDetail.color}</span>
+                                                                                                <span class="badge"
+                                                                                                    style="background:#e2e8f0;color:#334155;font-size:0.72rem;border-radius:5px;padding:2px 7px;">${d.productDetail.color}</span>
                                                                                             </div>
                                                                                         </c:if>
                                                                                     </div>

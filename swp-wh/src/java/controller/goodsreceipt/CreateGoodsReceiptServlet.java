@@ -29,9 +29,33 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             return;
         }
 
+        PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
+        String act = request.getParameter("act");
+
+        // Handle unlock request (khi nhấn Back)
+        if ("unlock".equals(act)) {
+            String upId = request.getParameter("poId");
+            if (upId != null) {
+                poDAO.unlockPO(Integer.parseInt(upId), user.getId());
+            }
+            response.sendRedirect(request.getContextPath() + "/goods-receipt");
+            return;
+        }
+
+        // Handle Force Unlock (khi bị kẹt và nhấn nút Unlock từ trang danh sách hoặc
+        // detail)
+        if ("force-unlock".equals(act)) {
+            String upId = request.getParameter("poId");
+            if (upId != null) {
+                poDAO.forceUnlockPO(Integer.parseInt(upId));
+            }
+            // Quay lại trang danh sách chờ nhập kho
+            response.sendRedirect(request.getContextPath() + "/goods-receipt");
+            return;
+        }
+
         GoodsReceiptDAO grDAO = new GoodsReceiptDAO();
         LocationDAO locationDAO = new LocationDAO();
-        PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
         WarehouseDAO whDAO = new WarehouseDAO();
 
         // 1. Load list of warehouses
@@ -46,7 +70,6 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             selectedWhId = user.getWarehouse().getId();
             isWhLocked = true;
         } else {
-            // Admin or unassigned staff can choose
             String whIdStr = request.getParameter("warehouseId");
             if (whIdStr != null && !whIdStr.isEmpty()) {
                 selectedWhId = Integer.parseInt(whIdStr);
@@ -76,13 +99,33 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
         if (poIdStr != null && !poIdStr.isEmpty()) {
             try {
                 int poId = Integer.parseInt(poIdStr);
+
+                // === DB LOCK: Thử khóa PO ===
+                String lockedByName = poDAO.lockPO(poId, user.getId());
+                if (lockedByName != null) {
+                    request.getSession().setAttribute("error",
+                            "⚠ This PO is being processed by " + lockedByName
+                                    + ". Please wait or select a different PO.");
+                    response.sendRedirect(request.getContextPath() + "/goods-receipt");
+                    return;
+                }
+
                 PurchaseOrder po = poDAO.getById(poId);
                 if (po != null) {
+                    // [LOCK-CHECK] Kiểm tra quyền truy cập đơn hàng
+                    if (po.getLockedBy() == null || po.getLockedBy().getId() != user.getId()) {
+                        request.getSession().setAttribute("error",
+                                "Your session has expired or the order has been taken over by another employee.");
+                        response.sendRedirect(request.getContextPath() + "/goods-receipt");
+                        return;
+                    }
+                    // Nếu vẫn còn quyền, gia hạn thêm 1 phút làm việc
+                    poDAO.lockPO(po.getId(), user.getId());
+
                     request.setAttribute("order", po);
+                    request.setAttribute("poId", poIdStr);
 
-                    // Fetch delivered totals and stock at location
                     Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
-
                     List<Integer> pdIds = new ArrayList<>();
                     if (po.getDetails() != null) {
                         for (PurchaseOrderDetail pod : po.getDetails()) {
@@ -92,8 +135,6 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                     }
                     Map<Integer, Integer> stockMap = grDAO.getStockAtLocation(selectedLocId, pdIds);
 
-                    // Prepare UI details: [name, variantLabel, orderedQty, deliveredQty,
-                    // remainingQty, stockAtLoc, pdId, color, productId]
                     List<Object[]> uiDetails = new ArrayList<>();
                     if (po.getDetails() != null) {
                         for (PurchaseOrderDetail pod : po.getDetails()) {
@@ -121,8 +162,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             } catch (NumberFormatException ignored) {
             }
         } else {
-            // No PO selected, fetch list of POs that can be received (Status CONFIRMED(2)
-            // or RECEIVED(3))
+            // No PO selected → load danh sách PO pending
             List<PurchaseOrder> pendingPOs = new ArrayList<>();
             List<PurchaseOrder> allPOs = poDAO.getAll();
             for (PurchaseOrder po : allPOs) {
@@ -151,11 +191,20 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
         PurchaseOrderDAO poDAO = new PurchaseOrderDAO();
         LocationDAO locationDAO = new LocationDAO();
         User currentUser = user;
-        // No need to fallback to getById(1) if we have the session user
 
         int poId = 0;
         try {
             poId = Integer.parseInt(request.getParameter("poId"));
+
+            // [LOCK-CHECK] Kiểm tra quyền nộp dữ liệu
+            PurchaseOrder poCheck = poDAO.getById(poId);
+            if (poCheck == null || poCheck.getLockedBy() == null || poCheck.getLockedBy().getId() != user.getId()) {
+                request.getSession().setAttribute("error",
+                        "Cannot submit data! Your session has expired or the order has been taken over by another employee.");
+                response.sendRedirect(request.getContextPath() + "/purchase-orders");
+                return;
+            }
+
             int locationId = Integer.parseInt(request.getParameter("locationId"));
             String note = request.getParameter("note");
 
@@ -219,7 +268,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 }
             }
 
-            // 2. STATUS LOGIC: Determine if this receipt is the final one for the PO
+            // 2. STATUS LOGIC
             Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
             PurchaseOrder poObj = poDAO.getById(poId);
             int totalOrderRemaining = 0;
@@ -230,7 +279,6 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 }
             }
 
-            // If incoming qty < total remaining qty of PO, set GRO status to 4 (Partial)
             int finalGROStatus = (totalIncoming >= totalOrderRemaining) ? 2 : 4;
 
             // Build GoodsReceipt header
@@ -250,6 +298,8 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             int receiptId = grDAO.createAndConfirmReceipt(gr, details);
 
             if (receiptId > 0) {
+                // Mở khóa PO sau khi tạo GRO thành công
+                poDAO.forceUnlockPO(poId);
                 request.getSession().setAttribute("success", "Goods Receipt created successfully!");
                 response.sendRedirect(request.getContextPath() + "/detail-goods-receipt?id=" + receiptId);
             } else {

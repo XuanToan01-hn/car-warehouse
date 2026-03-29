@@ -101,102 +101,106 @@ public class RegisterUserServlet extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-@Override
-protected void doPost(HttpServletRequest request, HttpServletResponse response)
-        throws ServletException, IOException {
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
 
-    UserDAO userService = new UserDAO();
-    RoleDAO roleService = new RoleDAO();
-    WarehouseDAO warehouseDAO = new WarehouseDAO();
+        UserDAO userService = new UserDAO();
+        RoleDAO roleService = new RoleDAO();
+        WarehouseDAO warehouseDAO = new WarehouseDAO();
 
-    HttpSession session = request.getSession();
-    boolean hasError = false;
+        HttpSession session = request.getSession();
+        boolean hasError = false;
 
-    // Get parameters
-    String name = request.getParameter("name");
-    String phone = request.getParameter("phone");
-    String userCode = request.getParameter("userCode");
-    String email = request.getParameter("email");
-    String username = request.getParameter("username");
-    String password = request.getParameter("password");
-    String confirmPassword = request.getParameter("confirmPassword");
-    String roleStr = request.getParameter("role");
-    String maleStr = request.getParameter("male");
-    String dateOfBirthStr = request.getParameter("dateOfBirth");
-    String warehouseIdStr = request.getParameter("warehouseId");
+        // Get parameters
+        String name = request.getParameter("name");
+        String phone = request.getParameter("phone");
+        String userCode = request.getParameter("userCode");
+        String email = request.getParameter("email");
+        String username = request.getParameter("username");
+        String password = request.getParameter("password");
+        String confirmPassword = request.getParameter("confirmPassword");
+        String roleStr = request.getParameter("role");
+        String maleStr = request.getParameter("male");
+        String dateOfBirthStr = request.getParameter("dateOfBirth");
+        String warehouseIdStr = request.getParameter("warehouseId");
 
-    // ===== VALIDATION =====
-
-    // Full Name
-    if (InputValidator.isEmpty(name)) {
-        request.setAttribute("error_name", "Full name is required!");
-        hasError = true;
-    }
-
-    // Phone
-    if (InputValidator.isEmpty(phone)) {
-        request.setAttribute("error_phone", "Phone number is required!");
-        hasError = true;
-    } else if (userService.isPhoneExist(phone)) {
-        request.setAttribute("error_phone", "Phone number already exists!");
-        hasError = true;
-    }
-
-    // User Code
-    if (InputValidator.isEmpty(userCode)) {
-        request.setAttribute("error_userCode", "Employee code is required!");
-        hasError = true;
-    } else if (userService.isUserCodeExist(userCode)) {
-        request.setAttribute("error_userCode", "Employee code already exists!");
-        hasError = true;
-    }
-
-    // Username
-    if (InputValidator.isEmpty(username)) {
-        request.setAttribute("error_username", "Username is required!");
-        hasError = true;
-    } else if (userService.isUsernameExist(username)) {
-        request.setAttribute("error_username", "Username already exists!");
-        hasError = true;
-    }
-
-    // Email
-    if (InputValidator.isEmpty(email)) {
-        request.setAttribute("error_email", "Email is required!");
-        hasError = true;
-    } else if (userService.isEmailExist(email)) {
-        request.setAttribute("error_email", "Email already exists!");
-        hasError = true;
-    }
-
-    // Password
-    if (InputValidator.isEmpty(password)) {
-        request.setAttribute("error_password", "Password is required!");
-        hasError = true;
-    }
-
-    // Confirm Password
-    if (!password.equals(confirmPassword)) {
-        request.setAttribute("error_confirmPassword", "Passwords do not match!");
-        hasError = true;
-    }
-
-    // Date of Birth
-    if (InputValidator.isEmpty(dateOfBirthStr)) {
-        request.setAttribute("error_dateOfBirth", "Date of birth is required!");
-        hasError = true;
-    } else {
-        try {
-            LocalDate dob = LocalDate.parse(dateOfBirthStr);
-            if (!dob.isBefore(LocalDate.now())) {
-                request.setAttribute("error_dateOfBirth", "Date of birth must be in the past!");
-                hasError = true;
-            }
-        } catch (Exception e) {
-            request.setAttribute("error_dateOfBirth", "Invalid date format!");
+        // ===== VALIDATION =====
+        // Full Name
+        if (InputValidator.isEmpty(name)) {
+            request.setAttribute("error_name", "Full name is required!");
             hasError = true;
         }
-    }
+
+        // Phone
+        if (InputValidator.isEmpty(phone)) {
+            request.setAttribute("error_phone", "Phone number is required!");
+            hasError = true;
+        }
+        // Validate phone
+        if (InputValidator.isEmpty(phone) || !InputValidator.isValid(phone, InputValidator.PHONE_NUMBER)) {
+            session.setAttribute("error_phone", "Invalid Phone Number!");
+            hasError = true;
+        } else if (userService.isPhoneExist(phone)) {
+            request.setAttribute("error_phone", "Phone number already exists!");
+            hasError = true;
+        }
+
+        // User Code
+        if (InputValidator.isEmpty(userCode)) {
+            request.setAttribute("error_userCode", "Employee code is required!");
+            hasError = true;
+        } else if (userService.isUserCodeExist(userCode)) {
+            request.setAttribute("error_userCode", "Employee code already exists!");
+            hasError = true;
+        }
+
+        // Username
+        if (InputValidator.isEmpty(username)) {
+            request.setAttribute("error_username", "Username is required!");
+            hasError = true;
+        } else if (userService.isUsernameExist(username)) {
+            request.setAttribute("error_username", "Username already exists!");
+            hasError = true;
+        }
+
+        // Email
+        if (InputValidator.isEmpty(email)) {
+            request.setAttribute("error_email", "Email is required!");
+            hasError = true;
+        } else if (userService.isEmailExist(email)) {
+            request.setAttribute("error_email", "Email already exists!");
+            hasError = true;
+        }
+
+        // Password
+        if (InputValidator.isEmpty(password)) {
+            request.setAttribute("error_password", "Password is required!");
+            hasError = true;
+        }
+
+        // Confirm Password
+        if (!password.equals(confirmPassword)) {
+            request.setAttribute("error_confirmPassword", "Passwords do not match!");
+            hasError = true;
+        }
+
+        // Date of Birth
+        if (InputValidator.isEmpty(dateOfBirthStr)) {
+            request.setAttribute("error_dateOfBirth", "Date of birth is required!");
+            hasError = true;
+        } else {
+            try {
+                LocalDate dob = LocalDate.parse(dateOfBirthStr);
+                if (!dob.isBefore(LocalDate.now())) {
+                    request.setAttribute("error_dateOfBirth", "Date of birth must be in the past!");
+                    hasError = true;
+                }
+            } catch (Exception e) {
+                request.setAttribute("error_dateOfBirth", "Invalid date format!");
+                hasError = true;
+            }
+        }
 
 //    if (roleStr != null) {
 //        int roleId = Integer.parseInt(roleStr);
@@ -207,64 +211,63 @@ protected void doPost(HttpServletRequest request, HttpServletResponse response)
 //            hasError = true;
 //        }
 //    }
+        if (hasError) {
+            request.setAttribute("listR", roleService.getAll());
+            request.setAttribute("listWarehouse", warehouseDAO.getAll());
 
-    if (hasError) {
-        request.setAttribute("listR", roleService.getAll());
-        request.setAttribute("listWarehouse", warehouseDAO.getAll());
+            request.setAttribute("name", name);
+            request.setAttribute("phone", phone);
+            request.setAttribute("userCode", userCode);
+            request.setAttribute("email", email);
+            request.setAttribute("username", username);
+            request.setAttribute("dateOfBirth", dateOfBirthStr);
+            request.setAttribute("role", roleStr);
+            request.setAttribute("male", maleStr);
+            request.setAttribute("warehouseId", warehouseIdStr);
 
-        request.setAttribute("name", name);
-        request.setAttribute("phone", phone);
-        request.setAttribute("userCode", userCode);
-        request.setAttribute("email", email);
-        request.setAttribute("username", username);
-        request.setAttribute("dateOfBirth", dateOfBirthStr);
-        request.setAttribute("role", roleStr);
-        request.setAttribute("male", maleStr);
-        request.setAttribute("warehouseId", warehouseIdStr);
-
-        request.getRequestDispatcher("view/user/page-add-users.jsp").forward(request, response);
-        return;
-    }
-
-    // ===== INSERT =====
-    try {
-        int roleId = Integer.parseInt(roleStr);
-        int male = Integer.parseInt(maleStr);
-        int warehouseId = (warehouseIdStr != null && !warehouseIdStr.isEmpty())
-                ? Integer.parseInt(warehouseIdStr) : 0;
-
-        String encodedPassword = EndCode.toSHA1(password);
-
-        User user = new User();
-        user.setFullName(name);
-        user.setPhone(phone);
-        user.setUserCode(userCode);
-        user.setEmail(email);
-        user.setUsername(username);
-        user.setPassword(encodedPassword);
-        user.setRole(new Role(roleId));
-        user.setMale(male);
-        user.setDateOfBirth(dateOfBirthStr);
-        user.setWarehouse(new Warehouse(warehouseId));
-
-        boolean success = userService.insert(user);
-
-        if (success) {
-            session.setAttribute("success", "User created successfully!");
-            response.sendRedirect("registeruser");
-        } else {
-            throw new Exception("Insert operation failed!");
+            request.getRequestDispatcher("view/user/page-add-users.jsp").forward(request, response);
+            return;
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        // ===== INSERT =====
+        try {
+            int roleId = Integer.parseInt(roleStr);
+            int male = Integer.parseInt(maleStr);
+            int warehouseId = (warehouseIdStr != null && !warehouseIdStr.isEmpty())
+                    ? Integer.parseInt(warehouseIdStr) : 0;
 
-        request.setAttribute("error", "System error: " + e.getMessage());
-        request.setAttribute("listR", roleService.getAll());
-        request.setAttribute("listWarehouse", warehouseDAO.getAll());
-        request.getRequestDispatcher("view/user/page-add-users.jsp").forward(request, response);
+            String encodedPassword = EndCode.toSHA1(password);
+
+            User user = new User();
+            user.setFullName(name);
+            user.setPhone(phone);
+            user.setUserCode(userCode);
+            user.setEmail(email);
+            user.setUsername(username);
+            user.setPassword(encodedPassword);
+            user.setRole(new Role(roleId));
+            user.setMale(male);
+            user.setDateOfBirth(dateOfBirthStr);
+            user.setWarehouse(new Warehouse(warehouseId));
+
+            boolean success = userService.insert(user);
+
+            if (success) {
+                session.setAttribute("success", "User created successfully!");
+                response.sendRedirect("registeruser");
+            } else {
+                throw new Exception("Insert operation failed!");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            request.setAttribute("error", "System error: " + e.getMessage());
+            request.setAttribute("listR", roleService.getAll());
+            request.setAttribute("listWarehouse", warehouseDAO.getAll());
+            request.getRequestDispatcher("view/user/page-add-users.jsp").forward(request, response);
+        }
     }
-}
 
     /**
      * Returns a short description of the servlet.

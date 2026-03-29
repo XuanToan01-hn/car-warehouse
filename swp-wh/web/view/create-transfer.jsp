@@ -259,6 +259,23 @@
                                                             <tbody id="productTableBody">
                                                             </tbody>
                                                         </table>
+                                                        <!-- Pagination UI -->
+                                                        <div id="productPagination"
+                                                            class="mt-3 d-flex justify-content-between align-items-center"
+                                                            style="display:none !important;">
+                                                            <span class="text-muted small" id="pageInfo">Items 1-5 of
+                                                                10</span>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button type="button" class="btn btn-outline-primary"
+                                                                    onclick="changePage(-1)" id="prevBtn"><i
+                                                                        class="ri-arrow-left-s-line"></i> Prev</button>
+                                                                <div id="pageNumberButtons"
+                                                                    class="btn-group btn-group-sm"></div>
+                                                                <button type="button" class="btn btn-outline-primary"
+                                                                    onclick="changePage(1)" id="nextBtn">Next <i
+                                                                        class="ri-arrow-right-s-line"></i></button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                     <div id="productError" class="validation-error"
                                                         style="display:none;"></div>
@@ -294,13 +311,16 @@
             <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
             <script>
                 const contextPath = "${pageContext.request.contextPath}";
+                let allProducts = [];
+                let currentPage = 1;
+                let windowStart = 1;
+                const pageSize = 3;
 
                 function onSourceLocationChange() {
                     const fromLoc = document.getElementById('fromLoc');
                     const selected = fromLoc.options[fromLoc.selectedIndex];
                     const srcInfo = document.getElementById('srcInfo');
 
-                    // Show source stock info
                     if (selected && selected.value) {
                         document.getElementById('srcStock').textContent = selected.dataset.current;
                         srcInfo.style.display = 'block';
@@ -308,10 +328,7 @@
                         srcInfo.style.display = 'none';
                     }
 
-                    // Hide source from destination options
                     applyMutualExclusion();
-
-                    // Load products for this location
                     loadProducts();
                 }
 
@@ -337,14 +354,12 @@
                     const fromId = fromLoc.value;
                     const toId = toLoc.value;
 
-                    // Hide selected source from destination list
                     for (let i = 0; i < toLoc.options.length; i++) {
                         const opt = toLoc.options[i];
                         if (opt.value === "") continue;
                         opt.style.display = (opt.value === fromId && fromId) ? "none" : "block";
                     }
 
-                    // Hide selected destination from source list
                     for (let i = 0; i < fromLoc.options.length; i++) {
                         if (fromLoc.options[i].value === "") continue;
                         fromLoc.options[i].style.display = (fromLoc.options[i].value === toId && toId !== "") ? "none" : "block";
@@ -353,18 +368,20 @@
 
                 function loadProducts() {
                     const fromLocId = document.getElementById('fromLoc').value;
-                    const tbody = document.getElementById('productTableBody');
                     const table = document.getElementById('productTable');
                     const empty = document.getElementById('emptyProducts');
                     const loading = document.getElementById('loadingProducts');
+                    const pagination = document.getElementById('productPagination');
 
-                    tbody.innerHTML = '';
+                    allProducts = [];
+                    currentPage = 1;
+                    windowStart = 1;
                     table.style.display = 'none';
                     empty.style.display = 'none';
+                    pagination.style.setProperty('display', 'none', 'important');
 
                     if (!fromLocId) {
                         empty.style.display = 'block';
-                        empty.innerHTML = '<i class="ri-inbox-line"></i><p>Please select a Source Location first.</p>';
                         return;
                     }
 
@@ -378,39 +395,88 @@
                                 empty.innerHTML = '<i class="ri-inbox-line"></i><p>No products found at this location.</p>';
                                 return;
                             }
+                            allProducts = data.map(item => ({ ...item, selected: false, transferQty: 1 }));
                             table.style.display = 'table';
-                            data.forEach((item, idx) => {
-                                const tr = document.createElement('tr');
-                                tr.innerHTML =
-                                    '<td><input type="checkbox" class="chk-product" name="selectedProducts" value="' + item.pdId + '" onchange="onCheckProduct(this, ' + idx + ')"></td>' +
-                                    '<td class="font-weight-bold">' + item.productName + '</td>' +
-                                    '<td><code>' + item.serialNumber + '</code></td>' +
-                                    '<td>' + item.color + '</td>' +
-                                    '<td><span class="badge-stock">' + item.available + '</span></td>' +
-                                    '<td><input type="number" class="qty-input" name="qty_' + item.pdId + '" id="qty_' + idx + '" min="1" max="' + item.available + '" value="1" disabled onchange="validateAll()"></td>';
-                                tbody.appendChild(tr);
-                            });
+                            if (allProducts.length > pageSize) {
+                                pagination.style.setProperty('display', 'flex', 'important');
+                            }
+                            renderPage();
                         })
                         .catch(err => {
                             loading.style.display = 'none';
                             empty.style.display = 'block';
-                            empty.innerHTML = '<i class="ri-error-warning-line"></i><p>Error loading products: ' + err.message + '</p>';
+                            empty.innerHTML = '<i class="ri-error-warning-line"></i><p>Error: ' + err.message + '</p>';
                         });
                 }
 
-                function onCheckProduct(chk, idx) {
-                    const qtyInput = document.getElementById('qty_' + idx);
-                    qtyInput.disabled = !chk.checked;
-                    if (!chk.checked) qtyInput.value = 1;
+                function renderPage() {
+                    const tbody = document.getElementById('productTableBody');
+                    const start = (currentPage - 1) * pageSize;
+                    const end = Math.min(start + pageSize, allProducts.length);
+                    const totalPages = Math.ceil(allProducts.length / pageSize);
+
+                    let rows = '';
+                    allProducts.slice(start, end).forEach((item, i) => {
+                        const globalIdx = start + i;
+                        rows += '<tr>' +
+                            '<td><input type="checkbox" class="chk-product" name="selectedProducts" value="' + item.pdId + '" ' + (item.selected ? 'checked' : '') + ' onchange="onCheckProduct(' + globalIdx + ', this)"></td>' +
+                            '<td class="font-weight-bold">' + item.productName + '</td>' +
+                            '<td><code>' + item.serialNumber + '</code></td>' +
+                            '<td>' + item.color + '</td>' +
+                            '<td><span class="badge-stock">' + item.available + '</span></td>' +
+                            '<td><input type="number" class="qty-input" name="qty_' + item.pdId + '" min="1" max="' + item.available + '" value="' + item.transferQty + '" ' + (!item.selected ? 'disabled' : '') + ' onchange="onQtyChange(' + globalIdx + ', this)"></td>' +
+                            '</tr>';
+                    });
+                    tbody.innerHTML = rows;
+
+                    let btns = '';
+                    const endWindow = Math.min(totalPages, windowStart + 2);
+                    for (let i = windowStart; i <= endWindow; i++) {
+                        btns += '<button type="button" class="btn ' + (i === currentPage ? 'btn-primary' : 'btn-outline-primary') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+                    }
+                    document.getElementById('pageNumberButtons').innerHTML = btns;
+
+                    document.getElementById('pageInfo').textContent = 'Items ' + (start + 1) + '-' + end + ' of ' + allProducts.length;
+                    document.getElementById('prevBtn').disabled = (currentPage === 1);
+                    document.getElementById('nextBtn').disabled = (currentPage === totalPages);
+                    document.getElementById('checkAll').checked = (end > start && allProducts.slice(start, end).every(p => p.selected));
+                }
+
+                function goToPage(p) {
+                    currentPage = p;
+                    renderPage();
+                }
+
+                function changePage(delta) {
+                    const totalPages = Math.ceil(allProducts.length / pageSize);
+                    const nextP = currentPage + delta;
+                    if (nextP >= 1 && nextP <= totalPages) {
+                        currentPage = nextP;
+                        if (currentPage > windowStart + 2) windowStart++;
+                        if (currentPage < windowStart) windowStart--;
+                        renderPage();
+                    }
+                }
+
+                function onCheckProduct(globalIdx, chk) {
+                    allProducts[globalIdx].selected = chk.checked;
+                    renderPage();
+                    validateAll();
+                }
+
+                function onQtyChange(globalIdx, input) {
+                    allProducts[globalIdx].transferQty = parseInt(input.value) || 1;
                     validateAll();
                 }
 
                 function toggleAll(masterChk) {
-                    const checkboxes = document.querySelectorAll('input[name="selectedProducts"]');
-                    checkboxes.forEach((chk, idx) => {
-                        chk.checked = masterChk.checked;
-                        onCheckProduct(chk, idx);
-                    });
+                    const start = (currentPage - 1) * pageSize;
+                    const end = Math.min(start + pageSize, allProducts.length);
+                    for (let i = start; i < end; i++) {
+                        allProducts[i].selected = masterChk.checked;
+                    }
+                    renderPage();
+                    validateAll();
                 }
 
                 function validateAll() {

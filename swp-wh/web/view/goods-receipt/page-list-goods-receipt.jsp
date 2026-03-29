@@ -33,11 +33,15 @@
                         color: #1e293b;
                     }
 
+                    .content-page {
+                        padding: 0 15px 0px;
+                    }
+
                     .page-header {
                         display: flex;
                         justify-content: space-between;
                         align-items: center;
-                        margin-bottom: 2rem;
+
                         padding: 1.5rem 0;
                     }
 
@@ -294,12 +298,38 @@
                                                                         </td>
                                                                         <td class="text-right">
                                                                             <c:if test="${roleId == 3}">
-                                                                                <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${item.id}"
-                                                                                    class="btn btn-sm btn-primary"
-                                                                                    style="font-weight: 700; border-radius: 8px;">
-                                                                                    <i class="ri-truck-line"></i> Create
-                                                                                    Receipt
-                                                                                </a>
+                                                                                <c:set var="isLocked"
+                                                                                    value="${not empty item.lockedBy && item.lockedBy.id != sessionScope.user.id}" />
+                                                                                <c:choose>
+                                                                                    <c:when test="${isLocked}">
+                                                                                        <div
+                                                                                            class="d-flex flex-column align-items-end">
+                                                                                            <button
+                                                                                                class="btn btn-sm btn-light disabled"
+                                                                                                style="font-weight: 700; border-radius: 8px; opacity: 0.6;"
+                                                                                                title="Locked by ${item.lockedBy.fullName}">
+                                                                                                <i
+                                                                                                    class="ri-lock-2-line"></i>
+                                                                                                In Progress
+                                                                                            </button>
+                                                                                            <small
+                                                                                                class="text-warning mt-1"
+                                                                                                style="font-size: 0.65rem;">
+                                                                                                <i
+                                                                                                    class="fas fa-user mr-1"></i>${item.lockedBy.fullName}
+                                                                                            </small>
+                                                                                        </div>
+                                                                                    </c:when>
+                                                                                    <c:otherwise>
+                                                                                        <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${item.id}"
+                                                                                            class="btn btn-sm btn-primary"
+                                                                                            style="font-weight: 700; border-radius: 8px; background: var(--primary);">
+                                                                                            <i
+                                                                                                class="ri-truck-line"></i>
+                                                                                            Create Receipt
+                                                                                        </a>
+                                                                                    </c:otherwise>
+                                                                                </c:choose>
                                                                             </c:if>
                                                                             <c:if test="${roleId != 3}">
                                                                                 <span class="text-muted small">No Action

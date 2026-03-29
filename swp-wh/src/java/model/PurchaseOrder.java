@@ -15,6 +15,7 @@ public class PurchaseOrder {
     private List<PurchaseOrderDetail> details;
     private int orderedQty;
     private int receivedQty;
+    private User lockedBy; // Nhân viên đang xử lý nhập kho
 
     public PurchaseOrder() {
     }
@@ -97,6 +98,14 @@ public class PurchaseOrder {
 
     public void setReceivedQty(int receivedQty) {
         this.receivedQty = receivedQty;
+    }
+
+    public User getLockedBy() {
+        return lockedBy;
+    }
+
+    public void setLockedBy(User lockedBy) {
+        this.lockedBy = lockedBy;
     }
 
     public Warehouse getWarehouse() {

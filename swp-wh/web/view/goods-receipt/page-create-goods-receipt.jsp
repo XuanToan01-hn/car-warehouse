@@ -92,8 +92,8 @@
                                                         aria-label="Close">
                                                         <i class="ri-close-line"></i>
                                                     </button>
-                                                    <c:remove var="error" scope="session" />
                                                 </div>
+                                                <% session.removeAttribute("error"); %>
                                             </c:if>
                                             <c:if test="${not empty sessionScope.success}">
                                                 <div class="alert alert-success alert-dismissible fade show"
@@ -104,8 +104,8 @@
                                                         aria-label="Close">
                                                         <i class="ri-close-line"></i>
                                                     </button>
-                                                    <c:remove var="success" scope="session" />
                                                 </div>
+                                                <% session.removeAttribute("success"); %>
                                             </c:if>
 
                                             <div class="card card-block card-stretch card-height">
@@ -117,8 +117,9 @@
                                                             input actual received quantity for each product.</p>
                                                     </div>
                                                     <div class="card-header-toolbar d-flex align-items-center">
-                                                        <a href="goods-receipt" class="btn btn-light">
-                                                            Back
+                                                        <a href="${pageContext.request.contextPath}/create-goods-receipt?act=unlock&poId=${order.id}"
+                                                            class="btn btn-secondary">
+                                                            <i class="ri-arrow-go-back-line mr-1"></i> Back
                                                         </a>
                                                     </div>
                                                 </div>
@@ -138,7 +139,7 @@
                                                                             <div class="col-md-5">
                                                                                 <div class="form-group mb-0">
                                                                                     <label class="select-label">
-                                                                                        
+
                                                                                         Select Warehouse:
                                                                                     </label>
                                                                                     <select name="warehouseId"
@@ -161,7 +162,7 @@
                                                                             <div class="col-md-5">
                                                                                 <div class="form-group mb-0">
                                                                                     <label class="select-label">
-                                                                                        
+
                                                                                         Receiving Location (Bin):
                                                                                         <c:forEach items="${locations}"
                                                                                             var="l">
@@ -322,7 +323,7 @@
                                                                                 <button type="submit"
                                                                                     class="btn btn-primary btn-lg ${!hasItems ? 'disabled' : ''}"
                                                                                     ${!hasItems ? 'disabled' : '' }>
-                                                                                    
+
                                                                                     Complete Receipt
                                                                                 </button>
                                                                             </div>
@@ -347,10 +348,18 @@
                                                                                     Order --</option>
                                                                                 <c:forEach items="${pendingPOs}"
                                                                                     var="p">
-                                                                                    <option value="${p.id}">
+                                                                                    <c:set var="isLocked"
+                                                                                        value="${not empty p.lockedBy && p.lockedBy.id != sessionScope.user.id}" />
+                                                                                    <option value="${p.id}" ${isLocked
+                                                                                        ? 'data-locked="true" style="color:#856404;"'
+                                                                                        : '' }>
                                                                                         ${p.orderCode} -
                                                                                         ${p.supplier.name}
-                                                                                        (${p.createdDate})</option>
+                                                                                        (${p.createdDate})${isLocked ? '
+                                                                                        🔒 Đang xử lý bởi
+                                                                                        '.concat(p.lockedBy.fullName) :
+                                                                                        ''}
+                                                                                    </option>
                                                                                 </c:forEach>
                                                                             </select>
                                                                         </div>
@@ -373,11 +382,17 @@
                                                                 <script>
                                                                     function proceedWithPO() {
                                                                         const poId = document.getElementById('poSelect').value;
-                                                                        if (poId) {
-                                                                            window.location.href = 'create-goods-receipt?poId=' + poId;
-                                                                        } else {
+                                                                        if (!poId) {
                                                                             alert('Please select a Purchase Order first.');
+                                                                            return;
                                                                         }
+                                                                        // Check xem PO có bị khóa không (từ data attribute)
+                                                                        const opt = document.getElementById('poSelect').selectedOptions[0];
+                                                                        if (opt && opt.dataset.locked === 'true') {
+                                                                            alert('⚠ This purchase order is being processed by another staff member. Please select a different purchase order.');
+                                                                            return;
+                                                                        }
+                                                                        window.location.href = 'create-goods-receipt?poId=' + poId;
                                                                     }
                                                                 </script>
                                                         </c:otherwise>
@@ -387,25 +402,38 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                </div>
+                            <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
+                            <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
 
-                <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
-                <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
+                            <script>
+                                <c:if test="${not isWhLocked}">
+                                    document.getElementById('warehouseSelect').addEventListener('change', function () {
+                                        window.location.href = "create-goods-receipt?poId=${order.id}&warehouseId=" + this.value;
+                                    });
+                                </c:if>
 
-                <script>
-                    <c:if test="${not isWhLocked}">
-                        document.getElementById('warehouseSelect').addEventListener('change', function () {
-                            window.location.href = "create-goods-receipt?poId=${order.id}&warehouseId=" + this.value;
-        });
-                    </c:if>
+                                document.getElementById('locationSelect').addEventListener('change', function () {
+                                    const whSelect = document.getElementById('warehouseSelect');
+                                    const whId = whSelect.value || '${selectedWhId}';
+                                    window.location.href = "create-goods-receipt?poId=${order.id}&warehouseId=" + whId + "&locationId=" + this.value;
+                                });
 
-                    document.getElementById('locationSelect').addEventListener('change', function () {
-                        const whSelect = document.getElementById('warehouseSelect');
-                        const whId = whSelect.value || '${selectedWhId}';
-                        window.location.href = "create-goods-receipt?poId=${order.id}&warehouseId=" + whId + "&locationId=" + this.value;
-                    });
-                </script>
+                                // [TIMER-KICKOUT] Tự động đếm ngược 60 giây
+                                let timeLeft = 60;
+                                const timerDisplay = document.createElement('span');
+                                timerDisplay.className = 'badge badge-danger ml-2';
+                                document.querySelector('h4') ? document.querySelector('h4').appendChild(timerDisplay) : null;
+
+                                const timerId = setInterval(() => {
+                                    timeLeft--;
+                                    if (timerDisplay) timerDisplay.innerText = timeLeft + 's';
+                                    if (timeLeft <= 0) {
+                                        clearInterval(timerId);
+                                        alert("Your session has expired. The system will return to the list page.");
+                                        window.location.href = "${pageContext.request.contextPath}/purchase-orders";
+                                    }
+                                }, 1000);
+                            </script>
             </body>
 
             </html>

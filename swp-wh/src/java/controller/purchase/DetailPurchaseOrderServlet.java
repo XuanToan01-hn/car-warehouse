@@ -40,6 +40,13 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
                 }
             }
             request.setAttribute("po", po);
+            request.setAttribute("lockMinutes", PurchaseOrderDAO.LOCK_TIMEOUT / 60000);
+
+            // Check lock status
+            if (po.getLockedBy() != null && po.getLockedBy().getId() > 0
+                    && po.getLockedBy().getId() != userObj.getId()) {
+                request.setAttribute("poLockedByName", po.getLockedBy().getFullName());
+            }
 
             // Check if an existing GRO (Draft or Partial) exists for this PO
             GoodsReceiptDAO grDAO = new GoodsReceiptDAO();

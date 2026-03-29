@@ -304,7 +304,36 @@
             if (priceInput && (!priceInput.value || priceInput.value === '0')) {
                 priceInput.value = price;
             }
+            recalcTotal();
         }
+
+        function recalcTotal() {
+            var rows = document.querySelectorAll('.product-row');
+            var total = 0;
+            rows.forEach(function(row) {
+                var priceInput = row.querySelector('input[name="price"]');
+                var qtyInput = row.querySelector('input[name="quantity"]');
+                var price = parseFloat(priceInput ? priceInput.value : 0) || 0;
+                var qty = parseFloat(qtyInput ? qtyInput.value : 0) || 0;
+                total += price * qty;
+            });
+            var totalSpan = document.querySelector('.total-bar .font-weight-bold');
+            if (totalSpan) {
+                totalSpan.textContent = Math.round(total).toLocaleString('en-US') + ' VND';
+            }
+        }
+
+        // Attach real-time listeners to all existing price and quantity inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            function attachListeners(row) {
+                var priceInput = row.querySelector('input[name="price"]');
+                var qtyInput = row.querySelector('input[name="quantity"]');
+                if (priceInput) priceInput.addEventListener('input', recalcTotal);
+                if (qtyInput) qtyInput.addEventListener('input', recalcTotal);
+            }
+            document.querySelectorAll('.product-row').forEach(attachListeners);
+            recalcTotal();
+        });
     </script>
 </body>
 

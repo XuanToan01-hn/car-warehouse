@@ -14,14 +14,14 @@
                 body {
                     font-family: 'Inter', sans-serif;
                     background-color: #f8fafc;
-                    overflow-y: hidden;
+                    overflow-y: auto;
                 }
 
                 .page-header {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 1rem 0 0.5rem 0;
+                    padding: 0.5rem 0;
                     margin-bottom: 0.5rem;
                 }
 
@@ -97,12 +97,12 @@
                     color: #475569;
                     text-transform: uppercase;
                     font-size: 0.75rem;
-                    padding: 0.85rem 1.25rem;
+                    padding: 0.5rem 1.25rem;
                     border-bottom: 1px solid #e2e8f0;
                 }
 
                 .table tbody td {
-                    padding: 0.85rem 1.25rem;
+                    padding: 0.5rem 1.25rem;
                     vertical-align: middle;
                     border-bottom: 1px solid #f1f5f9;
                 }
@@ -255,7 +255,7 @@
                                             <input type="text" name="code" class="form-control form-control-sm"
                                                 placeholder="IT-..." value="${code}">
                                         </div>
-                                        <div class="col-md-2">
+                                        <!-- <div class="col-md-2">
                                             <label class="detail-label mb-1">Status</label>
                                             <select name="status" class="form-control form-control-sm">
                                                 <option value="">All Statuses</option>
@@ -265,8 +265,8 @@
                                                 <option value="3" ${status==3 ? 'selected' : '' }>Completed</option>
                                                 <option value="4" ${status==4 ? 'selected' : '' }>Cancelled</option>
                                             </select>
-                                        </div>
-                                        <div class="col-md-2">
+                                        </div> -->
+                                        <!-- <div class="col-md-2">
                                             <label class="detail-label mb-1">From Location</label>
                                             <input type="text" name="fromLoc" class="form-control form-control-sm"
                                                 placeholder="Location name..." value="${fromLoc}">
@@ -280,7 +280,7 @@
                                             <label class="detail-label mb-1">Product Name</label>
                                             <input type="text" name="productName" class="form-control form-control-sm"
                                                 placeholder="Search product..." value="${productName}">
-                                        </div>
+                                        </div> -->
                                         <div class="col-md-2 d-flex">
                                             <button type="submit" class="btn btn-primary btn-sm flex-grow-1 mr-2"><i
                                                     class="ri-filter-3-line"></i> Filter</button>

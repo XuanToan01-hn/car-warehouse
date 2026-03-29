@@ -70,7 +70,8 @@ public class WarehouseTransferServlet extends HttpServlet {
         TransferDAO transferDAO = new TransferDAO();
         dal.WarehouseDAO warehouseDAO = new dal.WarehouseDAO();
 
-        List<TransferOrder> transfers = transferDAO.getTransfersPaged(code, status, warehouseId, type, null, null, null, page, pageSize);
+        List<TransferOrder> transfers = transferDAO.getTransfersPaged(code, status, warehouseId, type, null, null, null,
+                page, pageSize);
         int totalTransfers = transferDAO.getTransfersCount(code, status, warehouseId, type, null, null, null);
         int totalPages = (int) Math.ceil((double) totalTransfers / pageSize);
         List<model.Warehouse> warehouses = warehouseDAO.getAll();
