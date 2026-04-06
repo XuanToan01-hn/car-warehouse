@@ -204,12 +204,12 @@
                                                                                     title="Edit Profile">
                                                                                     <i class="fas fa-edit"></i>
                                                                                 </a>
-                                                                                <a href="${pageContext.request.contextPath}/manage-suppliers?action=delete&id=${s.id}"
+<!--                                                                                <a href="${pageContext.request.contextPath}/manage-suppliers?action=delete&id=${s.id}"
                                                                                     class="btn btn-outline-danger btn-action"
                                                                                     title="Delete Supplier"
                                                                                     onclick="return confirm('Confirm deletion of supplier: ${fn:escapeXml(s.name)}?')">
                                                                                     <i class="fas fa-trash"></i>
-                                                                                </a>
+                                                                                </a>-->
                                                                             </div>
                                                                         </td>
                                                                     </tr>

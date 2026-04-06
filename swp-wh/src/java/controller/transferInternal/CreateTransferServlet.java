@@ -76,7 +76,7 @@ public class CreateTransferServlet extends HttpServlet {
         request.setAttribute("productDetails", pdDAO.getAll());
         request.setAttribute("pendingList", transDAO.getPendingTransfers());
 
-        request.getRequestDispatcher("/view/create-transfer.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/internal/create-transfer.jsp").forward(request, response);
     }
 
     /**
@@ -98,26 +98,26 @@ public class CreateTransferServlet extends HttpServlet {
             o.setToLocationId(Integer.parseInt(request.getParameter("toLoc")));
             int pdId = Integer.parseInt(request.getParameter("pdId"));
             int qty = Integer.parseInt(request.getParameter("qty"));
-            
+
             TransferOrderDetail d = new TransferOrderDetail();
             d.setProductDetailId(pdId);
             d.setQuantity(qty);
-            
+
             List<TransferOrderDetail> details = new ArrayList<>();
             details.add(d);
-            o.setCreateBy(1); // Giả sử user ID đăng nhập là 1
+            o.setCreateBy(1);
 
             if (dao.createTransferRequest(o, details))
-                request.getSession().setAttribute("msg", "Tạo yêu cầu thành công!");
+                request.getSession().setAttribute("msg", "Inventory transfer request created successfully!");
             else
-                request.getSession().setAttribute("err", "Lỗi tạo yêu cầu!");
+                request.getSession().setAttribute("err", "Failed to create inventory transfer request!");
 
         } else if ("approve".equals(action)) {
             int id = Integer.parseInt(request.getParameter("transferId"));
             if (dao.executeTransfer(id))
-                request.getSession().setAttribute("msg", "Đã phê duyệt và cập nhật tồn kho!");
+                request.getSession().setAttribute("msg", "Inventory has been approved and updated!");
             else
-                request.getSession().setAttribute("err", "Thất bại! Kiểm tra lại tồn kho.");
+                request.getSession().setAttribute("err", "Failed! Check inventory again.");
         }
         response.sendRedirect("internal-transfer");
     }

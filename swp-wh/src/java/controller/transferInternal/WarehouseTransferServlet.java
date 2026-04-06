@@ -49,7 +49,7 @@ public class WarehouseTransferServlet extends HttpServlet {
                     request.setAttribute("t", orders.get(0));
                     request.setAttribute("productList", productDetailsList);
                     request.setAttribute("totalQuantity", totalQty);
-                    request.getRequestDispatcher("/view/transfer-detail.jsp").forward(request, response);
+                    request.getRequestDispatcher("/view/internal/transfer-detail.jsp").forward(request, response);
                     return;
                 }
             }
@@ -97,7 +97,7 @@ public class WarehouseTransferServlet extends HttpServlet {
             baseUrl.append("type=").append(type).append("&");
         request.setAttribute("baseUrl", baseUrl.toString());
 
-        request.getRequestDispatcher("/view/warehouse-transfer-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/internal/warehouse-transfer-list.jsp").forward(request, response);
     }
 
     @Override

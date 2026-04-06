@@ -90,7 +90,7 @@ public class TransferController extends HttpServlet {
                 request.setAttribute("locations", locDAO.getAll());
                 request.setAttribute("userWarehouseName", "Unknown");
             }
-            request.getRequestDispatcher("/view/create-transfer.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/internal/create-transfer.jsp").forward(request, response);
         } else if (action.equals("detail")) {
             String idStr = request.getParameter("id");
             if (idStr != null && !idStr.isEmpty()) {
@@ -115,7 +115,7 @@ public class TransferController extends HttpServlet {
                     request.setAttribute("t", orders.get(0));
                     request.setAttribute("productList", productDetailsList);
                     request.setAttribute("totalQuantity", totalQty);
-                    request.getRequestDispatcher("/view/transfer-detail.jsp").forward(request, response);
+                    request.getRequestDispatcher("/view/internal/transfer-detail.jsp").forward(request, response);
                     return;
                 }
             }
@@ -209,11 +209,12 @@ public class TransferController extends HttpServlet {
             model.User user = (model.User) session.getAttribute("user");
             Integer warehouseId = (user != null && user.getWarehouse() != null) ? user.getWarehouse().getId() : null;
 
-            int pageSize = 5;
+            int pageSize = 3;
             String pageStr = request.getParameter("page");
             int currentPage = (pageStr != null && !pageStr.isEmpty()) ? Integer.parseInt(pageStr) : 1;
 
-            int totalItems = transDAO.getTransfersCount(code, status, warehouseId, "internal", fromLoc, toLoc, productName);
+            int totalItems = transDAO.getTransfersCount(code, status, warehouseId, "internal", fromLoc, toLoc,
+                    productName);
             int totalPages = (int) Math.ceil((double) totalItems / pageSize);
             if (currentPage > totalPages && totalPages > 0)
                 currentPage = totalPages;
@@ -224,7 +225,7 @@ public class TransferController extends HttpServlet {
             request.setAttribute("pendingList", internalHistory);
             request.setAttribute("currentPage", currentPage);
             request.setAttribute("totalPages", totalPages);
-            
+
             // Re-set filter values to request for form persistence
             request.setAttribute("code", code);
             request.setAttribute("status", status);
@@ -232,7 +233,7 @@ public class TransferController extends HttpServlet {
             request.setAttribute("toLoc", toLoc);
             request.setAttribute("productName", productName);
 
-            request.getRequestDispatcher("/view/transfer-list.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/internal/transfer-list.jsp").forward(request, response);
         }
     }
 
@@ -294,11 +295,12 @@ public class TransferController extends HttpServlet {
 
             if (dao.createAndExecuteInternalTransfer(o, details)) {
                 request.getSession().setAttribute("msg", "Internal transfer executed and stock updated successfully!");
+                response.sendRedirect("internal-transfer?action=view");
             } else {
                 request.getSession().setAttribute("err",
                         "Failed to execute transfer! Please check stock availability.");
+                response.sendRedirect("internal-transfer?action=form");
             }
-            response.sendRedirect("internal-transfer?action=view");
         } else if ("approve".equals(action)) {
             // Bước 2: Phê duyệt -> Tạo phiếu chuyển kho nội bộ (Approved)
             int id = Integer.parseInt(request.getParameter("transferId"));

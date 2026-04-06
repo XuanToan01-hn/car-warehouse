@@ -66,7 +66,7 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         System.out.println("Login servlet called");
 
-        request.getRequestDispatcher("view/auth-sign-in.jsp").forward(request, response);
+        request.getRequestDispatcher("view/security/auth-sign-in.jsp").forward(request, response);
     }
 
     /**
@@ -86,13 +86,13 @@ public class LoginServlet extends HttpServlet {
 
         if (InputValidator.isEmpty(emailStr) || InputValidator.isEmpty(passwordStr)) {
             request.setAttribute("error", "Email and password must not be empty.");
-            request.getRequestDispatcher("view/auth-sign-in.jsp").forward(request, response);
+            request.getRequestDispatcher("view/security/auth-sign-in.jsp").forward(request, response);
             return;
         }
 
         if (!InputValidator.isValid(emailStr, InputValidator.EMAIL_REGEX)) {
             request.setAttribute("error", "Invalid email format.");
-            request.getRequestDispatcher("view/auth-sign-in.jsp").forward(request, response);
+            request.getRequestDispatcher("view/security/auth-sign-in.jsp").forward(request, response);
             return;
         }
 
@@ -104,7 +104,7 @@ public class LoginServlet extends HttpServlet {
             
             if (!user.isIsActive()) {
             request.setAttribute("error", "Your account has been deactive,can not login !");
-            request.getRequestDispatcher("view/auth-sign-in.jsp").forward(request, response);
+            request.getRequestDispatcher("view/security/auth-sign-in.jsp").forward(request, response);
             return;
         }
             // Login successful -> Save to session
@@ -145,7 +145,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect("home");
         } else {
             request.setAttribute("error", "Incorrect email or password.");
-            request.getRequestDispatcher("view/auth-sign-in.jsp").forward(request, response);
+            request.getRequestDispatcher("view/security/auth-sign-in.jsp").forward(request, response);
         }
 
     }

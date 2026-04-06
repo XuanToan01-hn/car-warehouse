@@ -240,7 +240,7 @@
 
 <body>
     <div class="wrapper">
-        <jsp:include page="sidebar.jsp" />
+        <jsp:include page="../sidebar.jsp" />
         <div class="content-page">
             <div class="container-fluid">
 

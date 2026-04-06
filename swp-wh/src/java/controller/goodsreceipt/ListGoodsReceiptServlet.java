@@ -13,7 +13,7 @@ import model.GoodsReceipt;
 @WebServlet(name = "ListGoodsReceiptServlet", urlPatterns = { "/goods-receipt" })
 public class ListGoodsReceiptServlet extends HttpServlet {
 
-    private static final int PAGE_SIZE = 4;
+    private static final int PAGE_SIZE = 3;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

@@ -14,7 +14,9 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import model.Product;
 import model.ProductDetail;
 import model.PurchaseOrder;
@@ -204,6 +206,21 @@ public class AddPurchaseOrderServlet extends HttpServlet {
                 request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
                         .forward(request, response);
                 return;
+            }
+        }
+
+        // Validate duplicates
+        Set<Integer> seenPdIds = new HashSet<>();
+        for (PurchaseLineDraft line : lines) {
+            if (line.getProductDetailId() != null) {
+                if (seenPdIds.contains(line.getProductDetailId())) {
+                    request.setAttribute("error", "Duplicate product variant detected. Please merge quantities or remove the duplicate line.");
+                    prepareFormView(request, draft);
+                    request.getRequestDispatcher("/view/purchase/page-add-purchase-order.jsp")
+                            .forward(request, response);
+                    return;
+                }
+                seenPdIds.add(line.getProductDetailId());
             }
         }
 

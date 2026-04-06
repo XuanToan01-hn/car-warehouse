@@ -201,7 +201,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
             if (poCheck == null || poCheck.getLockedBy() == null || poCheck.getLockedBy().getId() != user.getId()) {
                 request.getSession().setAttribute("error",
                         "Cannot submit data! Your session has expired or the order has been taken over by another employee.");
-                response.sendRedirect(request.getContextPath() + "/purchase-orders");
+                response.sendRedirect(request.getContextPath() + "/goods-receipt");
                 return;
             }
 
@@ -219,12 +219,29 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 return;
             }
 
-            // 1. CAPACITY VALIDATION
+            // 1. DATA PREPARATION & INDIVIDUAL ITEM VALIDATION
             Location loc = locationDAO.getById(locationId);
             if (loc == null) {
                 request.getSession().setAttribute("error", "Location does not exist.");
                 response.sendRedirect(request.getContextPath() + "/create-goods-receipt?poId=" + poId);
                 return;
+            }
+
+            Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
+            PurchaseOrder poObj = poDAO.getById(poId);
+            if (poObj == null) {
+                request.getSession().setAttribute("error", "Purchase Order not found.");
+                response.sendRedirect(request.getContextPath() + "/goods-receipt");
+                return;
+            }
+
+            Map<Integer, Integer> orderedMap = new java.util.HashMap<>();
+            if (poObj.getDetails() != null) {
+                for (PurchaseOrderDetail pod : poObj.getDetails()) {
+                    if (pod.getProductDetail() != null) {
+                        orderedMap.put(pod.getProductDetail().getId(), pod.getQuantity());
+                    }
+                }
             }
 
             int totalIncoming = 0;
@@ -233,6 +250,21 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 int actual = Integer.parseInt(qtyActual[i]);
                 if (actual <= 0)
                     continue;
+
+                int pdId = Integer.parseInt(productDetailIds[i]);
+                int ordered = orderedMap.getOrDefault(pdId, 0);
+                int delivered = deliveredMap.getOrDefault(pdId, 0);
+                int remaining = ordered - delivered;
+
+                // OVER-DELIVERY VALIDATION
+                if (actual > remaining) {
+                    request.getSession().setAttribute("error",
+                            "Over-delivery error: Product variant #" + pdId + " has only " + remaining
+                                    + " items remaining in PO, but incoming is " + actual + ".");
+                    response.sendRedirect(request.getContextPath() + "/create-goods-receipt?poId=" + poId);
+                    return;
+                }
+
                 totalIncoming += actual;
 
                 GoodsReceiptDetail d = new GoodsReceiptDetail();
@@ -241,7 +273,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 d.setProduct(p);
 
                 ProductDetail pd = new ProductDetail();
-                pd.setId(Integer.parseInt(productDetailIds[i]));
+                pd.setId(pdId);
                 d.setProductDetail(pd);
 
                 d.setQuantityExpected(Integer.parseInt(qtyExpected[i]));
@@ -256,6 +288,7 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 return;
             }
 
+            // 2. CAPACITY VALIDATION (Total)
             if (loc.getMaxCapacity() != null && loc.getMaxCapacity() > 0) {
                 if (loc.getCurrentStock() + totalIncoming > loc.getMaxCapacity()) {
                     request.getSession().setAttribute("error",
@@ -268,11 +301,9 @@ public class CreateGoodsReceiptServlet extends HttpServlet {
                 }
             }
 
-            // 2. STATUS LOGIC
-            Map<Integer, Integer> deliveredMap = grDAO.getDeliveredQtyByPO(poId);
-            PurchaseOrder poObj = poDAO.getById(poId);
+            // 3. GRO STATUS DECISION (2=Completed, 4=Partial)
             int totalOrderRemaining = 0;
-            if (poObj != null && poObj.getDetails() != null) {
+            if (poObj.getDetails() != null) {
                 for (PurchaseOrderDetail pod : poObj.getDetails()) {
                     int pdId = (pod.getProductDetail() != null) ? pod.getProductDetail().getId() : 0;
                     totalOrderRemaining += (pod.getQuantity() - deliveredMap.getOrDefault(pdId, 0));

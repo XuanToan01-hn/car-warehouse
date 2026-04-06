@@ -89,7 +89,7 @@ public class ProductServlet extends HttpServlet {
             request.setAttribute("nextCode", productDAO.getNextProductCode());
         }
 
-        request.getRequestDispatcher("/view/product.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/product/product.jsp").forward(request, response);
     }
 
     @Override

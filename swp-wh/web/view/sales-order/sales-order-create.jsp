@@ -112,8 +112,8 @@
                 <div id="loading-center"></div>
             </div>
             <div class="wrapper">
-                <%@ include file="sidebar.jsp" %>
-                <%@ include file="header.jsp" %>
+                <%@ include file="../sidebar.jsp" %>
+                <%@ include file="../header.jsp" %>
 
                 <div class="content-page">
                     <div class="container-fluid">

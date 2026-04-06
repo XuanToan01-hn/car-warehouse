@@ -68,7 +68,7 @@ public class CustomerServlet extends HttpServlet {
             request.setAttribute("mode", "add");
         }
 
-        request.getRequestDispatcher("/view/customer.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/customer/customer.jsp").forward(request, response);
     }
 
     @Override

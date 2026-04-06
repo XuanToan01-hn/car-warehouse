@@ -122,14 +122,16 @@ public class GoodsReceiptDAO extends DBContext {
     // =========================
 
     public GoodsReceipt getById(int id) {
-        String sql = "SELECT gr.ReceiptID, gr.ReceiptCode, gr.PurchaseOrderID, gr.LocationID, "
+        String sql = "SELECT gr.ReceiptID, gr.ReceiptCode, gr.PurchaseOrderID, gr.LocationID, gr.WarehouseID, "
                 + "gr.ReceiptDate, gr.Status, gr.Note, gr.CreateBy, "
                 + "po.OrderCode, po.Status AS POStatus, po.SupplierID, s.Name AS SupplierName, "
-                + "l.LocationName, l.LocationCode "
+                + "l.LocationName, l.LocationCode, "
+                + "u.FullName AS CreatorName "
                 + "FROM Goods_Receipt gr "
                 + "LEFT JOIN Purchase_Order po ON gr.PurchaseOrderID = po.PurchaseOrderID "
                 + "LEFT JOIN Supplier s ON po.SupplierID = s.SupplierID "
                 + "LEFT JOIN Location l ON gr.LocationID = l.LocationID "
+                + "LEFT JOIN Users u ON gr.CreateBy = u.UserID "
                 + "WHERE gr.ReceiptID = ?";
         GoodsReceipt gr = null;
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -177,11 +179,12 @@ public class GoodsReceiptDAO extends DBContext {
                         gr.setLocation(loc);
                     }
 
-                    // Created by (id only)
+                    // Created by
                     int createById = rs.getInt("CreateBy");
                     if (!rs.wasNull()) {
                         User u = new User();
                         u.setId(createById);
+                        u.setFullName(rs.getString("CreatorName"));
                         gr.setCreateBy(u);
                     }
                 }

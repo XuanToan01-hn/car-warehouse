@@ -46,7 +46,7 @@ public class TaxServlet extends HttpServlet {
             request.setAttribute("mode", "add");
         }
 
-        request.getRequestDispatcher("/view/tax.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/tax/tax.jsp").forward(request, response);
     }
 
     @Override

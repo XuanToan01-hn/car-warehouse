@@ -254,8 +254,8 @@
 
         <body>
             <div class="wrapper">
-                <%@ include file="sidebar.jsp" %>
-                    <jsp:include page="header.jsp" />
+                <%@ include file="../sidebar.jsp" %>
+                    <jsp:include page="../header.jsp" />
 
                     <div class="content-page">
                         <div class="container-fluid">
@@ -333,15 +333,16 @@
                                                         <div class="col-md-6 form-group">
                                                             <label class="form-label">Warehouse <span
                                                                     class="text-danger">*</span></label>
-                                                            <select name="warehouseId" class="form-control" required>
+                                                            <select name="warehouseId" class="form-control" required ${isRestricted ? 'disabled' : ''}>
                                                                 <c:forEach var="w" items="${warehouses}">
-                                                                    <option value="${w.id}" ${mode=='edit' &&
-                                                                        editLocation.warehouseId==w.id ? 'selected' : ''
-                                                                        }>
+                                                                    <option value="${w.id}" ${ (mode=='edit' && editLocation.warehouseId==w.id) || (isRestricted && selectedWarehouseId==w.id) ? 'selected' : '' }>
                                                                         ${w.warehouseName}
                                                                     </option>
                                                                 </c:forEach>
                                                             </select>
+                                                            <c:if test="${isRestricted}">
+                                                                <input type="hidden" name="warehouseId" value="${selectedWarehouseId}">
+                                                            </c:if>
                                                         </div>
                                                         <div class="col-md-6 form-group">
                                                             <label class="form-label">Location Code <span
@@ -377,20 +378,27 @@
                                     <c:if test="${empty mode}">
                                       
                                             <form action="locations" method="get" class="filter-bar">
-                                                <%-- Warehouse filter --%>
-                                                    <div class="filter-box">
+                                                <%-- Warehouse filter --%>                                                    <div class="filter-box">
                                                         <i class="ri-filter-2-line"></i>
                                                         <span class="font-weight-bold">Warehouse:</span>
-                                                        <select name="warehouseId" onchange="this.form.submit()">
-
-                                                            <c:forEach var="w" items="${warehouses}">
-                                                                <option value="${w.id}" ${selectedWarehouseId==w.id
-                                                                    ? 'selected' : '' }>
-                                                                    ${w.warehouseCode} - ${w.warehouseName}
-                                                                </option>
-                                                            </c:forEach>
-                                                        </select>
+                                                        <c:choose>
+                                                            <c:when test="${isRestricted}">
+                                                                <span class="text-primary font-weight-bold ml-1">
+                                                                    ${sessionScope.user.warehouse.warehouseCode} - ${sessionScope.user.warehouse.warehouseName}
+                                                                </span>
+                                                            </c:when>
+                                                            <c:otherwise>
+                                                                <select name="warehouseId" onchange="this.form.submit()">
+                                                                    <c:forEach var="w" items="${warehouses}">
+                                                                        <option value="${w.id}" ${selectedWarehouseId==w.id ? 'selected' : ''}>
+                                                                            ${w.warehouseCode} - ${w.warehouseName}
+                                                                        </option>
+                                                                    </c:forEach>
+                                                                </select>
+                                                            </c:otherwise>
+                                                        </c:choose>
                                                     </div>
+
 
                                                     <%-- Search --%>
                                                         <div class="filter-box" style="min-width: 300px;">

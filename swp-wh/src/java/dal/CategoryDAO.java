@@ -139,14 +139,15 @@ public class CategoryDAO extends DBContext {
         return 0;
     }
 
-    public void delete(int id) {
+    public boolean delete(int id) {
         String sql = "DELETE FROM Category WHERE CategoryID = ?";
         try {
             PreparedStatement ps = connection.prepareStatement(sql);
             ps.setInt(1, id);
-            ps.executeUpdate();
+            return ps.executeUpdate() > 0;
         } catch (SQLException ex) {
             System.out.println("delete: " + ex);
+            return false;
         }
     }
 

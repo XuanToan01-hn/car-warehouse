@@ -70,6 +70,31 @@
                         background-color: #f8d7da;
                         color: #721c24;
                     }
+
+                    /* Pagination Styles */
+                    .pagination {
+                        margin-top: 1rem;
+                    }
+
+                    .page-item .page-link {
+                        border-radius: 8px;
+                        margin: 0 2px;
+                        font-weight: 600;
+                        color: #0ea5e9;
+                        border-color: #dee2e6;
+                        cursor: pointer;
+                    }
+
+                    .page-item.active .page-link {
+                        background: #0ea5e9;
+                        border-color: #0ea5e9;
+                        color: white;
+                    }
+
+                    .page-item.disabled .page-link {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
                 </style>
             </head>
 
@@ -139,24 +164,22 @@
                                                                             <div class="col-md-5">
                                                                                 <div class="form-group mb-0">
                                                                                     <label class="select-label">
-
-                                                                                        Select Warehouse:
+                                                                                        Warehouse:
                                                                                     </label>
-                                                                                    <select name="warehouseId"
-                                                                                        id="warehouseSelect"
-                                                                                        class="form-control mt-1"
-                                                                                        ${isWhLocked ? 'disabled' : '' }
-                                                                                        style="${isWhLocked ? 'background-color: #f8fafc; cursor: not-allowed; border-color: #e2e8f0;' : ''}">
+                                                                                    <input type="hidden"
+                                                                                        name="warehouseId"
+                                                                                        value="${selectedWhId}">
+                                                                                    <div class="form-control mt-1"
+                                                                                        style="background-color: #f8fafc; border-color: #e2e8f0; cursor: default;">
                                                                                         <c:forEach items="${warehouses}"
                                                                                             var="w">
-                                                                                            <option value="${w.id}"
-                                                                                                ${selectedWhId==w.id
-                                                                                                ? 'selected' : '' }>
+                                                                                            <c:if
+                                                                                                test="${w.id == selectedWhId}">
                                                                                                 ${w.warehouseName}
                                                                                                 (${w.warehouseCode})
-                                                                                            </option>
+                                                                                            </c:if>
                                                                                         </c:forEach>
-                                                                                    </select>
+                                                                                    </div>
                                                                                 </div>
                                                                             </div>
                                                                             <div class="col-md-5">
@@ -210,7 +233,8 @@
                                                                         <%-- PRODUCT LIST --%>
                                                                             <div class="table-responsive">
                                                                                 <table
-                                                                                    class="table table-hover table-bordered mb-0">
+                                                                                    class="table table-hover table-bordered mb-0"
+                                                                                    id="productTable">
                                                                                     <thead
                                                                                         class="bg-primary text-white">
                                                                                         <tr>
@@ -229,104 +253,207 @@
                                                                                         </tr>
                                                                                     </thead>
                                                                                     <tbody>
-                                                                                        <c:set var="hasItems"
-                                                                                            value="false" />
-                                                                                        <c:forEach items="${uiDetails}"
-                                                                                            var="row">
-                                                                                            <c:if
-                                                                                                test="${row[4] > 0 or true}">
-                                                                                                <c:set var="hasItems"
-                                                                                                    value="${hasItems or (row[4] > 0)}" />
-                                                                                                <tr>
-                                                                                                    <td>
-                                                                                                        <div
-                                                                                                            class="font-weight-bold">
-                                                                                                            ${row[0]}
-                                                                                                        </div>
-                                                                                                        <div
-                                                                                                            class="small text-muted">
-                                                                                                            Color:
-                                                                                                            ${row[7]} |
-                                                                                                            ${row[1]}
-                                                                                                        </div>
-                                                                                                        <input
-                                                                                                            type="hidden"
-                                                                                                            name="productDetailId[]"
-                                                                                                            value="${row[6]}">
-                                                                                                        <input
-                                                                                                            type="hidden"
-                                                                                                            name="productId[]"
-                                                                                                            value="${row[8]}">
-                                                                                                    </td>
-                                                                                                    <td
-                                                                                                        class="text-center font-weight-bold">
-                                                                                                        ${row[2]}</td>
-                                                                                                    <td
-                                                                                                        class="text-center text-primary">
-                                                                                                        ${row[3]}</td>
-                                                                                                    <td
-                                                                                                        class="text-center">
-                                                                                                        <span
-                                                                                                            class="pending-qty">${row[4]}</span>
-                                                                                                    </td>
-                                                                                                    <td
-                                                                                                        class="text-center">
-                                                                                                        <span
-                                                                                                            class="stock-badge enough-space">${row[5]}</span>
-                                                                                                    </td>
-                                                                                                    <td
-                                                                                                        class="text-center">
-                                                                                                        <input
-                                                                                                            type="number"
-                                                                                                            name="qtyActual[]"
-                                                                                                            class="table-input"
-                                                                                                            min="0"
-                                                                                                            max="${row[4]}"
-                                                                                                            value="${row[4]}"
-                                                                                                            onfocus="if(this.value=='0') this.value='';"
-                                                                                                            onblur="if(this.value=='') this.value='0';">
-                                                                                                        <input
-                                                                                                            type="hidden"
-                                                                                                            name="qtyExpected[]"
-                                                                                                            value="${row[2]}">
-                                                                                                    </td>
-                                                                                                </tr>
-                                                                                            </c:if>
-                                                                                        </c:forEach>
-                                                                                        <c:if test="${!hasItems}">
-                                                                                            <tr>
-                                                                                                <td colspan="6"
-                                                                                                    class="text-center p-4">
-                                                                                                    <i
-                                                                                                        class="fas fa-check-double text-success fa-2x mb-2"></i>
-                                                                                                    <p class="mb-0">All
-                                                                                                        items in this PO
-                                                                                                        have been fully
-                                                                                                        received.</p>
-                                                                                                </td>
-                                                                                            </tr>
-                                                                                        </c:if>
+                                                                                        <%-- Pagination setup --%>
+                                                                                            <c:set var="pgSize"
+                                                                                                value="3" />
+                                                                                            <c:set var="hasItems"
+                                                                                                value="false" />
+                                                                                            <c:set var="itemCount"
+                                                                                                value="0" />
+                                                                                            <c:forEach
+                                                                                                items="${uiDetails}"
+                                                                                                var="r">
+                                                                                                <c:set var="itemCount"
+                                                                                                    value="${itemCount + 1}" />
+                                                                                            </c:forEach>
+                                                                                            <c:set var="pgTotal"
+                                                                                                value="${(itemCount + pgSize - 1) / pgSize}" />
+                                                                                            <%-- Fix pgTotal to integer
+                                                                                                --%>
+                                                                                                <fmt:formatNumber
+                                                                                                    var="pgTotal"
+                                                                                                    value="${pgTotal - (pgTotal % 1)}"
+                                                                                                    pattern="#" />
+                                                                                                <c:if
+                                                                                                    test="${pgTotal < 1}">
+                                                                                                    <c:set var="pgTotal"
+                                                                                                        value="1" />
+                                                                                                </c:if>
+
+                                                                                                <c:forEach
+                                                                                                    items="${uiDetails}"
+                                                                                                    var="row"
+                                                                                                    varStatus="st">
+                                                                                                    <c:if
+                                                                                                        test="${row[4] > 0 or true}">
+                                                                                                        <c:set
+                                                                                                            var="hasItems"
+                                                                                                            value="${hasItems or (row[4] > 0)}" />
+                                                                                                        <%-- Calculate
+                                                                                                            which page
+                                                                                                            this row
+                                                                                                            belongs to
+                                                                                                            --%>
+                                                                                                            <fmt:formatNumber
+                                                                                                                var="rowPage"
+                                                                                                                value="${((st.index) / pgSize) + 1 - (((st.index) / pgSize) % 1)}"
+                                                                                                                pattern="#" />
+                                                                                                            <tr data-page="${rowPage}"
+                                                                                                                style="${rowPage != 1 ? 'display:none' : ''}">
+                                                                                                                <td>
+                                                                                                                    <div
+                                                                                                                        class="font-weight-bold">
+                                                                                                                        ${row[0]}
+                                                                                                                    </div>
+                                                                                                                    <div
+                                                                                                                        class="small text-muted">
+                                                                                                                        Color:
+                                                                                                                        ${row[7]}
+                                                                                                                        |
+                                                                                                                        ${row[1]}
+                                                                                                                    </div>
+                                                                                                                    <input
+                                                                                                                        type="hidden"
+                                                                                                                        name="productDetailId[]"
+                                                                                                                        value="${row[6]}">
+                                                                                                                    <input
+                                                                                                                        type="hidden"
+                                                                                                                        name="productId[]"
+                                                                                                                        value="${row[8]}">
+                                                                                                                </td>
+                                                                                                                <td
+                                                                                                                    class="text-center font-weight-bold">
+                                                                                                                    ${row[2]}
+                                                                                                                </td>
+                                                                                                                <td
+                                                                                                                    class="text-center text-primary">
+                                                                                                                    ${row[3]}
+                                                                                                                </td>
+                                                                                                                <td
+                                                                                                                    class="text-center">
+                                                                                                                    <span
+                                                                                                                        class="pending-qty">${row[4]}</span>
+                                                                                                                </td>
+                                                                                                                <td
+                                                                                                                    class="text-center">
+                                                                                                                    <span
+                                                                                                                        class="stock-badge enough-space">${row[5]}</span>
+                                                                                                                </td>
+                                                                                                                <td
+                                                                                                                    class="text-center">
+                                                                                                                    <input
+                                                                                                                        type="number"
+                                                                                                                        name="qtyActual[]"
+                                                                                                                        class="table-input"
+                                                                                                                        min="0"
+                                                                                                                        max="${row[4]}"
+                                                                                                                        value="${row[4]}"
+                                                                                                                        onfocus="if(this.value=='0') this.value='';"
+                                                                                                                        onblur="if(this.value=='') this.value='0';">
+                                                                                                                    <input
+                                                                                                                        type="hidden"
+                                                                                                                        name="qtyExpected[]"
+                                                                                                                        value="${row[2]}">
+                                                                                                                </td>
+                                                                                                            </tr>
+                                                                                                    </c:if>
+                                                                                                </c:forEach>
+                                                                                                <c:if
+                                                                                                    test="${!hasItems}">
+                                                                                                    <tr>
+                                                                                                        <td colspan="6"
+                                                                                                            class="text-center p-4">
+                                                                                                            <i
+                                                                                                                class="fas fa-check-double text-success fa-2x mb-2"></i>
+                                                                                                            <p
+                                                                                                                class="mb-0">
+                                                                                                                All
+                                                                                                                items in
+                                                                                                                this PO
+                                                                                                                have
+                                                                                                                been
+                                                                                                                fully
+                                                                                                                received.
+                                                                                                            </p>
+                                                                                                        </td>
+                                                                                                    </tr>
+                                                                                                </c:if>
                                                                                     </tbody>
                                                                                 </table>
                                                                             </div>
 
-                                                                            <div class="form-group mt-3">
-                                                                                <label
-                                                                                    class="font-weight-bold">Note:</label>
-                                                                                <textarea name="note"
-                                                                                    class="form-control" rows="2"
-                                                                                    placeholder="Receive note..."></textarea>
-                                                                            </div>
+                                                                            <%-- Block Pagination Controls (JSTL -
+                                                                                identical to list-goods-receipt) --%>
+                                                                                <c:if test="${pgTotal > 1}">
+                                                                                    <nav class="mt-3">
+                                                                                        <ul class="pagination justify-content-center"
+                                                                                            id="paginationNav">
+                                                                                            <c:set var="startPage"
+                                                                                                value="${1 - ((1 - 1) % 3)}" />
+                                                                                            <c:set var="endPage"
+                                                                                                value="${startPage + 2}" />
+                                                                                            <c:if
+                                                                                                test="${endPage > pgTotal}">
+                                                                                                <c:set var="endPage"
+                                                                                                    value="${pgTotal}" />
+                                                                                            </c:if>
 
-                                                                            <div
-                                                                                class="mt-4 border-top pt-3 text-right">
-                                                                                <button type="submit"
-                                                                                    class="btn btn-primary btn-lg ${!hasItems ? 'disabled' : ''}"
-                                                                                    ${!hasItems ? 'disabled' : '' }>
+                                                                                            <%-- Previous --%>
+                                                                                                <li class="page-item disabled"
+                                                                                                    id="pgPrev">
+                                                                                                    <a class="page-link"
+                                                                                                        href="#"
+                                                                                                        onclick="goPage(currentPg-1);return false;">
+                                                                                                        <i
+                                                                                                            class="ri-arrow-left-s-line"></i>
+                                                                                                        Previous
+                                                                                                    </a>
+                                                                                                </li>
 
-                                                                                    Complete Receipt
-                                                                                </button>
-                                                                            </div>
+                                                                                                <%-- Page numbers --%>
+                                                                                                    <c:forEach
+                                                                                                        begin="${startPage}"
+                                                                                                        end="${endPage}"
+                                                                                                        var="p">
+                                                                                                        <li class="page-item ${p == 1 ? 'active' : ''}"
+                                                                                                            data-pnum="${p}">
+                                                                                                            <a class="page-link"
+                                                                                                                href="#"
+                                                                                                                onclick="goPage(${p});return false;">${p}</a>
+                                                                                                        </li>
+                                                                                                    </c:forEach>
+
+                                                                                                    <%-- Next --%>
+                                                                                                        <li class="page-item ${pgTotal <= 1 ? 'disabled' : ''}"
+                                                                                                            id="pgNext">
+                                                                                                            <a class="page-link"
+                                                                                                                href="#"
+                                                                                                                onclick="goPage(currentPg+1);return false;">
+                                                                                                                Next <i
+                                                                                                                    class="ri-arrow-right-s-line"></i>
+                                                                                                            </a>
+                                                                                                        </li>
+                                                                                        </ul>
+                                                                                    </nav>
+                                                                                </c:if>
+
+                                                                                <div class="form-group mt-3">
+                                                                                    <label
+                                                                                        class="font-weight-bold">Note:</label>
+                                                                                    <textarea name="note"
+                                                                                        class="form-control" rows="2"
+                                                                                        placeholder="Receive note..."></textarea>
+                                                                                </div>
+
+                                                                                <div
+                                                                                    class="mt-4 border-top pt-3 text-right">
+                                                                                    <button type="submit"
+                                                                                        class="btn btn-primary btn-lg ${!hasItems ? 'disabled' : ''}"
+                                                                                        ${!hasItems ? 'disabled' : '' }>
+
+                                                                                        Complete Receipt
+                                                                                    </button>
+                                                                                </div>
                                                                 </form>
                                                         </c:when>
                                                         <c:otherwise>
@@ -406,17 +533,58 @@
                             <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
 
                             <script>
-                                <c:if test="${not isWhLocked}">
-                                    document.getElementById('warehouseSelect').addEventListener('change', function () {
-                                        window.location.href = "create-goods-receipt?poId=${order.id}&warehouseId=" + this.value;
-                                    });
-                                </c:if>
 
                                 document.getElementById('locationSelect').addEventListener('change', function () {
-                                    const whSelect = document.getElementById('warehouseSelect');
-                                    const whId = whSelect.value || '${selectedWhId}';
+                                    const whId = '${selectedWhId}';
                                     window.location.href = "create-goods-receipt?poId=${order.id}&warehouseId=" + whId + "&locationId=" + this.value;
                                 });
+
+                                // Minimal pagination: show/hide rows by data-page, update JSTL-rendered nav
+                                var currentPg = 1;
+                                var totalPg = parseInt('${pgTotal}') || 1;
+
+                                function goPage(p) {
+                                    if (p < 1 || p > totalPg) return;
+                                    currentPg = p;
+
+                                    // Show/hide rows (no reload, preserves timer + inputs)
+                                    var rows = document.querySelectorAll('#productTable tbody tr[data-page]');
+                                    for (var i = 0; i < rows.length; i++) {
+                                        rows[i].style.display = (rows[i].getAttribute('data-page') == p) ? '' : 'none';
+                                    }
+
+                                    // Update Previous/Next buttons
+                                    var prev = document.getElementById('pgPrev');
+                                    var next = document.getElementById('pgNext');
+                                    if (prev) prev.className = 'page-item' + (p <= 1 ? ' disabled' : '');
+                                    if (next) next.className = 'page-item' + (p >= totalPg ? ' disabled' : '');
+
+                                    // Rebuild page number buttons (Block of 3)
+                                    var startPg = p - ((p - 1) % 3);
+                                    var endPg = Math.min(startPg + 2, totalPg);
+                                    var nav = document.getElementById('paginationNav');
+                                    if (!nav) return;
+
+                                    // Remove old page-number items
+                                    var old = nav.querySelectorAll('li[data-pnum]');
+                                    for (var j = 0; j < old.length; j++) old[j].remove();
+
+                                    // Insert new page-number items before Next button
+                                    var nextLi = document.getElementById('pgNext');
+                                    for (var k = startPg; k <= endPg; k++) {
+                                        var li = document.createElement('li');
+                                        li.className = 'page-item' + (k === p ? ' active' : '');
+                                        li.setAttribute('data-pnum', k);
+                                        var a = document.createElement('a');
+                                        a.className = 'page-link';
+                                        a.href = '#';
+                                        a.innerText = k;
+                                        a.setAttribute('data-pg', k);
+                                        a.onclick = function (e) { e.preventDefault(); goPage(parseInt(this.getAttribute('data-pg'))); };
+                                        li.appendChild(a);
+                                        nav.insertBefore(li, nextLi);
+                                    }
+                                }
 
                                 // [TIMER-KICKOUT] Tự động đếm ngược 60 giây
                                 let timeLeft = 60;

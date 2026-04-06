@@ -67,7 +67,7 @@ public class WarehouseServlet extends HttpServlet {
             request.setAttribute("mode", "add");
         }
 
-        request.getRequestDispatcher("/view/warehouse.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/warehouse/warehouse.jsp").forward(request, response);
     }
 
     @Override

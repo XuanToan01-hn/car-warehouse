@@ -107,14 +107,14 @@ public class SalesOrderServlet extends HttpServlet {
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("currentStatus", status);
 
-        request.getRequestDispatcher("/view/sales-order-list.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/sales-order/sales-order-list.jsp").forward(request, response);
     }
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.setAttribute("customers", customerDAO.getAll());
         request.setAttribute("warehouses", warehouseDAO.getAll());
-        request.getRequestDispatcher("/view/sales-order-create.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/sales-order/sales-order-create.jsp").forward(request, response);
     }
 //load danh sách sản phẩm theo kho
     private void ajaxGetProducts(HttpServletRequest request, HttpServletResponse response)
@@ -148,7 +148,7 @@ public class SalesOrderServlet extends HttpServlet {
         int id = Integer.parseInt(request.getParameter("id"));
         SalesOrder order = salesOrderDAO.getById(id);
         request.setAttribute("order", order);
-        request.getRequestDispatcher("/view/sales-order-view.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/sales-order/sales-order-view.jsp").forward(request, response);
     }
 
     private void createOrder(HttpServletRequest request, HttpServletResponse response)

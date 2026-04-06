@@ -53,12 +53,19 @@ public class LocationServlet extends HttpServlet {
         if (warehouseId == 0 && !warehouses.isEmpty()) {
             warehouseId = warehouses.get(0).getId();
         }
-        request.setAttribute("selectedWarehouseId", warehouseId);
 
         // Search keyword
         String search = request.getParameter("search");
         String keyword = (search != null) ? search.trim() : "";
         request.setAttribute("search", keyword);
+
+        // ACCESS CONTROL: Restricted to assigned warehouse
+        model.User user = (model.User) request.getSession().getAttribute("user");
+        if (user != null && user.getWarehouse() != null) {
+            warehouseId = user.getWarehouse().getId();
+            request.setAttribute("isRestricted", true);
+        }
+        request.setAttribute("selectedWarehouseId", warehouseId);
 
         // Load filtered locations
         List<Location> allLocations = locationDAO.search(warehouseId, keyword);
@@ -101,7 +108,7 @@ public class LocationServlet extends HttpServlet {
             request.setAttribute("mode", "add");
         }
 
-        request.getRequestDispatcher("/view/location.jsp").forward(request, response);
+        request.getRequestDispatcher("/view/location/location.jsp").forward(request, response);
     }
 
     private void handleDelete(HttpServletRequest request, HttpServletResponse response, LocationDAO dao)
@@ -192,7 +199,7 @@ public class LocationServlet extends HttpServlet {
             request.setAttribute("currentPage", currentPage);
             request.setAttribute("totalPages", totalPages);
 
-            request.getRequestDispatcher("/view/location-detail.jsp").forward(request, response);
+            request.getRequestDispatcher("/view/location/location-detail.jsp").forward(request, response);
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/locations");
         }
@@ -250,6 +257,13 @@ public class LocationServlet extends HttpServlet {
             location.setWarehouseId(warehouseId);
         } catch (NumberFormatException e) {
             location.setWarehouseId(0);
+        }
+
+        // ACCESS CONTROL: Force warehouseId if user is restricted
+        model.User user = (model.User) request.getSession().getAttribute("user");
+        if (user != null && user.getWarehouse() != null) {
+            warehouseId = user.getWarehouse().getId();
+            location.setWarehouseId(warehouseId);
         }
 
         if (idRaw != null && !idRaw.trim().isEmpty()) {

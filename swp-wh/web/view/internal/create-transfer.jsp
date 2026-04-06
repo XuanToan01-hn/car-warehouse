@@ -156,8 +156,8 @@
 
         <body>
             <div class="wrapper">
-                <%@ include file="sidebar.jsp" %>
-                    <jsp:include page="header.jsp" />
+                <%@ include file="../sidebar.jsp" %>
+                    <jsp:include page="../header.jsp" />
                     <div class="content-page">
                         <div class="container-fluid">
                             <div class="page-header">
@@ -181,6 +181,8 @@
                                         <div class="card-body p-4">
                                             <form action="internal-transfer" method="post" id="transferForm">
                                                 <input type="hidden" name="action" value="create">
+                                                <!-- Hidden container for multi-page selection -->
+                                                <div id="consolidatedInputs" style="display:none;"></div>
 
                                                 <!-- STEP 1: SOURCE & DESTINATION LOCATION -->
                                                 <div class="row mb-4">
@@ -419,12 +421,12 @@
                     allProducts.slice(start, end).forEach((item, i) => {
                         const globalIdx = start + i;
                         rows += '<tr>' +
-                            '<td><input type="checkbox" class="chk-product" name="selectedProducts" value="' + item.pdId + '" ' + (item.selected ? 'checked' : '') + ' onchange="onCheckProduct(' + globalIdx + ', this)"></td>' +
+                            '<td><input type="checkbox" class="chk-product" value="' + item.pdId + '" ' + (item.selected ? 'checked' : '') + ' onchange="onCheckProduct(' + globalIdx + ', this)"></td>' +
                             '<td class="font-weight-bold">' + item.productName + '</td>' +
                             '<td><code>' + item.serialNumber + '</code></td>' +
                             '<td>' + item.color + '</td>' +
                             '<td><span class="badge-stock">' + item.available + '</span></td>' +
-                            '<td><input type="number" class="qty-input" name="qty_' + item.pdId + '" min="1" max="' + item.available + '" value="' + item.transferQty + '" ' + (!item.selected ? 'disabled' : '') + ' onchange="onQtyChange(' + globalIdx + ', this)"></td>' +
+                            '<td><input type="number" class="qty-input" min="1" max="' + item.available + '" value="' + item.transferQty + '" ' + (!item.selected ? 'disabled' : '') + ' onchange="onQtyChange(' + globalIdx + ', this)"></td>' +
                             '</tr>';
                     });
                     tbody.innerHTML = rows;
@@ -494,10 +496,10 @@
                         const availableSpace = maxCap - currentStock;
 
                         let totalTransferQty = 0;
-                        const checked = document.querySelectorAll('input[name="selectedProducts"]:checked');
-                        checked.forEach((chk, i) => {
-                            const qtyInput = chk.closest('tr').querySelector('.qty-input');
-                            totalTransferQty += parseInt(qtyInput.value) || 0;
+                        allProducts.forEach(item => {
+                            if (item.selected) {
+                                totalTransferQty += item.transferQty;
+                            }
                         });
 
                         if (totalTransferQty > availableSpace && availableSpace >= 0) {
@@ -509,22 +511,20 @@
                     }
 
                     // Check individual quantity vs available
-                    const rows = document.querySelectorAll('input[name="selectedProducts"]:checked');
-                    for (let chk of rows) {
-                        const qtyInput = chk.closest('tr').querySelector('.qty-input');
-                        const qty = parseInt(qtyInput.value);
-                        const max = parseInt(qtyInput.max);
-                        if (qty > max) {
-                            errorDiv.textContent = 'Quantity for one or more products exceeds available stock!';
-                            errorDiv.style.display = 'block';
-                            submitBtn.disabled = true;
-                            return false;
-                        }
-                        if (qty < 1) {
-                            errorDiv.textContent = 'Quantity must be at least 1!';
-                            errorDiv.style.display = 'block';
-                            submitBtn.disabled = true;
-                            return false;
+                    for (let item of allProducts) {
+                        if (item.selected) {
+                            if (item.transferQty > item.available) {
+                                errorDiv.textContent = 'Quantity for ' + item.productName + ' exceeds available stock!';
+                                errorDiv.style.display = 'block';
+                                submitBtn.disabled = true;
+                                return false;
+                            }
+                            if (item.transferQty < 1) {
+                                errorDiv.textContent = 'Quantity for ' + item.productName + ' must be at least 1!';
+                                errorDiv.style.display = 'block';
+                                submitBtn.disabled = true;
+                                return false;
+                            }
                         }
                     }
                     return true;
@@ -537,8 +537,8 @@
                 }
 
                 document.getElementById('transferForm').onsubmit = function (e) {
-                    const checked = document.querySelectorAll('input[name="selectedProducts"]:checked');
-                    if (checked.length === 0) {
+                    const selectedOnes = allProducts.filter(p => p.selected);
+                    if (selectedOnes.length === 0) {
                         showFlashMsg('Please select at least one product to transfer!');
                         return false;
                     }
@@ -555,7 +555,16 @@
                     }
 
                     if (!validateAll()) return false;
-                    return confirm('Are you sure you want to submit this transfer request with ' + checked.length + ' product(s)?');
+
+                    // CONSOLIDATE DATA FROM ALL PAGES
+                    const container = document.getElementById('consolidatedInputs');
+                    container.innerHTML = '';
+                    selectedOnes.forEach(p => {
+                        container.innerHTML += '<input type="hidden" name="selectedProducts" value="' + p.pdId + '">';
+                        container.innerHTML += '<input type="hidden" name="qty_' + p.pdId + '" value="' + p.transferQty + '">';
+                    });
+
+                    return confirm('Are you sure you want to submit this transfer request with ' + selectedOnes.length + ' product(s)?');
                 };
             </script>
         </body>

@@ -81,6 +81,31 @@
                         margin-bottom: 1.5rem;
                         padding-bottom: 1rem;
                     }
+
+                    /* Pagination Styles */
+                    .pagination {
+                        margin-top: 1rem;
+                    }
+
+                    .page-item .page-link {
+                        border-radius: 8px;
+                        margin: 0 2px;
+                        font-weight: 600;
+                        color: #0ea5e9;
+                        border-color: #dee2e6;
+                        cursor: pointer;
+                    }
+
+                    .page-item.active .page-link {
+                        background: #0ea5e9;
+                        border-color: #0ea5e9;
+                        color: white;
+                    }
+
+                    .page-item.disabled .page-link {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
                 </style>
             </head>
 
@@ -94,7 +119,7 @@
                                 <%-- Success/Error Alerts --%>
                                     <c:if test="${not empty sessionScope.success}">
                                         <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                            <i class="fas fa-check-circle mr-2"></i> ${sessionScope.success}
+                                            ${sessionScope.success}
                                             <button type="button" class="close" data-dismiss="alert">&times;</button>
                                             <c:remove var="success" scope="session" />
                                         </div>
@@ -110,8 +135,7 @@
                                                     <p class="text-muted small mb-0">View-only record of a goods receipt
                                                         transaction.</p>
                                                 </div>
-                                                <a href="goods-receipt" class="btn btn-light"><i
-                                                        class="fas fa-arrow-left mr-1"></i> Back</a>
+                                                <a href="goods-receipt" class="btn btn-light"> Back</a>
                                             </div>
 
                                             <div class="row">
@@ -175,8 +199,8 @@
 
                                     <div class="card mt-4 info-card">
                                         <div class="card-header bg-white border-bottom-0 pt-4 px-4">
-                                            <h5 class="card-title font-weight-bold"><i
-                                                    class="fas fa-box-open mr-2 text-primary"></i> Received Product List
+                                            <h5 class="card-title font-weight-bold">
+                                                Received Product List
                                             </h5>
                                         </div>
                                         <div class="card-body p-0">
@@ -193,37 +217,93 @@
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        <c:forEach var="item" items="${gr.details}" varStatus="st">
-                                                            <tr>
-                                                                <td style="padding-left: 2rem;">${st.index + 1}</td>
-                                                                <td><span class="mono">${item.product.code}</span></td>
-                                                                <td>
-                                                                    <div class="font-weight-bold text-dark">
-                                                                        ${item.product.name}</div>
-                                                                    <div class="small text-muted">
-                                                                        Color: ${item.productDetail.color} | Ser:
-                                                                        ${item.productDetail.serialNumber}
-                                                                    </div>
-                                                                </td>
-                                                                <td class="text-center font-weight-bold">
-                                                                    ${item.quantityExpected}</td>
-                                                                <td class="text-center">
-                                                                    <span class="badge badge-success px-3 py-2"
-                                                                        style="font-size: 0.9rem;">
-                                                                        ${item.quantityActual}
-                                                                    </span>
-                                                                </td>
-                                                                <td class="text-center">
-                                                                    <span class="font-weight-bold"
-                                                                        style="color: ${item.remainingQty <= 0 ? '#10b981' : '#ef4444'}">
-                                                                        ${item.remainingQty}
-                                                                    </span>
-                                                                </td>
-                                                            </tr>
-                                                        </c:forEach>
+                                                        <%-- Pagination setup --%>
+                                                            <c:set var="pgSize" value="3" />
+                                                            <c:set var="itemCount" value="0" />
+                                                            <c:forEach var="r" items="${gr.details}">
+                                                                <c:set var="itemCount" value="${itemCount + 1}" />
+                                                            </c:forEach>
+                                                            <c:set var="pgTotal"
+                                                                value="${(itemCount + pgSize - 1) / pgSize}" />
+                                                            <fmt:formatNumber var="pgTotal"
+                                                                value="${pgTotal - (pgTotal % 1)}" pattern="#" />
+                                                            <c:if test="${pgTotal < 1}">
+                                                                <c:set var="pgTotal" value="1" />
+                                                            </c:if>
+
+                                                            <c:forEach var="item" items="${gr.details}" varStatus="st">
+                                                                <fmt:formatNumber var="rowPage"
+                                                                    value="${(st.index / pgSize) + 1 - ((st.index / pgSize) % 1)}"
+                                                                    pattern="#" />
+                                                                <tr data-page="${rowPage}"
+                                                                    style="${rowPage != 1 ? 'display:none' : ''}">
+                                                                    <td style="padding-left: 2rem;">${st.index + 1}</td>
+                                                                    <td><span class="mono">${item.product.code}</span>
+                                                                    </td>
+                                                                    <td>
+                                                                        <div class="font-weight-bold text-dark">
+                                                                            ${item.product.name}</div>
+                                                                        <div class="small text-muted">Color:
+                                                                            ${item.productDetail.color} | Ser:
+                                                                            ${item.productDetail.serialNumber}</div>
+                                                                    </td>
+                                                                    <td class="text-center font-weight-bold">
+                                                                        ${item.quantityExpected}</td>
+                                                                    <td class="text-center">
+                                                                        <span class="badge badge-success px-3 py-2"
+                                                                            style="font-size: 0.9rem;">${item.quantityActual}</span>
+                                                                    </td>
+                                                                    <td class="text-center">
+                                                                        <span class="font-weight-bold"
+                                                                            style="color: ${item.remainingQty <= 0 ? '#10b981' : '#ef4444'}">${item.remainingQty}</span>
+                                                                    </td>
+                                                                </tr>
+                                                            </c:forEach>
                                                     </tbody>
                                                 </table>
                                             </div>
+
+                                            <%-- Block Pagination Controls --%>
+                                                <c:if test="${pgTotal > 1}">
+                                                    <nav class="mt-3 px-4 pb-3">
+                                                        <ul class="pagination justify-content-center"
+                                                            id="paginationNav">
+                                                            <c:set var="startPage" value="${1 - ((1 - 1) % 3)}" />
+                                                            <c:set var="endPage" value="${startPage + 2}" />
+                                                            <c:if test="${endPage > pgTotal}">
+                                                                <c:set var="endPage" value="${pgTotal}" />
+                                                            </c:if>
+
+                                                            <%-- Previous --%>
+                                                                <li class="page-item disabled" id="pgPrev">
+                                                                    <a class="page-link" href="#"
+                                                                        onclick="goPage(currentPg-1);return false;">
+                                                                        Previous
+                                                                    </a>
+                                                                </li>
+
+                                                                <%-- Page numbers --%>
+                                                                    <c:forEach begin="${startPage}" end="${endPage}"
+                                                                        var="p">
+                                                                        <li class="page-item ${p == 1 ? 'active' : ''}"
+                                                                            data-pnum="${p}">
+                                                                            <a class="page-link" href="#"
+                                                                                onclick="goPage(${p});return false;">${p}</a>
+                                                                        </li>
+                                                                    </c:forEach>
+
+                                                                    <%-- Next --%>
+                                                                        <li class="page-item ${pgTotal <= 1 ? 'disabled' : ''}"
+                                                                            id="pgNext">
+                                                                            <a class="page-link" href="#"
+                                                                                onclick="goPage(currentPg+1);return false;">
+                                                                                Next
+                                                                            </a>
+                                                                        </li>
+                                                        </ul>
+                                                    </nav>
+                                                </c:if>
+
                                         </div>
                                     </div>
 
@@ -233,6 +313,51 @@
 
                 <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
                 <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
+                <script>
+                    var currentPg = 1;
+                    var totalPg = parseInt('${pgTotal}') || 1;
+
+                    function goPage(p) {
+                        if (p < 1 || p > totalPg) return;
+                        currentPg = p;
+
+                        // Show/hide rows
+                        var rows = document.querySelectorAll('table tbody tr[data-page]');
+                        for (var i = 0; i < rows.length; i++) {
+                            rows[i].style.display = (rows[i].getAttribute('data-page') == p) ? '' : 'none';
+                        }
+
+                        // Update Previous/Next
+                        var prev = document.getElementById('pgPrev');
+                        var next = document.getElementById('pgNext');
+                        if (prev) prev.className = 'page-item' + (p <= 1 ? ' disabled' : '');
+                        if (next) next.className = 'page-item' + (p >= totalPg ? ' disabled' : '');
+
+                        // Rebuild page numbers (Block of 3)
+                        var startPg = p - ((p - 1) % 3);
+                        var endPg = Math.min(startPg + 2, totalPg);
+                        var nav = document.getElementById('paginationNav');
+                        if (!nav) return;
+
+                        var old = nav.querySelectorAll('li[data-pnum]');
+                        for (var j = 0; j < old.length; j++) old[j].remove();
+
+                        var nextLi = document.getElementById('pgNext');
+                        for (var k = startPg; k <= endPg; k++) {
+                            var li = document.createElement('li');
+                            li.className = 'page-item' + (k === p ? ' active' : '');
+                            li.setAttribute('data-pnum', k);
+                            var a = document.createElement('a');
+                            a.className = 'page-link';
+                            a.href = '#';
+                            a.innerText = k;
+                            a.setAttribute('data-pg', k);
+                            a.onclick = function (e) { e.preventDefault(); goPage(parseInt(this.getAttribute('data-pg'))); };
+                            li.appendChild(a);
+                            nav.insertBefore(li, nextLi);
+                        }
+                    }
+                </script>
             </body>
 
             </html>

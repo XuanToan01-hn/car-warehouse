@@ -12,7 +12,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import model.Product;
 import model.ProductDetail;
 import model.PurchaseOrder;
@@ -264,6 +266,23 @@ public class EditPurchaseOrderServlet extends HttpServlet {
             }
         }
 
+        // Validate duplicates
+        Set<Integer> seenPdIds = new HashSet<>();
+        for (PurchaseLineDraft line : lines) {
+            if (line.getProductDetailId() != null) {
+                if (seenPdIds.contains(line.getProductDetailId())) {
+                    request.setAttribute("error",
+                            "Duplicate product variant detected. Please merge quantities or remove the duplicate line.");
+                    request.setAttribute("poId", poId);
+                    prepareFormView(request, draft);
+                    request.getRequestDispatcher("/view/purchase/page-edit-purchase-order.jsp")
+                            .forward(request, response);
+                    return;
+                }
+                seenPdIds.add(line.getProductDetailId());
+            }
+        }
+
         try {
             double totalAmount = 0;
             List<Double> subTotals = new ArrayList<>();
@@ -400,8 +419,10 @@ public class EditPurchaseOrderServlet extends HttpServlet {
     private double computeGrandTotal(PurchaseOrderFormDraft draft) {
         double total = 0;
         for (PurchaseLineDraft line : draft.getLines()) {
-            if (line.getProductDetailId() == null || line.getProductDetailId() <= 0) continue;
-            if (line.getPrice() == null || line.getPrice() <= 0) continue;
+            if (line.getProductDetailId() == null || line.getProductDetailId() <= 0)
+                continue;
+            if (line.getPrice() == null || line.getPrice() <= 0)
+                continue;
             total += line.getQuantity() * line.getPrice();
         }
         return total;
@@ -415,7 +436,8 @@ public class EditPurchaseOrderServlet extends HttpServlet {
             List<ProductDetail> details = productDetailDAO.getAllDetailsByProductId(p.getId());
             for (ProductDetail pd : details) {
                 String color = pd.getColor();
-                if (color == null || color.isEmpty()) color = "";
+                if (color == null || color.isEmpty())
+                    color = "";
                 options.add(new ProductDetailOption(
                         pd.getId(),
                         buildVariantLabel(p, pd),
@@ -431,7 +453,8 @@ public class EditPurchaseOrderServlet extends HttpServlet {
         StringBuilder sb = new StringBuilder();
         sb.append(p.getName()).append(" [").append(p.getCode()).append("] — ");
         String color = pd.getColor();
-        if (color == null || color.isEmpty()) color = "No Color";
+        if (color == null || color.isEmpty())
+            color = "No Color";
         sb.append(color);
         List<String> extra = new ArrayList<>();
         if (pd.getLotNumber() != null && !pd.getLotNumber().isEmpty() && !"N/A".equalsIgnoreCase(pd.getLotNumber())) {

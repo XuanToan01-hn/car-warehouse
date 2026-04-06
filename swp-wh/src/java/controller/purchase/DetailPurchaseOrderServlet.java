@@ -112,22 +112,24 @@ public class DetailPurchaseOrderServlet extends HttpServlet {
 
             boolean authorized = false;
 
-            if (po.getStatus() == 1) {
+            if (po.getStatus() == 1) { // Draft
                 if (newStatus == 2) {
-                    // Confirm: only Warehouse Manager
+                    // Confirm (Draft -> Confirmed): only Warehouse Manager
                     authorized = (currentRole == 2);
                 } else if (newStatus == 4) {
                     // Cancel from Draft: Manager or Purchasing Staff
                     authorized = (currentRole == 2 || currentRole == 5);
                 }
-            } else if (po.getStatus() == 2) {
-                if (newStatus == 3) {
-                    // Mark Received: only Inventory Staff
+            } else if (po.getStatus() == 2 || po.getStatus() == 3) { // Confirmed or Partial
+                if (newStatus == 5) {
+                    // Mark Done (Fully Received): only Inventory Staff
                     authorized = (currentRole == 3);
                 } else if (newStatus == 4) {
-                    // Cancel from Confirmed: only Manager (PO already approved, Purchasing Staff
-                    // cannot cancel)
+                    // Cancel from Confirmed/Partial: only Manager (PO already approved)
                     authorized = (currentRole == 2);
+                } else if (newStatus == 3) {
+                    // Mark Partial Receipt: Inventory Staff
+                    authorized = (currentRole == 3);
                 }
             }
 

@@ -72,43 +72,66 @@
                     }
 
                     .btn-filter {
-                        background: var(--primary);
-                        color: white;
-                        border-radius: 10px;
-                        padding: 0.6rem 1.5rem;
-                        font-weight: 600;
+                        background: linear-gradient(135deg, var(--primary) 0%, #0284c7 100%);
+                        color: white !important;
+                        border-radius: 12px;
+                        padding: 0.75rem 1.5rem;
+                        font-weight: 700;
                         border: none;
-                        transition: all 0.3s;
+                        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+                        transition: all 0.3s ease;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        gap: 0.5rem;
                     }
 
                     .btn-filter:hover {
-                        background: #0284c7;
-                        color: white;
+                        transform: translateY(-2px);
+                        box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+                        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+                    }
+
+                    .btn-reset {
+                        background: #f1f5f9;
+                        color: #475569 !important;
+                        border-radius: 12px;
+                        padding: 0.75rem 1.5rem;
+                        font-weight: 700;
+                        border: 1px solid #e2e8f0;
+                        transition: all 0.3s ease;
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .btn-reset:hover {
+                        background: #e2e8f0;
+                        color: #1e293b !important;
                     }
 
                     .table thead th {
-                        background: #f1f5f9;
-                        font-weight: 800;
-                        color: #475569;
+                        background: #f8fafc;
+                        font-weight: 700;
+                        color: #64748b;
                         text-transform: uppercase;
                         font-size: 0.75rem;
                         letter-spacing: 0.05em;
-                        padding: 1.25rem 1.5rem;
-                        border-bottom: 1px solid #e2e8f0;
+                        padding: 1rem 1.5rem;
+                        border-bottom: 2px solid #e2e8f0;
                     }
 
                     .table tbody td {
-                        padding: 1.25rem 1.5rem;
+                        padding: 1rem 1.5rem;
                         vertical-align: middle;
-                        font-weight: 500;
                         border-bottom: 1px solid #f1f5f9;
                     }
 
                     .btn-action {
-                        padding: 0.5rem 1rem;
+                        padding: 0.4rem 0.9rem;
                         border-radius: 8px;
-                        font-weight: 600;
-                        font-size: 0.85rem;
+                        font-weight: 700;
+                        font-size: 0.8rem;
                         border: 1px solid transparent;
                         transition: all 0.2s;
                         display: inline-flex;
@@ -304,17 +327,18 @@
 
             <body>
                 <div class="wrapper">
-                    <%@ include file="sidebar.jsp" %>
-                        <jsp:include page="header.jsp" />
+                    <%@ include file="../sidebar.jsp" %>
+                        <jsp:include page="../header.jsp" />
                         <div class="content-page">
                             <div class="container-fluid">
                                 <div class="page-header">
                                     <div>
-                                        <h1 class="font-weight-bold h2">Warehouse Operations</h1>
-                                        <p class="text-muted mb-0">Capture Transfer In/Out</p>
+                                        <h1 class="font-weight-bold mb-1">Internal Transfers History</h1>
+                                        <p class="text-secondary mb-0">Track and manage inventory movements.</p>
                                     </div>
-                                    <a href="internal-transfer" class="btn btn-primary"><i class="ri-list-check"></i>
-                                        View Requests</a>
+                                    <a href="internal-transfer" class="btn btn-success">
+                                        <i class="ri-add-line"></i> Create New Request
+                                    </a>
                                 </div>
 
                                 <c:if test="${not empty sessionScope.msg}">
@@ -339,52 +363,60 @@
 
                                 <div class="card card-main">
                                     <div class="filter-section">
-                                        <form action="warehouse-transfer" method="get" class="row align-items-end g-3">
-                                            <div class="col-md-2">
-                                                <label
-                                                    class="font-weight-bold small text-uppercase text-secondary">Code</label>
-                                                <input type="text" name="code" class="form-control"
-                                                    placeholder="Search..." value="${searchCode}">
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label
-                                                    class="font-weight-bold small text-uppercase text-secondary">Status</label>
-                                                <select name="status" class="form-control">
-                                                    <option value="">All Statuses</option>
-                                                    <option value="1" ${selectedStatus==1 ? 'selected' : '' }>Approved
-                                                    </option>
-                                                    <option value="2" ${selectedStatus==2 ? 'selected' : '' }>In-Transit
-                                                    </option>
-                                                    <option value="3" ${selectedStatus==3 ? 'selected' : '' }>Completed
-                                                    </option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label
-                                                    class="font-weight-bold small text-uppercase text-secondary">Warehouse</label>
-                                                <select name="warehouseId" class="form-control">
-                                                    <option value="">All Warehouses</option>
-                                                    <c:forEach var="w" items="${warehouses}">
-                                                        <option value="${w.id}" ${selectedWarehouse==w.id ? 'selected'
-                                                            : '' }>${w.warehouseName}</option>
-                                                    </c:forEach>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-2">
-                                                <label
-                                                    class="font-weight-bold small text-uppercase text-secondary">Type</label>
-                                                <select name="type" class="form-control">
-                                                    <option value="">All Types</option>
-                                                    <option value="internal" ${selectedType=='internal' ? 'selected'
-                                                        : '' }>Internal Transfer</option>
-                                                    <option value="external" ${selectedType=='external' ? 'selected'
-                                                        : '' }>External Transfer</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-md-3">
-                                                <button type="submit" class="btn btn-filter w-100">
-                                                    <i class="ri-filter-3-line mr-1"></i> Apply
-                                                </button>
+                                        <form action="warehouse-transfer" method="get">
+                                            <div class="row align-items-end">
+                                                <div class="col-md-4">
+                                                    <label
+                                                        class="small font-weight-bold text-uppercase text-secondary">Search</label>
+                                                    <input type="text" name="code" class="form-control"
+                                                        placeholder="IT code..." value="${searchCode}">
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label
+                                                        class="small font-weight-bold text-uppercase text-secondary">Status
+                                                        Filter</label>
+                                                    <select name="status" class="form-control">
+                                                        <option value="">All Statuses</option>
+                                                        <option value="1" ${selectedStatus==1 ? 'selected' : '' }>
+                                                            Approved</option>
+                                                        <option value="2" ${selectedStatus==2 ? 'selected' : '' }>
+                                                            In-Transit</option>
+                                                        <option value="3" ${selectedStatus==3 ? 'selected' : '' }>
+                                                            Completed</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label
+                                                        class="small font-weight-bold text-uppercase text-secondary">Warehouse</label>
+                                                    <select name="warehouseId" class="form-control">
+                                                        <option value="">All</option>
+                                                        <c:forEach var="w" items="${warehouses}">
+                                                            <option value="${w.id}" ${selectedWarehouse==w.id
+                                                                ? 'selected' : '' }>${w.warehouseName}</option>
+                                                        </c:forEach>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <label
+                                                        class="small font-weight-bold text-uppercase text-secondary">Type</label>
+                                                    <select name="type" class="form-control">
+                                                        <option value="">All Types</option>
+                                                        <option value="internal" ${selectedType=='internal' ? 'selected'
+                                                            : '' }>Internal</option>
+                                                        <option value="external" ${selectedType=='external' ? 'selected'
+                                                            : '' }>External</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2 d-flex" style="gap:0.5rem;">
+                                                    <button type="submit" class="btn btn-filter flex-grow-1"
+                                                        style="height: 42px; padding: 0;">
+                                                        Apply Filters
+                                                    </button>
+                                                    <a href="warehouse-transfer" class="btn btn-reset"
+                                                        style="height: 42px; padding: 0 1rem;">
+                                                        Reset
+                                                    </a>
+                                                </div>
                                             </div>
                                         </form>
                                     </div>
@@ -502,7 +534,8 @@
                                                                     </c:if>
 
                                                                     <a href="warehouse-transfer?action=detail&id=${t.id}"
-                                                                        class="btn-action btn-view">
+                                                                        class="btn btn-sm btn-outline-primary"
+                                                                        style="border-radius: 8px; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 0.9rem;">
                                                                         <i class="ri-eye-line"></i> View
                                                                     </a>
                                                                 </div>

@@ -1,211 +1,466 @@
 <%@page contentType="text/html" pageEncoding="UTF-8" %>
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+    <%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+        <!doctype html>
+        <html lang="en">
 
-<!doctype html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title>Internal Transfer | InventoryPro</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css">
-    <style>
-        .item-row { background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 10px; position: relative; transition: 0.3s; }
-        .item-row:hover { border-color: #007bff; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .btn-remove { position: absolute; top: 10px; right: 10px; color: #dc3545; cursor: pointer; border: none; background: none; font-size: 1.2rem; }
-        .stock-badge { font-size: 0.85rem; padding: 4px 8px; }
-        .border-left-danger { border-left: 5px solid #dc3545 !important; }
-        .border-left-success { border-left: 5px solid #28a745 !important; }
-    </style>
-</head>
-<body class="bg-light">
-    <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="font-weight-bold text-primary"><i class="ri-arrow-left-right-line"></i> New Internal Transfer</h2>
-            <a href="transfer" class="btn btn-outline-secondary btn-sm">Back to List</a>
-        </div>
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <title>${isExternal ? 'External' : 'Internal'} Transfers | InventoryPro</title>
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css">
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend-plugin.min.css">
+            <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/backend.css?v=1.0.0">
+            <style>
+                body {
+                    font-family: 'Inter', sans-serif;
+                    background-color: #f8fafc;
+                    overflow-y: auto;
+                }
 
-        <c:if test="${not empty inventoryErrors}">
-            <div class="alert alert-danger shadow-sm border-left-danger" role="alert">
-                <h5 class="alert-heading font-weight-bold"><i class="ri-error-warning-fill"></i> Validation Failed:</h5>
-                <ul class="mb-0">
-                    <c:forEach items="${inventoryErrors}" var="err">
-                        <li>${err}</li>
-                    </c:forEach>
-                </ul>
-            </div>
-        </c:if>
+                .page-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 0.5rem 0;
+                    margin-bottom: 0.5rem;
+                }
 
-        <c:if test="${not empty successMsg}">
-            <div class="alert alert-success shadow-sm border-left-success text-center py-3">
-                <h5 class="mb-0 font-weight-bold"><i class="ri-checkbox-circle-fill"></i> ${successMsg}</h5>
-            </div>
-        </c:if>
-        <div id="js-flash-msg"></div>
+                .content-page {
+                    padding-top: 65px !important;
+                }
 
-        <form action="transfer-create" method="post" id="transferForm">
-            <div class="card mb-4 border-0 shadow-sm">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="font-weight-bold text-dark">From Location (Source)</label>
-                            <select name="fromLocationId" id="fromLocationId" class="form-control" required onchange="clearItems()">
-                                <option value="">-- Select Source Warehouse --</option>
-                                <c:forEach items="${locations}" var="loc">
-                                    <option value="${loc.id}">${loc.locationName}</option>
-                                </c:forEach>
-                            </select>
+                .container-fluid {
+                    padding-top: 0 !important;
+                }
+
+                .card-main {
+                    border-radius: 16px;
+                    border: 1px solid #e2e8f0;
+                    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+                    background: white;
+                    overflow: hidden;
+                    margin-bottom: 2rem;
+                }
+
+                .filter-section {
+                    padding: 1.5rem;
+                    background: #fff;
+                    border-bottom: 1px solid #f1f5f9;
+                }
+
+                .form-control {
+                    border-radius: 10px;
+                    border: 1px solid #e2e8f0;
+                    padding: 0.6rem 1rem;
+                    font-size: 0.9rem;
+                }
+
+                .form-control:focus {
+                    border-color: #0ea5e9;
+                    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+                }
+
+                .btn-filter {
+                    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+                    color: white !important;
+                    border-radius: 12px;
+                    height: 42px;
+                    font-weight: 700;
+                    border: none;
+                    box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .btn-filter:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 6px 16px rgba(14, 165, 233, 0.4);
+                }
+
+                .btn-reset {
+                    background: #f1f5f9;
+                    color: #475569 !important;
+                    border-radius: 12px;
+                    height: 42px;
+                    padding: 0 1rem;
+                    font-weight: 700;
+                    border: 1px solid #e2e8f0;
+                    transition: all 0.3s ease;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .btn-reset:hover {
+                    background: #e2e8f0;
+                }
+
+                .table thead th {
+                    background: #f8fafc;
+                    font-weight: 700;
+                    color: #64748b;
+                    text-transform: uppercase;
+                    font-size: 0.75rem;
+                    letter-spacing: 0.05em;
+                    padding: 1rem 1.25rem;
+                    border-bottom: 2px solid #e2e8f0;
+                }
+
+                .table tbody td {
+                    padding: 1rem 1.25rem;
+                    vertical-align: middle;
+                    border-bottom: 1px solid #f1f5f9;
+                }
+
+                .badge-status {
+                    padding: 0.4rem 0.8rem;
+                    border-radius: 8px;
+                    font-weight: 700;
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    display: inline-block;
+                    min-width: 90px;
+                    text-align: center;
+                }
+
+                .badge-pending {
+                    background: #fff7ed;
+                    color: #f97316;
+                    border: 1px solid #ffedd5;
+                }
+
+                .badge-approved {
+                    background: #eff6ff;
+                    color: #2563eb;
+                    border: 1px solid #dbeafe;
+                }
+
+                .badge-transit {
+                    background: #fdf4ff;
+                    color: #a21caf;
+                    border: 1px solid #fae8ff;
+                }
+
+                .badge-completed {
+                    background: #f0fdf4;
+                    color: #10b981;
+                    border: 1px solid #dcfce7;
+                }
+
+                .badge-cancelled {
+                    background: #fef2f2;
+                    color: #ef4444;
+                    border: 1px solid #fee2e2;
+                }
+
+                /* Modal Styles - Thân thiện & Chuyên nghiệp hơn */
+                .modal-content {
+                    border-radius: 24px;
+                    border: none;
+                    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.15);
+                    overflow: hidden;
+                }
+
+                .modal-header {
+                    border-bottom: 1px solid #f8fafc;
+                    padding: 1.2rem 2rem;
+                    background: #fff;
+                }
+
+                .modal-body {
+                    padding: 1.5rem 2rem;
+                    background: #fff;
+                }
+
+                .info-section {
+                    background: #fcfdfe;
+                    border-radius: 16px;
+                    padding: 1.2rem;
+                    margin-bottom: 1.25rem;
+                    border: 1px solid #edf2f7;
+                }
+
+                .detail-label {
+                    font-size: 0.75rem;
+                    text-transform: uppercase;
+                    color: #64748b;
+                    font-weight: 800;
+                    letter-spacing: 0.08em;
+                    margin-bottom: 0.5rem;
+                    display: block;
+                }
+
+                .detail-value {
+                    font-size: 1.1rem;
+                    color: #1e293b;
+                    font-weight: 600;
+                }
+
+                .route-node {
+                    display: flex;
+                    align-items: center;
+                    background: white;
+                    border: 1px solid #f1f5f9;
+                    padding: 0.8rem 1rem;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+                }
+
+                .route-line {
+                    width: 35px;
+                    height: 2px;
+                    background: #e2e8f0;
+                    margin: 0 10px;
+                    position: relative;
+                }
+
+                .route-line::after {
+                    content: '\ea6e';
+                    font-family: 'remixicon';
+                    font-size: 1.1rem;
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: #64748b;
+                }
+
+                .product-banner {
+                    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+                    border-left: 5px solid #0ea5e9;
+                    padding: 1.2rem;
+                    border-radius: 14px;
+                    margin-bottom: 1.5rem;
+                }
+
+                .rounded-xl {
+                    border-radius: 10px !important;
+                }
+
+                .btn-approve {
+                    background: #0ea5e9;
+                    border: none;
+                    transition: all 0.3s;
+                    color: white;
+                }
+
+                .btn-approve:hover {
+                    background: #0284c7;
+                    transform: translateY(-1px);
+                    box-shadow: 0 10px 15px -3px rgba(14, 165, 233, 0.3);
+                }
+
+                .badge-step {
+                    background: #e0f2fe;
+                    color: #0369a1;
+                    padding: 0.2rem 0.6rem;
+                    border-radius: 6px;
+                    font-weight: 700;
+                    margin-right: 0.5rem;
+                }
+            </style>
+        </head>
+
+        <body>
+            <div class="wrapper">
+                <%@ include file="../sidebar.jsp" %>
+                    <jsp:include page="../header.jsp" />
+                    <div class="content-page">
+                        <div class="container-fluid">
+                            <div class="page-header">
+                                <div>
+                                    <h1 class="font-weight-bold mb-1">${isExternal ? 'External' : 'Internal'} Transfers
+                                        History</h1>
+                                    <p class="text-secondary mb-0">Track and manage inventory movements</p>
+                                </div>
+                                <div>
+                                    <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=form"
+                                        class="btn btn-success ml-2"><i class="ri-add-line"></i> Create New Request</a>
+                                </div>
+                            </div>
+
+                            <c:if test="${not empty sessionScope.msg}">
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    <i class="ri-checkbox-circle-line mr-2"></i> ${sessionScope.msg}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <% session.removeAttribute("msg"); %>
+                            </c:if>
+
+                            <div class="card card-main">
+                                <div class="filter-section">
+                                    <form action="${isExternal ? 'external-transfer' : 'internal-transfer'}"
+                                        method="get">
+                                        <input type="hidden" name="action" value="view">
+                                        <div class="row align-items-end">
+                                            <div class="col-md-5">
+                                                <label
+                                                    class="small font-weight-bold text-uppercase text-secondary">Search</label>
+                                                <input type="text" name="code" class="form-control"
+                                                    placeholder="Transfer code, product..." value="${code}">
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label
+                                                    class="small font-weight-bold text-uppercase text-secondary">Status
+                                                    Filter</label>
+                                                <select name="status" class="form-control">
+                                                    <option value="">All Statuses</option>
+                                                    <option value="0" ${status==0 ? 'selected' : '' }>Pending</option>
+                                                    <option value="1" ${status==1 ? 'selected' : '' }>Approved</option>
+                                                    <option value="2" ${status==2 ? 'selected' : '' }>In Transit
+                                                    </option>
+                                                    <option value="3" ${status==3 ? 'selected' : '' }>Completed</option>
+                                                    <option value="4" ${status==4 ? 'selected' : '' }>Cancelled</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-4 d-flex" style="gap: 0.5rem;">
+                                                <button type="submit" class="btn btn-filter flex-grow-1">Apply
+                                                    Filters</button>
+                                                <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=view"
+                                                    class="btn btn-reset"><i class="ri-refresh-line"></i> Reset</a>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Order ID</th>
+                                                    <th>Route (From -> To)</th>
+                                                    <th>Product Detail</th>
+                                                    <th>Quantity</th>
+                                                    <th>Status</th>
+                                                    <th class="text-right px-4">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <c:forEach items="${pendingList}" var="item">
+                                                    <tr>
+                                                        <td><span class="font-weight-bold">${item.transferCode}</span>
+                                                        </td>
+                                                        <td>
+                                                            <div class="d-flex align-items-center">
+                                                                <span
+                                                                    class="badge badge-light border px-2 py-1">${item.fromLocationName}</span>
+                                                                <i class="ri-arrow-right-line mx-2 text-muted"></i>
+                                                                <span
+                                                                    class="badge badge-light border px-2 py-1">${item.toLocationName}</span>
+                                                            </div>
+                                                        </td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${item.productId > 1}">
+                                                                    <span class="text-muted"><i
+                                                                            class="ri-stack-line"></i> Multiple
+                                                                        items</span>
+                                                                </c:when>
+                                                                <c:otherwise>
+                                                                    ${item.productName}
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                        <td class="font-weight-bold text-primary">${item.quantity}</td>
+                                                        <td>
+                                                            <c:choose>
+                                                                <c:when test="${item.status == 0}"><span
+                                                                        class="badge-status badge-pending">Pending</span>
+                                                                </c:when>
+                                                                <c:when test="${item.status == 1}"><span
+                                                                        class="badge-status badge-approved">Approved</span>
+                                                                </c:when>
+                                                                <c:when test="${item.status == 2}"><span
+                                                                        class="badge-status badge-transit">In
+                                                                        Transit</span></c:when>
+                                                                <c:when test="${item.status == 3}"><span
+                                                                        class="badge-status badge-completed">Completed</span>
+                                                                </c:when>
+                                                                <c:when test="${item.status == 4}"><span
+                                                                        class="badge-status badge-cancelled">Cancelled</span>
+                                                                </c:when>
+                                                                <c:otherwise><span
+                                                                        class="badge-status badge-secondary">Unknown</span>
+                                                                </c:otherwise>
+                                                            </c:choose>
+                                                        </td>
+                                                        <td class="text-right px-4">
+                                                            <a href="${isExternal ? 'external-transfer' : 'internal-transfer'}?action=detail&id=${item.id}"
+                                                                class="btn btn-sm btn-outline-primary"
+                                                                style="border-radius: 8px; font-weight: 700; font-size: 0.8rem; padding: 0.4rem 1.2rem;">
+                                                                <i class="ri-eye-line mr-1"></i> View Detail
+                                                            </a>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                                <c:if test="${empty pendingList}">
+                                                    <tr>
+                                                        <td colspan="6" class="text-center py-5">
+                                                            <div class="text-muted">
+                                                                <i class="ri-history-line ri-3x mb-3 d-block"></i>
+                                                                <p>No transfer history found.</p>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </c:if>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <c:if test="${totalPages > 1}">
+                                    <div class="card-footer bg-white border-top py-3">
+                                        <nav aria-label="Page navigation">
+                                            <ul class="pagination justify-content-center mb-0">
+                                                <%-- Block Pagination (Groups of 3: 1-3, 4-6, 7-9...) --%>
+                                                    <c:set var="startPage"
+                                                        value="${currentPage - ((currentPage - 1) % 3)}" />
+                                                    <c:set var="endPage" value="${startPage + 2}" />
+                                                    <c:if test="${endPage > totalPages}">
+                                                        <c:set var="endPage" value="${totalPages}" />
+                                                    </c:if>
+
+                                                    <c:set var="baseUrl"
+                                                        value="${isExternal ? 'external-transfer' : 'internal-transfer'}" />
+
+                                                    <%-- Previous --%>
+                                                        <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                                                            <a class="page-link"
+                                                                href="${baseUrl}?action=view&page=${currentPage - 1}&code=${code}&status=${status}&fromLoc=${fromLoc}&toLoc=${toLoc}&productName=${productName}">
+                                                                <i class="ri-arrow-left-s-line"></i> Previous
+                                                            </a>
+                                                        </li>
+
+                                                        <%-- Page numbers --%>
+                                                            <c:forEach begin="${startPage}" end="${endPage}" var="p">
+                                                                <li
+                                                                    class="page-item ${p == currentPage ? 'active' : ''}">
+                                                                    <a class="page-link"
+                                                                        href="${baseUrl}?action=view&page=${p}&code=${code}&status=${status}&fromLoc=${fromLoc}&toLoc=${toLoc}&productName=${productName}">${p}</a>
+                                                                </li>
+                                                            </c:forEach>
+
+                                                            <%-- Next --%>
+                                                                <li
+                                                                    class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                                                                    <a class="page-link"
+                                                                        href="${baseUrl}?action=view&page=${currentPage + 1}&code=${code}&status=${status}&fromLoc=${fromLoc}&toLoc=${toLoc}&productName=${productName}">
+                                                                        Next <i class="ri-arrow-right-s-line"></i>
+                                                                    </a>
+                                                                </li>
+                                            </ul>
+                                        </nav>
+                                    </div>
+                                </c:if>
+                            </div>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="font-weight-bold text-dark">To Location (Destination)</label>
-                            <select name="toLocationId" id="toLocationId" class="form-control" required>
-                                <option value="">-- Select Destination --</option>
-                                <c:forEach items="${locations}" var="loc">
-                                    <option value="${loc.id}">${loc.locationName}</option>
-                                </c:forEach>
-                            </select>
-                        </div>
                     </div>
-                </div>
             </div>
+            <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
+            <script src="${pageContext.request.contextPath}/assets/js/app.js"></script>
+        </body>
 
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-                    <h5 class="m-0 font-weight-bold text-dark">Transfer Items</h5>
-                    <button type="button" class="btn btn-primary btn-sm px-3" onclick="openProductModal()">
-                        <i class="ri-add-circle-line"></i> Add Products from Stock
-                    </button>
-                </div>
-                <div class="card-body bg-light" id="itemsContainer">
-                    <div id="emptyState" class="text-center py-5 text-muted">
-                        <i class="ri-inbox-line ri-3x"></i>
-                        <p class="mt-2">No products selected. Click "Add Products" to load stock.</p>
-                    </div>
-                </div>
-                <div class="card-footer bg-white text-right py-3">
-                    <button type="submit" class="btn btn-success px-5 font-weight-bold shadow">
-                        <i class="ri-save-line"></i> Save Transfer Order
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <div class="modal fade" id="productModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content border-0 shadow-lg">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title">Inventory in Selected Warehouse</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="border-0">Product Detail</th>
-                                    <th class="border-0 text-center">In Stock</th>
-                                    <th class="border-0 text-right">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stockResults">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="${pageContext.request.contextPath}/assets/js/backend-bundle.min.js"></script>
-    <script>
-        function showFlashMsg(msg) {
-            var container = document.getElementById('js-flash-msg');
-            container.innerHTML = '<div class="alert alert-danger shadow-sm border-left-danger" role="alert"><h5 class="alert-heading font-weight-bold mb-0"><i class="ri-error-warning-fill mr-2"></i>' + msg + '</h5></div>';
-            window.scrollTo(0, 0);
-        }
-
-        // Mở Modal và load HTML từ Servlet TransferCreate (doGet với action=get-stock)
-        function openProductModal() {
-            const locId = document.getElementById('fromLocationId').value;
-            if(!locId) {
-                showFlashMsg("Please select a Source Location first!");
-                return;
-            }
-
-            const tbody = document.getElementById('stockResults');
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">Loading stock data...</td></tr>';
-            $('#productModal').modal('show');
-
-            // GỌI VỀ CHÍNH SERVLET NÀY VỚI ACTION GET-STOCK
-            fetch('transfer-create?action=get-stock&locId=' + locId)
-                .then(res => res.text()) // Nhận HTML thay vì JSON
-                .then(html => {
-                    tbody.innerHTML = html;
-                })
-                .catch(err => {
-                    tbody.innerHTML = '<tr><td colspan="3" class="text-center text-danger">Error connecting to server.</td></tr>';
-                });
-        }
-
-        // Thêm sản phẩm vào danh sách
-        function addItem(id, name, max) {
-            document.getElementById('emptyState').style.display = 'none';
-            const container = document.getElementById('itemsContainer');
-            
-            if(document.querySelector(`input[name="productDetailId"][value="${id}"]`)) {
-                showFlashMsg("Product already selected!");
-                return;
-            }
-
-            const div = document.createElement('div');
-            div.className = 'item-row';
-            div.innerHTML = `
-                <button type="button" class="btn-remove" onclick="this.parentElement.remove(); checkEmpty();">&times;</button>
-                <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <span class="d-block font-weight-bold text-dark">${name}</span>
-                        <small class="text-primary">Detail ID: ${id} | Current Stock: <strong>${max}</strong></small>
-                        <input type="hidden" name="productDetailId" value="${id}">
-                    </div>
-                    <div class="col-md-4">
-                        <div class="input-group shadow-sm">
-                            <div class="input-group-prepend"><span class="input-group-text bg-white">Qty</span></div>
-                            <input type="number" name="quantity" class="form-control" value="1" min="1" max="${max}" required>
-                        </div>
-                    </div>
-                </div>`;
-            container.appendChild(div);
-            $('#productModal').modal('hide');
-        }
-
-        function checkEmpty() {
-            if (document.querySelectorAll('.item-row').length === 0) {
-                document.getElementById('emptyState').style.display = 'block';
-            }
-        }
-
-        function clearItems() {
-            const container = document.getElementById('itemsContainer');
-            container.innerHTML = `
-                <div id="emptyState" class="text-center py-5 text-muted">
-                    <i class="ri-inbox-line ri-3x"></i>
-                    <p class="mt-2">No products selected. Click "Add Products" to load stock.</p>
-                </div>`;
-        }
-
-        document.getElementById('transferForm').onsubmit = function(e) {
-            const from = document.getElementById('fromLocationId').value;
-            const to = document.getElementById('toLocationId').value;
-            if(from === to) {
-                showFlashMsg("Source and Destination warehouses must be different!");
-                e.preventDefault();
-                return false;
-            }
-            if(document.querySelectorAll('.item-row').length === 0) {
-                showFlashMsg("Please add at least one product to transfer!");
-                e.preventDefault();
-                return false;
-            }
-        };
-    </script>
-</body>
-</html>
+        </html>

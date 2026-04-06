@@ -1,10 +1,6 @@
 <%-- 
     Document   : page-404-error
-<<<<<<< HEAD
     Created on : Jun 21, 2025, 9:23:53 PM
-=======
-    Created on : Jun 26, 2025, 6:50:41 PM
->>>>>>> feature/permissions
     Author     : admin
 --%>
 

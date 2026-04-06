@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Customer Management | InventoryPro</title>
+    <title>Warehouse Management | InventoryPro</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -227,23 +227,23 @@
 
 <body>
     <div class="wrapper">
-        <%@ include file="sidebar.jsp" %>
-        <jsp:include page="header.jsp" />
+        <%@ include file="../sidebar.jsp" %>
+        <jsp:include page="../header.jsp" />
+
         <div class="content-page">
             <div class="container-fluid">
 
                 <div class="page-header">
-                    <h1 class="font-weight-bold h2">Customer Management</h1>
+                    <h1 class="font-weight-bold h2">Warehouse Management</h1>
                     <c:choose>
                         <c:when test="${mode == 'add' or mode == 'edit'}">
-                            <%-- When form is open, button navigates back to list --%>
-                            <a href="customers" class="btn-cancel">
+                            <a href="warehouses" class="btn-cancel">
                                 <i class="ri-arrow-left-line mr-1"></i> Back to List
                             </a>
                         </c:when>
                         <c:otherwise>
-                            <a href="customers?mode=add" class="btn-add">
-                                <i class="ri-user-add-line"></i> Add New Customer
+                            <a href="warehouses?mode=add" class="btn-add">
+                                <i class="ri-add-line"></i> Add New Warehouse
                             </a>
                         </c:otherwise>
                     </c:choose>
@@ -267,58 +267,40 @@
                     <c:remove var="success" scope="session" />
                 </c:if>
 
-                
+                <%-- ============================================================
+                     INLINE FORM — shown when mode=add or mode=edit
+                     ============================================================ --%>
                 <c:if test="${mode == 'add' or mode == 'edit'}">
                     <div class="form-card">
                         <div class="form-card-header">
                             <h5>
                                 <c:choose>
-                                    <c:when test="${mode == 'edit'}">Edit Customer</c:when>
-                                    <c:otherwise>Add New Customer</c:otherwise>
+                                    <c:when test="${mode == 'edit'}">Edit Warehouse</c:when>
+                                    <c:otherwise>Add New Warehouse</c:otherwise>
                                 </c:choose>
                             </h5>
                         </div>
 
-                        <form action="customers" method="post">
-                            <%-- action field: add or update --%>
+                        <form action="warehouses" method="post">
                             <input type="hidden" name="action"
                                    value="${mode == 'edit' ? 'update' : 'add'}">
                             <c:if test="${mode == 'edit'}">
-                                <input type="hidden" name="customerId" value="${editCustomer.id}">
+                                <input type="hidden" name="id" value="${editWarehouse.id}">
                             </c:if>
 
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Customer Code</label>
-                                    <input type="text" name="customerCode" class="form-control"
+                                    <label class="form-label">Warehouse Code</label>
+                                    <input type="text" name="warehouseCode" class="form-control"
                                            placeholder="Auto-generated"
-                                           value="${mode == 'edit' ? editCustomer.customerCode : ''}"
+                                           value="${mode == 'edit' ? editWarehouse.warehouseCode : ''}"
                                            readonly>
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Customer Name</label>
-                                    <input type="text" name="name" class="form-control"
-                                           placeholder="Enter full name" required
-                                           pattern="^[A-Za-zÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝàáâãèéêìíòóôõùúýĂăĐđĨĩŨũƠơƯưẠ-ỹ\s]+$"
-                                           title="Tên chỉ được chứa chữ cái và khoảng trắng"
-                                           value="${mode == 'edit' ? editCustomer.name : ''}">
-                                </div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Phone Number</label>
-                                    <input type="text" name="phone" class="form-control"
-                                           placeholder="e.g. 0123456789"
-                                           pattern="^0\d{9}$"
-                                           title="Số điện thoại phải có 10 số và bắt đầu bằng số 0"
-                                           value="${mode == 'edit' ? editCustomer.phone : ''}">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label">Email Address</label>
-                                    <input type="email" name="email" class="form-control"
-                                           placeholder="example@mail.com"
-                                           value="${mode == 'edit' ? editCustomer.email : ''}">
+                                    <label class="form-label">Warehouse Name</label>
+                                    <input type="text" name="warehouseName" class="form-control"
+                                           placeholder="e.g. Central Warehouse" required
+                                           value="${mode == 'edit' ? editWarehouse.warehouseName : ''}">
                                 </div>
                             </div>
 
@@ -326,35 +308,42 @@
                                 <div class="col-md-12 mb-3">
                                     <label class="form-label">Address</label>
                                     <input type="text" name="address" class="form-control"
-                                           placeholder="Enter full address"
-                                           value="${mode == 'edit' ? editCustomer.address : ''}">
+                                           placeholder="Enter warehouse address"
+                                           value="${mode == 'edit' ? editWarehouse.address : ''}">
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3">
+                                    <label class="form-label">Description</label>
+                                    <textarea name="description" class="form-control" rows="3"
+                                              placeholder="Enter description"><c:if test="${mode == 'edit'}">${editWarehouse.description}</c:if></textarea>
                                 </div>
                             </div>
 
                             <div class="text-right mt-2">
-                                <a href="customers" class="btn-cancel mr-2">Cancel</a>
-                                <button type="submit" class="btn btn-add ml-2 px-4 py-2">Save Customer</button>
+                                <a href="warehouses" class="btn-cancel mr-2">Cancel</a>
+                                <button type="submit" class="btn btn-add ml-2 px-4 py-2">Save Warehouse</button>
                             </div>
                         </form>
                     </div>
                 </c:if>
-
-    
-
                 <c:if test="${empty mode}">
-                  
+                    <%-- ============================================================
+                         SEARCH + TABLE — hidden when mode is not empty
+                         ============================================================ --%>
 
                     <%-- Search form (GET) --%>
-                    <form action="customers" method="get" class="search-section">
+                    <form action="warehouses" method="get" class="search-section">
                         <i class="ri-search-line"></i>
                         <input type="text" name="search"
-                               placeholder="Search by code, name or phone..."
+                               placeholder="Search by code, name or address..."
                                value="${search}">
                         <button type="submit" title="Search">
                             <i class="ri-arrow-right-line"></i>
                         </button>
                         <c:if test="${not empty search}">
-                            <a href="customers" style="color:#94a3b8; font-size:1.1rem;" title="Clear search">
+                            <a href="warehouses" style="color:#94a3b8; font-size:1.1rem;" title="Clear search">
                                 <i class="ri-close-line"></i>
                             </a>
                         </c:if>
@@ -366,52 +355,41 @@
                                 <table class="table mb-0">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
-                                            <th>Code</th>
+                                            <th>Warehouse Code</th>
                                             <th>Name</th>
-                                            <th>Contact Info</th>
                                             <th>Address</th>
+                                            <th>Description</th>
                                             <th class="text-right">Actions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <c:forEach var="c" items="${customers}" varStatus="status">
+                                        <c:forEach var="w" items="${warehouses}">
                                             <tr>
-                                                <td><span class="text-secondary">${(currentPage - 1) * 5 + status.index + 1}</span></td>
-                                                <td><span class="font-weight-bold text-primary">${c.customerCode}</span></td>
-                                                <td><span class="font-weight-bold text-dark">${c.name}</span></td>
-                                                <td>
-                                                    <div class="d-flex flex-column">
-                                                        <span class="font-weight-bold">
-                                                            <i class="ri-phone-line mr-1 text-primary"></i>${c.phone}
-                                                        </span>
-                                                        <small class="text-secondary">
-                                                            <i class="ri-mail-line mr-1 text-primary"></i>${c.email}
-                                                        </small>
-                                                    </div>
-                                                </td>
-                                                <td><span class="text-secondary">${c.address}</span></td>
+                                                <td><span class="font-weight-bold text-primary">${w.warehouseCode}</span></td>
+                                                <td><span class="font-weight-bold text-dark">${w.warehouseName}</span></td>
+                                                <td><span class="text-secondary">${w.address}</span></td>
+                                                <td><span class="text-secondary">${w.description}</span></td>
                                                 <td class="text-right">
-                                                    <%-- Edit: link to same page with mode=edit&id=... --%>
-                                                    <a href="customers?mode=edit&id=${c.id}" class="btn-action btn-edit mr-2">
+                                                    <%-- Edit: link với mode=edit&id=... --%>
+                                                    <a href="warehouses?mode=edit&id=${w.id}" class="btn-action btn-edit mr-2">
                                                         <i class="ri-pencil-line"></i> Edit
                                                     </a>
-                                                    
-                                                    <form action="customers" method="post" style="display:inline;">
+                                                    <%-- Delete: POST form --%>
+                                                    <form action="warehouses" method="post" style="display:inline;">
                                                         <input type="hidden" name="action" value="delete">
-                                                        <input type="hidden" name="customerId" value="${c.id}">
+                                                        <input type="hidden" name="id" value="${w.id}">
                                                         <button type="submit" class="btn-action btn-delete"
-                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa khách hàng &quot;${c.name}&quot; không?')">
+                                                                onclick="return confirm('Bạn có chắc chắn muốn xóa kho &quot;${w.warehouseName}&quot; không? Tất cả các dữ liệu liên quan sẽ bị ảnh hưởng.')">
                                                             <i class="ri-delete-bin-line"></i> Delete
                                                         </button>
                                                     </form>
                                                 </td>
                                             </tr>
                                         </c:forEach>
-                                        <c:if test="${empty customers}">
+                                        <c:if test="${empty warehouses}">
                                             <tr>
-                                                <td colspan="6" class="text-center text-secondary py-4">
-                                                    No customers found.
+                                                <td colspan="5" class="text-center text-secondary py-4">
+                                                    No warehouses found.
                                                 </td>
                                             </tr>
                                         </c:if>
@@ -425,20 +403,20 @@
                                     <ul class="pagination justify-content-center">
                                         <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
                                             <a class="page-link"
-                                               href="customers?page=${currentPage - 1}&search=${search}"
+                                               href="warehouses?page=${currentPage - 1}&search=${search}"
                                                tabindex="-1">Previous</a>
                                         </li>
 
                                         <c:forEach begin="1" end="${totalPages}" var="i">
                                             <li class="page-item ${currentPage == i ? 'active' : ''}">
                                                 <a class="page-link"
-                                                   href="customers?page=${i}&search=${search}">${i}</a>
+                                                   href="warehouses?page=${i}&search=${search}">${i}</a>
                                             </li>
                                         </c:forEach>
 
                                         <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
                                             <a class="page-link"
-                                               href="customers?page=${currentPage + 1}&search=${search}">Next</a>
+                                               href="warehouses?page=${currentPage + 1}&search=${search}">Next</a>
                                         </li>
                                     </ul>
                                 </nav>

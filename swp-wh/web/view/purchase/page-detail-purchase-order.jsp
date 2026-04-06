@@ -204,7 +204,7 @@
                                                                         <c:when test="${not empty poLockedByName}">
                                                                             <div class="alert alert-warning mb-0"
                                                                                 style="font-size: 0.95rem;">
-                                                                                <i class="fas fa-lock mr-2"></i>
+
                                                                                 <strong>This PO is being processed by
                                                                                     <span
                                                                                         class="text-danger">${poLockedByName}</span>.</strong>
@@ -229,12 +229,9 @@
                                                                         <c:otherwise>
                                                                             <a href="${pageContext.request.contextPath}/create-goods-receipt?poId=${po.id}"
                                                                                 class="btn btn-success btn-lg">
-                                                                                <i
-                                                                                    class="fas fa-truck-loading mr-2"></i>Create
-                                                                                Goods Receipt Order
+                                                                                Create Goods Receipt Order
                                                                             </a>
                                                                             <small class="text-muted ml-3">
-                                                                                <i class="fas fa-info-circle mr-1"></i>
                                                                                 PO is Marked Received — ready to create
                                                                                 goods receipt
                                                                             </small>
@@ -247,7 +244,7 @@
 
                                         <div class="card mt-3">
                                             <div class="card-header">
-                                                <h5 class="card-title mb-0"><i class="fas fa-list mr-2"></i>Product
+                                                <h5 class="card-title mb-0">Product
                                                     Details</h5>
                                             </div>
                                             <div class="card-body">
